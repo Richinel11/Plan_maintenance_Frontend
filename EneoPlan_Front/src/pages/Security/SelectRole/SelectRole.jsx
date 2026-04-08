@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { logout } from '../../services/authService';
+import { logout } from '../../../services/authService';
 import './SelectRole.css';
 
 // Ces données servent juste de fallback pour l'icône si on reconnaît le code_role
@@ -28,7 +28,8 @@ const SelectRole = () => {
     // 3. Auto-sélection : si l'utilisateur n'a accès qu'à 1 SEUL rôle, on le sélectionne automatiquement
     useEffect(() => {
         if (allowedRolesList.length === 1 && !selectedRole) {
-            setSelectedRole(allowedRolesList[0].code_role || allowedRolesList[0].id);
+            const r = allowedRolesList[0];
+            setSelectedRole(r.code_role || r.code || r.nom || r.id);
         }
     }, [allowedRolesList, selectedRole]);
 
@@ -82,9 +83,9 @@ const SelectRole = () => {
 
             <div className="roles-grid">
                 {allowedRolesList.map(role => {
-                    // On utilise le code_role s'il existe, sinon l'id comme identifiant unique
-                    const roleIdentifier = role.code_role || role.id;
-                    const fallback = staticRolesFallback[role.code_role] || { icon: 'person' };
+                    // On utilise le code_role s'il existe, sinon le code, le nom ou l'id
+                    const roleIdentifier = role.code_role || role.code || role.nom || role.id;
+                    const fallback = staticRolesFallback[roleIdentifier] || { icon: 'person' };
                     
                     return (
                         <div 

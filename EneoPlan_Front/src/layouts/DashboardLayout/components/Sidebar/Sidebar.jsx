@@ -15,10 +15,22 @@ const Sidebar = () => {
     const fullName = `${user.prenom || ''} ${user.nom || ''}`.trim() || 'Utilisateur Anonyme';
 
     // 2. Détermination du rôle actif pour savoir quels menus afficher
-    const activeRoleCode = sessionStorage.getItem('activeRole');
+    let activeRoleCode = sessionStorage.getItem('activeRole');
     
-    // 3. Extraction des menus correspondants (tableau vide si aucun match)
-    const dynamicLinks = menuConfig[activeRoleCode] || [];
+    // Normalisation (pour gérer "Admin", "Administrateur", "1", "admin")
+    let dynamicLinks = [];
+    if (activeRoleCode) {
+        // Recherche clé stricte
+        dynamicLinks = menuConfig[activeRoleCode] || [];
+        
+        // Si aucun lien n'est trouvé, on tente de deviner si c'est un administrateur
+        if (dynamicLinks.length === 0) {
+            const roleStr = String(activeRoleCode).toLowerCase();
+            if (roleStr.includes('admin') || roleStr === '1') {
+                dynamicLinks = menuConfig['admin'] || [];
+            }
+        }
+    }
 
     return (
         <aside className="sidebar">
@@ -30,10 +42,10 @@ const Sidebar = () => {
             {/* Navigation Dynamique */}
             <nav className="sidebar-nav">
                 {/* 1. L'accueil est toujours présent pour tout le monde */}
-                <NavLink to="/dashboard/home" className={({isActive}) => isActive ? "nav-item active" : "nav-item"}>
+                {/* <NavLink to="/dashboard/home" className={({isActive}) => isActive ? "nav-item active" : "nav-item"}>
                     <span className="material-symbols-outlined nav-icon">dashboard</span>
                     Accueil
-                </NavLink>
+                </NavLink> */}
 
                 {/* 2. On boucle intelligemment sur les menus récupérés depuis le fichier de config */}
                 {dynamicLinks.map((link, index) => (

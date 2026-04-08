@@ -9,13 +9,25 @@
 }
 
 .breadcrumb {
-    color: #94a3b8;
+    display: flex;
+    align-items: center;
+    gap: 8px;
     font-size: 0.95rem;
 }
 
-.breadcrumb strong {
-    color: #0f172a;
+.breadcrumb-item.parent {
+    color: #94a3b8; /* Gris clair pour les parents */
+    font-weight: 400;
+}
+
+.breadcrumb-item.active {
+    color: #0f172a; /* Indigo foncé/noir pour la page active */
     font-weight: 600;
+}
+
+.breadcrumb-separator {
+    color: #cbd5e1;
+    font-weight: 400;
 }
 
 .topbar-actions {

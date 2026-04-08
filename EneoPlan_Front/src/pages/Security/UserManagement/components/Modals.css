@@ -1,0 +1,218 @@
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(15, 23, 42, 0.6);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    backdrop-filter: blur(2px);
+    animation: fadeIn 0.2s ease-out;
+}
+
+.modal-content {
+    background-color: #ffffff;
+    border-radius: 12px;
+    width: 90%;
+    max-width: 600px;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    animation: slideUp 0.3s ease-out;
+    overflow: hidden;
+}
+
+.confirm-content {
+    max-width: 450px;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes slideUp {
+    from { transform: translateY(20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
+/* Header */
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 24px;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.modal-header h2 {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #1e293b;
+    margin: 0;
+}
+
+.close-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #94a3b8;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.2s;
+}
+
+.close-btn:hover {
+    color: #475569;
+}
+
+/* Forms */
+.modal-form {
+    padding: 24px;
+}
+
+.form-row {
+    display: flex;
+    gap: 16px;
+}
+
+.form-row .form-group {
+    flex: 1;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #334155;
+}
+
+.text-danger {
+    color: #ef4444;
+}
+
+.form-input {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #939597; /* Gris EneoPlan */
+    border-radius: 6px;
+    font-size: 0.95rem;
+    color: #1e293b;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    outline: none;
+}
+
+.form-input:focus {
+    border-color: #1B75BB; /* Primary EneoPlan Focus */
+    box-shadow: 0 0 0 3px rgba(27, 117, 187, 0.1);
+}
+
+select.form-input[multiple] {
+    padding: 4px;
+}
+
+select.form-input[multiple] option {
+    padding: 8px;
+    border-radius: 4px;
+}
+
+select.form-input[multiple] option:checked {
+    background-color: #1B75BB;
+    color: white;
+}
+
+.form-hint {
+    display: block;
+    margin-top: 6px;
+    font-size: 0.8rem;
+    color: #64748b;
+}
+
+/* Body & Confirms */
+.modal-body {
+    padding: 24px;
+    text-align: center;
+}
+
+.confirm-icon-wrapper {
+    margin-bottom: 16px;
+    display: flex;
+    justify-content: center;
+}
+
+.confirm-icon {
+    font-size: 48px !important;
+    color: #f59e0b; /* Orange warning */
+}
+
+.confirm-text {
+    font-size: 1.05rem;
+    color: #334155;
+    line-height: 1.5;
+    margin: 0 0 12px 0;
+}
+
+.highlight-user {
+    color: #1B75BB;
+    font-weight: 700;
+}
+
+.confirm-warning {
+    font-size: 0.9rem;
+    color: #ef4444;
+    margin: 0;
+}
+
+/* Actions */
+.modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 12px;
+}
+
+.confirm-actions {
+    padding: 16px 24px;
+    border-top: 1px solid #e2e8f0;
+    background-color: #f8fafc;
+    margin-top: 0;
+    justify-content: center;
+}
+
+/* Error Alert */
+.modal-error {
+    background-color: #fef2f2;
+    color: #b91c1c;
+    padding: 12px;
+    border-radius: 6px;
+    margin-bottom: 20px;
+    font-size: 0.9rem;
+    border-left: 4px solid #ef4444;
+}
+
+/* Status specific buttons inside ConfirmModal */
+.danger-btn {
+    background-color: #ef4444 !important;
+    border-color: #ef4444 !important;
+}
+
+.danger-btn:hover {
+    background-color: #dc2626 !important;
+}
+
+.success-btn {
+    background-color: #8DC640 !important; /* Vert EneoPlan Accent */
+    border-color: #8DC640 !important;
+    color: #1C1C1B !important; /* Texte complet EneoPlan pour vert */
+}
+
+.success-btn:hover {
+    background-color: #7ab22f !important;
+}

@@ -36,5 +36,16 @@ export const menuConfig = {
     ],
     eq_comm: [
         { path: '/dashboard/alertes-publiques', name: 'Alertes Publiques', icon: 'campaign' },
+    ],
+    // Profil Administrateur Système (Gestion Permissions)
+    admin: [
+        { path: '/dashboard/users', name: 'Utilisateurs', icon: 'group' },
+        { path: '/dashboard/roles', name: 'Rôles', icon: 'security' },
+        { path: '/dashboard/permissions', name: 'Permissions', icon: 'shield_locked' },
     ]
 };
+
+// --- Mappings de compatibilité (Backend Django) ---
+menuConfig['Ad1'] = menuConfig['admin'];
+menuConfig['ad1'] = menuConfig['admin'];
+menuConfig['Administrateur'] = menuConfig['admin'];
