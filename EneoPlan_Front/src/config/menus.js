@@ -7,6 +7,7 @@
 export const menuConfig = {
     // Profils liés à la conception
     op_saisie: [
+        // { path: '/dashboard/OP-home', name: 'Accueil', icon: 'event_note' },
         { path: '/dashboard/plannings', name: 'Plannings', icon: 'event_note' },
         { path: '/dashboard/import', name: 'Importer Planning', icon: 'upload_file' },
         { path: '/dashboard/create-job', name: 'Nouveau Travail', icon: 'add_box' },

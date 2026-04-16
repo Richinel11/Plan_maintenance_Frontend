@@ -1,0 +1,273 @@
+/* src/styles/ImportPlanning.css */
+
+.import-container {
+  
+  background: #f9fafb;
+  /* display: flex; */
+  /* position: relative; */
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  font-family: 'Inter', system-ui, sans-serif;
+  margin: auto 300px;
+  
+
+}
+
+.import-card {
+  background: white;
+  width: 100%;
+  max-width: 950px;
+  border-radius: 24px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+}
+
+.import-header {
+  padding: 40px 40px 20px;
+  /* margin-top: 1px; */
+ 
+}
+
+.import-title {
+  font-size: 28px;
+  font-weight: 700;
+  color: #1f2937;
+  margin: 0;
+}
+
+.import-subtitle {
+  color: #6b7280;
+  margin-top: 8px;
+  font-size: 16px;
+}
+
+.drop-zone {
+  margin: 0 32px;
+  border: 2px dashed #d1d5db;
+  border-radius: 20px;
+  padding: 60px 40px;
+  text-align: center;
+  transition: all 0.3s ease;
+  background: #F4F8FC;
+  margin-top: 3vh;
+}
+
+.drop-zone.dragging {
+  border-color: #3b82f6;
+  background: #eff6ff;
+}
+
+.drop-zone:hover {
+  border-color: #9ca3af;
+}
+
+.cloud-icon {
+  width: 70px;
+  height: 70px;
+  background: #dbeafe;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 24px;
+}
+
+.cloud-icon svg {
+  width: 36px;
+  height: 36px;
+  color: #2563eb;
+}
+
+.drop-text {
+  font-size: 20px;
+  font-weight: 600;
+  color: #1f2937;
+  margin-bottom: 8px;
+}
+
+.drop-subtext {
+  color: #6b7280;
+  margin-bottom: 32px;
+  line-height: 1.5;
+}
+
+.browse-btn {
+  background: #2563eb;
+  color: white;
+  border: none;
+  padding: 14px 32px;
+  border-radius: 9999px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  transition: all 0.2s;
+}
+
+.browse-btn:hover {
+  background: #1d4ed8;
+}
+
+.supported-formats {
+  margin-top: 24px;
+  color: #9ca3af;
+  font-size: 14px;
+}
+
+.file-preview {
+  margin: 24px 32px;
+  padding: 20px;
+  background: #f8fafc;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.file-info {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.file-name {
+  font-weight: 500;
+  color: #1f2937;
+}
+
+.file-size {
+  color: #6b7280;
+  font-size: 14px;
+}
+
+
+.footer {
+  padding: 32px;
+  border-top: 1px solid #e5e7eb;
+  display: flex;
+  justify-content: flex-end;
+  gap: 16px;
+}
+
+.btn {
+  padding: 12px 32px;
+  border-radius: 9999px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  /* position: relative; */
+  /* right: 30vw; */
+}
+
+.btn-cancel {
+  background: white;
+  border: 1px solid #d1d5db;
+  color: #374151;
+}
+
+.btn-cancel:hover {
+  background: #f9fafb;
+}
+
+.btn-continue {
+  background: #a0c5e2;
+  color: white;
+  border: none;
+}
+
+.btn-continue:disabled {
+  background: #9ca3af;
+  cursor: not-allowed;
+}
+
+
+
+
+
+
+
+.fade-in {
+  animation: fadeIn 0.4s ease forwards;
+}
+
+.fade-out {
+  animation: fadeOut 0.4s ease forwards;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+.file-preview {
+  display: flex;
+  justify-content: center;
+  padding: 20px;
+}
+
+.file-card {
+  /* display: flex;
+  align-items: center;
+  gap: 15px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  padding: 15px 20px;
+  border-radius: 10px;
+  max-width: 400px;
+  position: relative; */
+  width: 100%;
+  
+  margin: 0 32px;
+  border: 2px dashed #d1d5db;
+  border-radius: 20px;
+  padding: 60px 40px;
+  text-align: center;
+  transition: all 0.3s ease;
+  background: #F4F8FC;
+  margin-top: 3vh;
+
+}
+
+.file-icon-large {
+  font-size: 100px;
+}
+
+.file-details h3 {
+  margin: 0;
+  font-size: 16px;
+  color: #0f172a;
+}
+
+.file-details p {
+  margin: 0;
+  font-size: 13px;
+  color: #64748b;
+}
+
+.remove-btn {
+  position: absolute;
+  right: 10px;
+  top: 10px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  color: #ef4444;
+}

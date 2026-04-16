@@ -8,7 +8,9 @@ import DashboardHome from './pages/DashboardHome/DashboardHome';
 import UserManagement from './pages/Security/UserManagement/UserManagement';
 import RoleManagement from './pages/Security/RoleManagement/RoleManagement';
 import PermissionManagement from './pages/Security/PermissionManagement/PermissionManagement';
-
+import OP_home from './pages/op_saisie/Accuiel/Dashboard';
+import Planning from './pages/op_saisie/Plannings/Planning';
+import Tableaux_De_Bord from './pages/op_saisie/Plannings/TableauxDeBord/Tableaux';
 function App() {
     return (
         <div className="app-container">
@@ -26,6 +28,9 @@ function App() {
                         <Route path="users" element={<UserManagement />} />
                         <Route path="roles" element={<RoleManagement />} />
                         <Route path="permissions" element={<PermissionManagement />} />
+                        <Route path="OP-home" element={<OP_home />} />
+                        <Route path="Planning" element={<Planning />} />
+                        <Route path="Tableaux_De_Bord" element={<Tableaux_De_Bord />} />
                     </Route>
                 </Routes>
             </Router>
