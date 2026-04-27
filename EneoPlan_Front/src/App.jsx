@@ -11,6 +11,7 @@ import PermissionManagement from './pages/Security/PermissionManagement/Permissi
 import OP_home from './pages/op_saisie/Accuiel/Dashboard';
 import Planning from './pages/op_saisie/Plannings/Planning';
 import Tableaux_De_Bord from './pages/op_saisie/Plannings/TableauxDeBord/Tableaux';
+import Creer_Travail from "./pages/op_saisie/Creer_Travail/Nouveau_Travail";
 function App() {
     return (
         <div className="app-container">
@@ -31,6 +32,7 @@ function App() {
                         <Route path="OP-home" element={<OP_home />} />
                         <Route path="Planning" element={<Planning />} />
                         <Route path="Tableaux_De_Bord" element={<Tableaux_De_Bord />} />
+                        <Route path="CreerTravail" element={<Creer_Travail />} />
                     </Route>
                 </Routes>
             </Router>

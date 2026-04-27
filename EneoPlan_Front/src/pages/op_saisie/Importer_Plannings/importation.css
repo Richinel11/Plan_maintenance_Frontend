@@ -185,7 +185,79 @@
 
 
 
+.point{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:15px;
+  margin-top:18px;
+  margin-bottom:18px;
+  flex-wrap:wrap;
+}
 
+/* ===============================
+   BUTTONS LOOK LIKE LINKS / PILLS
+=============================== */
+.template-btn,
+.columns-btn{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  border:none;
+  background:#f8fafc;
+  color:#0f172a;
+  padding:10px 14px;
+  border-radius:12px;
+  cursor:pointer;
+  font-size:14px;
+  font-weight:600;
+  transition:0.25s ease;
+}
+
+/* Hover */
+.template-btn:hover,
+.columns-btn:hover{
+  background:#e2e8f0;
+  transform:translateY(-1px);
+}
+
+/* Active click */
+.template-btn:active,
+.columns-btn:active{
+  transform:scale(0.98);
+}
+
+/* ===============================
+   COLUMNS DROPDOWN
+=============================== */
+.columns-list{
+  background:white;
+  border:1px solid #e2e8f0;
+  border-radius:14px;
+  padding:10px;
+  margin-bottom:15px;
+  box-shadow:0 8px 25px rgba(0,0,0,0.05);
+}
+
+.column-row{
+  display:flex;
+  justify-content:space-between;
+  padding:10px;
+  border-bottom:1px solid #f1f5f9;
+}
+
+.column-row:last-child{
+  border-bottom:none;
+}
+
+.column-row span{
+  font-weight:600;
+  color:#0f172a;
+}
+
+.column-row small{
+  color:#64748b;
+}
 
 
 

@@ -1,0 +1,112 @@
+/* PlanningSection.css */
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  background: #eef2f7;
+  font-family: "Segoe UI", sans-serif;
+}
+
+.planning-wrapper {
+  width: 100%;
+  max-width: 900px;
+  margin: 30px auto;
+  padding: 25px;
+}
+
+/* CARD */
+.section-block {
+  margin-bottom: 35px;
+}
+
+/* TITLE */
+.section-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 22px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #d7dee8;
+}
+
+.section-title .icon {
+  font-size: 22px;
+  color: #1976d2;
+}
+
+.section-title h2 {
+  font-size: 20px;
+  font-weight: 700;
+  color: #132238;
+}
+
+/* FORM */
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-group label {
+  display: block;
+  font-size: 15px;
+  font-weight: 600;
+  color: #44556c;
+  margin-bottom: 8px;
+}
+
+.form-group input,
+.form-group textarea {
+  width: 100%;
+  border: 1px solid #cfd8e3;
+  border-radius: 9px;
+  padding: 14px 15px;
+  font-size: 16px;
+  background: white;
+  outline: none;
+  transition: 0.2s ease;
+}
+
+.form-group input:focus,
+.form-group textarea:focus {
+  border-color: #1976d2;
+  box-shadow: 0 0 0 3px rgba(25, 118, 210, 0.08);
+}
+
+/* GRID */
+.grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+/* AUTO FIELD */
+.auto-box {
+  width: 100%;
+  padding: 14px 15px;
+  border-radius: 9px;
+  border: 1px solid #9be0ba;
+  background: #eaf9f0;
+  color: #0d8c57;
+  font-weight: 700;
+  font-size: 16px;
+}
+
+/* TEXTAREA */
+textarea {
+  resize: none;
+  min-height: 130px;
+}
+
+/* RESPONSIVE */
+@media (max-width: 768px) {
+  .grid-2 {
+    grid-template-columns: 1fr;
+  }
+
+  .planning-wrapper {
+    padding: 18px;
+  }
+}

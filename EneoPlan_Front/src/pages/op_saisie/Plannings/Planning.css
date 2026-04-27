@@ -4,103 +4,142 @@ body {
   background: #f5f7fb;
 }
 
+/* PAGE */
+.excel-container {
+  padding: 24px;
+}
 
-.top-bar {
+/* HEADER */
+.header-text {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  /* padding: 20px 0; */
-  /* margin-bottom: 24px; */
+  margin-bottom: 25px;
 }
 
-.header-text{
-  display: flex;
-  justify-content: space-between;
-  
-}
-
-
-/* PAGE CONTAINER */
-.excel-container {
-  padding: 20px;
-  background: #f5f7fb;
-}
-
-/* TITLE */
 .excel-container h1 {
-  font-size: 22px;
-  margin-bottom: 5px;
-  color: #0f172a;
+  margin: 0;
+  font-size: 24px;
 }
 
 .excel-container p {
   color: #64748b;
-  margin-bottom: 20px;
 }
 
-/* TABLE CARD STYLE */
+/* TABLE */
 .excel-table {
   width: 100%;
   border-collapse: collapse;
   background: white;
-  border-radius: 12px;
+  border-radius: 14px;
   overflow: hidden;
-  box-shadow: 0 4px 15px rgba(107, 150, 214, 0.363);
+  box-shadow: 0 8px 18px rgba(0,0,0,0.08);
 }
 
-/* HEADER (if first row is header) */
-.excel-table tr:first-child {
-  background: #8099b3;
-  color: white;
-  font-weight: bold;
-}
-
-/* CELLS */
-.excel-table td {
-  padding: 12px 15px;
-  border-bottom: 1px solid #e5e7eb;
-  font-size: 14px;
-}
-
-/* ROW HOVER */
-.excel-table tr:hover {
-  background: #f1f5f9;
-  transition: 0.2s;
-}
-
-/* ALTERNATE ROWS */
-.excel-table tr:nth-child(even) {
-  background: #fafafa;
-}
-
-
-.table-header td {
+/* HEADER */
+.excel-table thead {
   background: #2563eb;
   color: white;
-  font-weight: bold;
 }
 
-.btn{
+.excel-table th {
+  padding: 14px;
+  text-align: left;
+}
+
+/* BODY */
+.excel-table td {
+  padding: 14px;
+  border-bottom: 1px solid #eee;
+}
+
+.excel-table tbody tr:nth-child(odd) {
+  background: #ffffff;
+}
+
+.excel-table tbody tr:nth-child(even) {
+  background: #f8fafc;
+}
+
+.excel-table tbody tr:hover {
+  background: #eff6ff;
+  transition: 0.2s ease;
+}
+
+/* ACTIONS */
+.action-cell {
+  display: flex;
+  gap: 10px;
+}
+
+.edit-btn,
+.delete-btn {
+  border: none;
+  padding: 8px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  background: #f1f5f9;
+}
+
+.edit-btn:hover {
+  background: #dbeafe;
+}
+
+.delete-btn:hover {
+  background: #fee2e2;
+}
+
+/* BUTTONS */
+.btn {
   display: flex;
   justify-content: space-between;
-
-  
+  margin-top: 20px;
 }
 
-button{
-  height: 30px;
-  padding: auto 10px;
-  border-radius: 9px;
-  border: 1px solid;
-  padding: 20px 80px 20px;
-  font-weight: bold;
-  font-size: 1rem;
+button {
+  padding: 10px 18px;
+  border-radius: 10px;
+  border: none;
+  cursor: pointer;
+}
+
+/* MODAL */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.45);
   display: flex;
+  justify-content: center;
   align-items: center;
-  
 }
 
-button:hover{
-    background-color: #2563eb;
-  
+.modal-grid {
+  background: white;
+  width: 700px;
+  max-width: 95%;
+  padding: 25px;
+  border-radius: 14px;
+}
+
+.grid-form {
+  display: grid;
+  grid-template-columns: repeat(2,1fr);
+  gap: 15px;
+}
+
+.grid-item {
+  display: flex;
+  flex-direction: column;
+}
+
+.grid-item input {
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 20px;
 }
