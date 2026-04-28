@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import './Login.css';
 import { useNavigate, useLocation } from 'react-router-dom';
 import AuthLayout from './AuthLayout';
-import api from '../../api/axiosInstance';
+import api from '../../API/axiosInstance';
 
 const ChangePassword = () => {
     const [password, setPassword] = useState('');

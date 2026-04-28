@@ -1,7 +1,6 @@
 /**
  * Fichier de configuration centralisé.
  * Il définit quels liens doivent apparaître dans la Sidebar selon le Rôle actif.
- * Très simple à comprendre, et extrêmement facile à maintenir si l'on veut ajouter un bouton.
  */
 
 export const menuConfig = {
@@ -36,5 +35,25 @@ export const menuConfig = {
     ],
     eq_comm: [
         { path: '/dashboard/alertes-publiques', name: 'Alertes Publiques', icon: 'campaign' },
-    ]
+    ],
+     //rofil Administrateur Système (Gestion Permissions et workflow)
+     admin: [
+         { path: '/dashboard/users', name: 'Utilisateurs', icon: 'group' },
+         { path: '/dashboard/roles', name: 'Rôles', icon: 'security' },
+         { path: '/dashboard/permissions', name: 'Permissions', icon: 'shield_locked' },
+         { 
+             name: 'Workflow', 
+             icon: 'account_tree',
+             children: [
+                 { path: '/dashboard/workflow/historique', name: 'Historiques', icon: 'history' },
+                 { path: '/dashboard/workflow/processus/creer', name: 'Créer Processus', icon: 'schema' },
+                 { path: '/dashboard/workflow/orchestrateur/creer', name: 'Créer Orchestrateur', icon: 'add_circle' },
+             ]
+         }
+     ]
 };
+
+ // --- Mappings de compatibilité (Backend Django) ---
+ menuConfig['Ad1'] = menuConfig['admin'];
+ menuConfig['ad1'] = menuConfig['admin'];
+ menuConfig['Administrateur'] = menuConfig['admin'];

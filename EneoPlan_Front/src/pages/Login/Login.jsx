@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import AuthLayout from './AuthLayout';
-import { login } from '../../services/authService';
+import { login } from '../../services/Authservice';
 import './Login.css';
 
 const Login = () => {
@@ -17,21 +17,21 @@ const Login = () => {
         setError('');
         setLoading(true);
 
-        try {
-            const data = await login(identifier, password);
+         try {
+             const data = await login(identifier, password);
 
-            // Si c'est un compte Active Directory (LDAP), ils ne changent jamais leur mot de passe ici !
-            // Sinon (compte externe), on vérifie si c'est la première connexion.
-            if (!data.user.ldap_req && data.user.first_connection) {
-                navigate('/change-password', { state: { userId: data.user.id } });
-            } else {
-                navigate('/select-role');
-            }
-        } catch (err) {
-            setError('Identifiant ou mot de passe incorrect.');
-        } finally {
-            setLoading(false);
-        }
+             // Si c'est un compte Active Directory (LDAP), ils ne changent jamais leur mot de passe ici !
+             // Sinon (compte externe), on vérifie si c'est la première connexion.
+             if (!data.user.ldap_req && data.user.first_connection) {
+            navigate('/change-password', { state: { userId: data.user.id } });
+             } else {
+                  navigate('/select-role');
+             }
+         } catch (err) {
+             setError('Identifiant ou mot de passe incorrect.');
+         } finally {
+             setLoading(false);
+         }
     };
 
     return (
@@ -65,7 +65,6 @@ const Login = () => {
                             placeholder="Entrez votre mot de passe"
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
-                            required
                         />
                         <span
                             className="material-symbols-outlined input-icon-right"
@@ -83,9 +82,9 @@ const Login = () => {
                     </div>
                 )}
 
-                <div className="forgot-password-container">
+                {/* <div className="forgot-password-container">
                     <a href="#" className="forgot-password-link">Mot de passe oublié ?</a>
-                </div>
+                </div> */}
 
                 <button type="submit" className="submit-btn uppercase" disabled={loading}>
                     {loading ? 'Connexion...' : 'SE CONNECTER'}
