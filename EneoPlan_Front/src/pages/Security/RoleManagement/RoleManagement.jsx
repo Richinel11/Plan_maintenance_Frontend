@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { getRoles, getPermissions, deleteRole } from '../../../services/userService';
+import { getRoles, getPermissions, deleteRole, getRolePermissions } from '../../../services/userService';
 import RolesTable from './components/RolesTable';
 import RoleModal from './components/RoleModal';
 import './RoleManagement.css';
@@ -25,10 +25,32 @@ const RoleManagement = () => {
                 getRoles(),
                 getPermissions()
             ]);
-            setRoles(rolesData);
-            setAllPermissions(permsData);
+
+            const rolesArray = Array.isArray(rolesData) ? rolesData : [];
+            const permsArray = Array.isArray(permsData) ? permsData : [];
+
+            // Pour chaque rôle, charger ses permissions associées
+            const rolesWithPermissions = await Promise.all(
+                rolesArray.map(async (role) => {
+                    try {
+                        const rolePerms = await getRolePermissions(role.code_role);
+                        return {
+                            ...role,
+                            permissions: Array.isArray(rolePerms) ? rolePerms.map(p => p.code_permission || p.code || p.id || p.nom) : []
+                        };
+                    } catch {
+                        // Si l'appel échoue (ex: 401), on met un tableau vide
+                        return { ...role, permissions: [] };
+                    }
+                })
+            );
+
+            setRoles(rolesWithPermissions);
+            setAllPermissions(permsArray);
         } catch (error) {
             console.error("Erreur lors du chargement de la gestion des rôles", error);
+            setRoles([]);
+            setAllPermissions([]);
         } finally {
             setLoading(false);
         }
@@ -39,12 +61,13 @@ const RoleManagement = () => {
         const queryLower = searchQuery.toLowerCase();
         const matchText = !searchQuery || 
                (role.nom?.toLowerCase() || '').includes(queryLower) ||
-               (role.description?.toLowerCase() || '').includes(queryLower);
+               (role.description?.toLowerCase() || '').includes(queryLower) ||
+               (role.code_role?.toLowerCase() || '').includes(queryLower);
         
-        // Filtrage croisé par permission ciblée
+        // Filtrage croisé par permission ciblée (comparison UUID string)
         let matchPerm = true;
         if (searchPermission !== '') {
-            matchPerm = role.permissions && role.permissions.includes(parseInt(searchPermission));
+            matchPerm = role.permissions && role.permissions.includes(searchPermission);
         }
 
         return matchText && matchPerm;
@@ -65,10 +88,9 @@ const RoleManagement = () => {
             try {
                 await deleteRole(role.id);
                 refreshData(); 
-                // Afficher un message de succès (facultatif, ici on pourrait utiliser un toast)
             } catch (error) {
                 console.error("Erreur lors de la suppression:", error);
-                alert(error.message); // Ceci affichera l'erreur du backend "Impossible de supprimer ce rôle..."
+                alert(error.response?.data?.detail || error.message || "Impossible de supprimer ce rôle.");
             }
         }
     };
@@ -109,9 +131,10 @@ const RoleManagement = () => {
                         onChange={(e) => setSearchPermission(e.target.value)}
                     >
                         <option value="">Filtre: Toutes les permissions</option>
-                        {allPermissions.map(p => (
-                            <option key={p.id} value={p.id}>{p.category} - {p.action}</option>
-                        ))}
+                        {allPermissions.map(p => {
+                            const pId = p.code_permission || p.code || p.id || p.nom;
+                            return <option key={pId} value={pId}>{p.module} - {p.nom}</option>
+                        })}
                     </select>
                 </div>
             </div>

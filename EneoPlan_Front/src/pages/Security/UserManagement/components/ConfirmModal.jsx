@@ -1,22 +1,27 @@
 import React, { useState } from 'react';
-import { toggleUserStatus } from '../../../../services/userService';
+import { patchUser } from '../../../../services/userService';
 import './Modals.css';
 
 const ConfirmModal = ({ isOpen, onClose, user, onSuccess }) => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
 
-    const isActive = user?.actif || user?.is_active;
+    const isActive = user?.is_active;
 
     const handleConfirm = async () => {
         setLoading(true);
         setError(null);
         try {
-            await toggleUserStatus(user.id);
+            // Si actif → désactiver (is_active: false), si inactif → activer (is_active: true)
+            if (isActive) {
+                await patchUser(user.id, { is_active: false });
+            } else {
+                await patchUser(user.id, { is_active: true });
+            }
             onSuccess();
             onClose();
         } catch (err) {
-            setError(err.response?.data?.detail || "Une erreur s'est produite.");
+            setError(err.response?.data?.detail || err.response?.data?.error || "Une erreur s'est produite.");
         } finally {
             setLoading(false);
         }

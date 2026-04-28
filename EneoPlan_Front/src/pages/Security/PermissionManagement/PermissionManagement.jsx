@@ -8,10 +8,11 @@ const PermissionManagement = () => {
     const [permissions, setPermissions] = useState([]);
     const [loading, setLoading] = useState(true);
     const [isPermissionModalOpen, setIsPermissionModalOpen] = useState(false);
+    const [selectedPermission, setSelectedPermission] = useState(null);
     
-    // Nouveaux états pour la recherche avancée
+    // États pour la recherche avancée
     const [searchQuery, setSearchQuery] = useState('');
-    const [searchCategory, setSearchCategory] = useState('');
+    const [searchModule, setSearchModule] = useState('');
 
     useEffect(() => {
         fetchData();
@@ -21,34 +22,42 @@ const PermissionManagement = () => {
         try {
             setLoading(true);
             const permsData = await getPermissions();
-            setPermissions(permsData);
+            setPermissions(Array.isArray(permsData) ? permsData : []);
         } catch (error) {
             console.error("Erreur lors du chargement des permissions", error);
+            setPermissions([]);
         } finally {
             setLoading(false);
         }
     };
 
-    // Obtenir la liste des catégories uniques pour le menu déroulant
-    const categories = [...new Set(permissions.map(p => p.category))];
+    // Obtenir la liste des modules uniques pour le menu déroulant
+    const modules = [...new Set(permissions.map(p => p.module).filter(Boolean))];
 
-    // Logique de filtrage améliorée
+    // Logique de filtrage
     const filteredPermissions = permissions.filter(perm => {
         const queryLower = searchQuery.toLowerCase();
         
-        // Recherche textuelle sur action et description
+        // Recherche textuelle sur nom, module et description
         const matchText = !searchQuery || 
-               (perm.action?.toLowerCase() || '').includes(queryLower) ||
+               (perm.nom?.toLowerCase() || '').includes(queryLower) ||
                (perm.description?.toLowerCase() || '').includes(queryLower) ||
-               (perm.category?.toLowerCase() || '').includes(queryLower);
+               (perm.module?.toLowerCase() || '').includes(queryLower) ||
+               (perm.code?.toLowerCase() || '').includes(queryLower);
         
-        // Recherche par catégorie stricte depuis le menu déroulant
-        const matchCategory = !searchCategory || perm.category === searchCategory;
+        // Recherche par module depuis le menu déroulant
+        const matchModule = !searchModule || perm.module === searchModule;
 
-        return matchText && matchCategory;
+        return matchText && matchModule;
     });
 
     const handleAddPermissionClick = () => {
+        setSelectedPermission(null);
+        setIsPermissionModalOpen(true);
+    };
+
+    const handleEditPermissionClick = (perm) => {
+        setSelectedPermission(perm);
         setIsPermissionModalOpen(true);
     };
 
@@ -59,7 +68,7 @@ const PermissionManagement = () => {
                 fetchData();
             } catch (error) {
                 console.error("Erreur lors de la suppression de la permission", error);
-                alert("Erreur lors de la suppression");
+                alert(error.response?.data?.detail || "Erreur lors de la suppression");
             }
         }
     };
@@ -82,7 +91,7 @@ const PermissionManagement = () => {
                     <span className="material-symbols-outlined filter-icon">search</span>
                     <input 
                         type="text" 
-                        placeholder="Rechercher action, catégorie, description..." 
+                        placeholder="Rechercher nom, module, description..." 
                         className="filter-input" 
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
@@ -92,12 +101,12 @@ const PermissionManagement = () => {
                     <span className="material-symbols-outlined filter-icon">category</span>
                     <select 
                         className="filter-select"
-                        value={searchCategory}
-                        onChange={(e) => setSearchCategory(e.target.value)}
+                        value={searchModule}
+                        onChange={(e) => setSearchModule(e.target.value)}
                     >
-                        <option value="">Toutes les catégories</option>
-                        {categories.map((cat, idx) => (
-                            <option key={idx} value={cat}>{cat}</option>
+                        <option value="">Tous les modules</option>
+                        {modules.map((mod, idx) => (
+                            <option key={idx} value={mod}>{mod}</option>
                         ))}
                     </select>
                 </div>
@@ -112,6 +121,7 @@ const PermissionManagement = () => {
                 ) : (
                     <PermissionsTable 
                         permissions={filteredPermissions} 
+                        onEdit={handleEditPermissionClick}
                         onDelete={handleDeletePermissionClick}
                     />
                 )}
@@ -121,6 +131,7 @@ const PermissionManagement = () => {
                 <PermissionModal 
                     isOpen={isPermissionModalOpen}
                     onClose={() => setIsPermissionModalOpen(false)}
+                    permission={selectedPermission}
                     onSuccess={fetchData}
                 />
             )}

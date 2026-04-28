@@ -92,3 +92,34 @@
     color: #94a3b8;
     font-size: 20px !important;
 }
+
+/* ---- Dropdown Workflow (nouvelles classes uniquement) ---- */
+.nav-item-parent {
+    cursor: pointer;
+    justify-content: space-between;
+}
+
+.nav-item-parent-open {
+    color: #1B75BB;
+    background-color: #f8fafc;
+}
+
+.nav-chevron {
+    font-size: 18px !important;
+    color: #94a3b8;
+    margin-left: auto;
+}
+
+.nav-submenu {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding-left: 16px;
+    margin-top: 2px;
+}
+
+.nav-subitem {
+    padding: 9px 16px;
+    font-size: 0.88rem;
+    border-radius: 6px;
+}

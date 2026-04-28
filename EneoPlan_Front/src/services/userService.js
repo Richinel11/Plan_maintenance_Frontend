@@ -1,164 +1,146 @@
-// Mode MOCK : Données fausses (bouchons) pour tester le design Frontend
-// La partie authService.js du Login N'EST PAS impactée, elle communique bien avec le backend cible.
+import api from '../API/axiosInstance';
 
-let mockPermissions = [
-    { id: 1, category: 'Plannings', action: 'Lecture', description: 'Voir les plannings' },
-    { id: 2, category: 'Plannings', action: 'Création', description: 'Créer de nouveaux travaux/plannings' },
-    { id: 3, category: 'Plannings', action: 'Validation', description: 'Valider un planning' },
-    { id: 4, category: 'DDR et NAPT', action: 'Lecture', description: 'Voir les documents' },
-    { id: 5, category: 'DDR et NAPT', action: 'Soumission', description: 'Générer DDR/NAPT' },
-    { id: 6, category: 'Administration', action: 'Configuration', description: 'Gérer les rôles et entités' },
-];
-
-let mockRoles = [
-    { id: 1, nom: 'Administrateur', description: 'Accès complet au système', nbUsers: 3, permissions: [1, 2, 3, 4, 5, 6] },
-    { id: 2, nom: 'Opérateur Saisie', description: 'Import et création des travaux', nbUsers: 15, permissions: [1, 2, 4] },
-    { id: 3, nom: 'Gestionnaire Planification', description: 'Aperçu Gantt et conflits', nbUsers: 5, permissions: [1, 4] }
-];
-
-let mockUsers = [
-    { id: 1, nom: 'Dupont', prenom: 'Jean', username: 'jdupont', email: 'j.dupont@mjn.fr', roles: [{id: 1, nom: 'Administrateur'}], is_active: true, entite: 1 },
-    { id: 2, nom: 'Martin', prenom: 'Alice', username: 'amartin', email: 'a.martin@mjn.fr', roles: [{id: 2, nom: 'Opérateur Saisie'}], is_active: true, entite: 2 },
-    { id: 3, nom: 'Lefebvre', prenom: 'Marc', username: 'mlefe', email: 'm.lefe@mjn.fr', roles: [{id: 3, nom: 'Gestionnaire Planification'}], is_active: false, entite: 1 },
-];
-
-let mockEntites = [
-    { id: 1, nom: 'Direction Opérations' },
-    { id: 2, nom: 'Service Maintenance' }
-];
-
-// --- Simulateurs de requêtes --- //
-
-const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+// ============ UTILISATEURS ============
+// App Django "user" montée sous le préfixe "users/" dans core/urls.py
 
 export const getUsers = async () => {
-    await delay(600);
-    return mockUsers;
+    const { data } = await api.get('users/all-users');
+    return data;
 };
 
 export const getUserById = async (id) => {
-    await delay(300);
-    return mockUsers.find(u => u.id === id);
+    const { data } = await api.get(`users/find-user/${id}/`);
+    return data;
 };
 
 export const createUser = async (userData) => {
-    await delay(800);
-    const newUser = {
-        ...userData,
-        id: Math.max(...mockUsers.map(u => u.id)) + 1,
-        // On mock les rôles pour l'affichage visuel
-        roles: mockRoles.filter(r => userData.roles.includes(r.id)),
-        is_active: true
-    };
-    mockUsers.push(newUser);
-    return newUser;
+    const { data } = await api.post('users/create-user', userData);
+    return data;
 };
 
 export const updateUser = async (id, userData) => {
-    await delay(800);
-    const index = mockUsers.findIndex(u => u.id === id);
-    if (index !== -1) {
-        mockUsers[index] = { 
-            ...mockUsers[index], 
-            ...userData,
-            roles: mockRoles.filter(r => userData.roles.includes(r.id))
-        };
-        return mockUsers[index];
-    }
-    throw new Error('Utilisateur non trouvé');
+    const { data } = await api.put(`users/update-user/${id}`, userData);
+    return data;
 };
 
-export const toggleUserStatus = async (id) => {
-    await delay(500);
-    const index = mockUsers.findIndex(u => u.id === id);
-    if (index !== -1) {
-        // Gère la logique des 2 formats possibles `actif` ou `is_active`
-        const currentStatus = mockUsers[index].is_active !== undefined ? mockUsers[index].is_active : mockUsers[index].actif;
-        mockUsers[index] = { ...mockUsers[index], is_active: !currentStatus, actif: !currentStatus };
-        return mockUsers[index];
-    }
-    throw new Error('Utilisateur non trouvé');
+export const patchUser = async (id, userData) => {
+    const { data } = await api.patch(`users/patch-user/${id}`, userData);
+    return data;
 };
 
-export const getRoles = async () => {
-    await delay(400);
-    return mockRoles;
-};
-
-export const getPermissions = async () => {
-    await delay(400);
-    return mockPermissions;
-};
-
-export const getEntites = async () => {
-    await delay(400);
-    return mockEntites;
-};
-
-// API Rôles :
-export const createRole = async (roleData) => {
-    await delay(800);
-    const newRole = {
-        ...roleData,
-        id: Math.max(...mockRoles.map(r => r.id)) + 1,
-        nbUsers: 0
-    };
-    mockRoles.push(newRole);
-    return newRole;
-};
-
-export const updateRole = async (id, roleData) => {
-    await delay(800);
-    const index = mockRoles.findIndex(r => r.id === id);
-    if (index !== -1) {
-        mockRoles[index] = { ...mockRoles[index], ...roleData };
-        return mockRoles[index];
-    }
-    throw new Error('Rôle non trouvé');
-};
-
-export const deleteRole = async (id) => {
-    await delay(600);
-    const index = mockRoles.findIndex(r => r.id === id);
-    if (index === -1) {
-        throw new Error('Rôle non trouvé');
-    }
-    
-    const roleToDelete = mockRoles[index];
-    
-    // Vérifier si le rôle est lié à un ou plusieurs utilisateurs
-    const isLinkedToUsers = mockUsers.some(user => user.roles.some(r => r.id === id)) || roleToDelete.nbUsers > 0;
-    
-    if (isLinkedToUsers) {
-        throw new Error("Impossible de supprimer ce rôle car il est lié à un ou plusieurs utilisateurs.");
-    }
-    
-    // Suppression
-    mockRoles.splice(index, 1);
+export const deleteUser = async (id) => {
+    await api.delete(`users/delete-user/${id}`);
     return true;
 };
 
-// API Permissions :
-export const createPermission = async (permData) => {
-    await delay(600);
-    const newPerm = {
-        ...permData,
-        id: Math.max(...mockPermissions.map(p => p.id)) + 1
-    };
-    mockPermissions.push(newPerm);
-    return newPerm;
+export const restoreUser = async (id) => {
+    const { data } = await api.post(`users/restore-user/${id}`);
+    return data;
+};
+export const update_userrole = async (id, userData) => {
+    const { data } = await api.put(`user/${id}/update-user-role`, userData);
+    return data;
 };
 
+
+// ============ ENTITÉS ============
+// Via DefaultRouter → users/entites/
+export const getEntites = async () => {
+    const { data } = await api.get('users/entites/');
+    return data;
+};
+
+// ============ RÔLES ============
+// App Django "security" montée à la racine dans core/urls.py
+
+export const getRoles = async () => {
+    const { data } = await api.get('roles/all-roles');
+    return data;
+};
+
+export const createRole = async (roleData) => {
+    const { data } = await api.post('roles/create-role', roleData);
+    return data;
+};
+
+export const updateRole = async (code_role, roleData) => {
+    const { data } = await api.put(`roles/update-role/${code_role}`, roleData);
+    return data;
+};
+
+export const deleteRole = async (id) => {
+    await api.delete(`roles/${id}/`);
+    return true;
+};
+
+// ============ PERMISSIONS ============
+
+export const getPermissions = async () => {
+    const { data } = await api.get('permissions/all-permission');
+    return data;
+};
+
+export const createPermission = async (permData) => {
+    const { data } = await api.post('permissions/create-permission', permData);
+    return data;
+};
+
+export const updatePermission = async (code_permission, permData) => {
+    const { data } = await api.put(`permissions/update-permission/${code_permission}`, permData);
+    return data;
+};
+
+
+
 export const deletePermission = async (id) => {
-    await delay(600);
-    const index = mockPermissions.findIndex(p => p.id === id);
-    if (index !== -1) {
-        // Also remove this permission from any role that has it
-        mockRoles.forEach(role => {
-            role.permissions = role.permissions.filter(permId => permId !== id);
-        });
-        mockPermissions.splice(index, 1);
-        return true;
-    }
-    throw new Error('Permission non trouvée');
+    await api.delete(`permissions/${id}/`);
+    return true;
+};
+
+// ============ ASSIGNATION RÔLE → UTILISATEUR ============
+
+export const assignRoleToUser = async (userId, roleCode) => {
+    const { data } = await api.post('user/assign-role', {
+        user_id: userId,
+        role_code: roleCode
+    });
+    return data;
+};
+
+export const removeRoleFromUser = async (userId, roleCode) => {
+    const { data } = await api.post('user/remove-role', {
+        user_id: userId,
+        role_code: roleCode
+    });
+    return data;
+};
+
+// ============ ASSIGNATION PERMISSION → RÔLE ============
+
+export const assignPermissionToRole = async (roleCode, permissionCode) => {
+    const { data } = await api.post('roles/assign-permission', {
+        role_code: roleCode,
+        permission_code: permissionCode
+    });
+    return data;
+};
+
+export const removePermissionFromRole = async (roleCode, permissionCode) => {
+    const { data } = await api.post('roles/remove-permission', {
+        role_code: roleCode,
+        permission_code: permissionCode
+    });
+    return data;
+};
+
+// ============ LECTURE ============
+
+export const getUserRoles = async (userId) => {
+    const { data } = await api.get(`user/${userId}/roles`);
+    return data;
+};
+
+export const getRolePermissions = async (roleCode) => {
+    const { data } = await api.get(`roles/${roleCode}/permissions`);
+    return data;
 };

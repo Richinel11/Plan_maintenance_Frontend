@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { logout } from '../../../services/authService';
+import { logout } from '../../../services/Authservice';
+import { menuConfig } from '../../../config/menus';
+import Cookies from 'js-cookie';
 import './SelectRole.css';
 
 // Ces données servent juste de fallback pour l'icône si on reconnaît le code_role
@@ -18,26 +20,44 @@ const SelectRole = () => {
     const navigate = useNavigate();
 
     // 1. On lit les données utilisateur que le backend nous a envoyées via la connexion
-    const userString = sessionStorage.getItem('user');
+    const userString = Cookies.get('user');
     const user = userString ? JSON.parse(userString) : null;
-    
+
     // 2. On récupère la liste des rôles de l'utilisateur. 
-    // On supporte si le backend renvoie 'role' (un seul) ou 'roles' (plusieurs plus tard)
     const allowedRolesList = user?.roles ? user.roles : (user?.role ? [user.role] : []);
 
-    // 3. Auto-sélection : si l'utilisateur n'a accès qu'à 1 SEUL rôle, on le sélectionne automatiquement
+    // 3. Auto-sélection ET Redirection : si 1 SEUL rôle, on part en automatique
     useEffect(() => {
         if (allowedRolesList.length === 1 && !selectedRole) {
             const r = allowedRolesList[0];
-            setSelectedRole(r.code_role || r.code || r.nom || r.id);
+            const code = r.code_role || r.code || r.nom || r.id;
+            const name = r.nom || code;
+
+            // Enregistrement session
+            Cookies.set('activeRole', code);
+            Cookies.set('activeRoleName', name);
+
+            // Redirection intelligente vers la première page du menu du rôle
+            const roleMenus = menuConfig[code] || menuConfig[code.toLowerCase()] || [];
+            const landingPage = roleMenus.length > 0 ? roleMenus[0].path : '/dashboard/home';
+            
+            navigate(landingPage);
         }
-    }, [allowedRolesList, selectedRole]);
+    }, [allowedRolesList, selectedRole, navigate]);
 
     const handleContinue = () => {
         if (selectedRole) {
-            // On sauvegarde le rôle choisi comme "Rôle Actif" pour le Dashboard
-            sessionStorage.setItem('activeRole', selectedRole);
-            navigate('/dashboard/home');
+            const chosenRole = allowedRolesList.find(r => (r.code_role || r.code || r.nom || r.id) === selectedRole);
+            const code = selectedRole;
+            const name = chosenRole?.nom || code;
+
+            Cookies.set('activeRole', code);
+            Cookies.set('activeRoleName', name);
+
+            const roleMenus = menuConfig[code] || menuConfig[code.toLowerCase()] || [];
+            const landingPage = roleMenus.length > 0 ? roleMenus[0].path : '/dashboard/home';
+            
+            navigate(landingPage);
         }
     };
 
@@ -57,7 +77,7 @@ const SelectRole = () => {
                     <span className="material-symbols-outlined" style={{ fontSize: '48px', color: 'red' }}>error</span>
                     <h1 className="welcome-title" style={{ marginTop: '20px' }}>Erreur de configuration</h1>
                     <p className="welcome-subtitle" style={{ color: 'red', maxWidth: '500px', margin: '0 auto', lineHeight: '1.5' }}>
-                        Aucun rôle n'est assigné à votre compte. Vous ne pouvez pas accéder à l'application. 
+                        Aucun rôle n'est assigné à votre compte. Vous ne pouvez pas accéder à l'application.
                         Veuillez contacter l'administrateur système pour associer un rôle à l'utilisateur {user?.username}.
                     </p>
                     <button className="submit-btn" style={{ marginTop: '30px', maxWidth: '200px' }} onClick={handleLogout}>
@@ -86,13 +106,13 @@ const SelectRole = () => {
                     // On utilise le code_role s'il existe, sinon le code, le nom ou l'id
                     const roleIdentifier = role.code_role || role.code || role.nom || role.id;
                     const fallback = staticRolesFallback[roleIdentifier] || { icon: 'person' };
-                    
+
                     return (
-                        <div 
-                            key={roleIdentifier} 
+                        <div
+                            key={roleIdentifier}
                             className={`role-card ${selectedRole === roleIdentifier ? 'selected' : ''}`}
                             onClick={() => setSelectedRole(roleIdentifier)}
-                            style={{ 
+                            style={{
                                 cursor: 'pointer',
                                 border: selectedRole !== roleIdentifier ? '1px solid transparent' : '1px solid #1B75BB'
                             }}
@@ -118,7 +138,7 @@ const SelectRole = () => {
                 <button className="secondary-btn" onClick={handleLogout} style={{ marginRight: '15px' }}>
                     Déconnexion
                 </button>
-                <button 
+                <button
                     className={`continue-btn ${!selectedRole ? 'disabled' : ''}`}
                     onClick={handleContinue}
                     disabled={!selectedRole}

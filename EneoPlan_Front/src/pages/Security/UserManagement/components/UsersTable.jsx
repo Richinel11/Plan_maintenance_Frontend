@@ -2,31 +2,25 @@ import React from 'react';
 import './UsersTable.css';
 
 const UsersTable = ({ users, onEdit, onToggle }) => {
-    // Helper function to render roles properly like the mockup
-    const renderRoles = (rolesObj) => {
-        // If the backend returns an array of roles or an object
-        let rolesArray = [];
-        if (Array.isArray(rolesObj)) {
-            rolesArray = rolesObj;
-        } else if (rolesObj && typeof rolesObj === 'object') {
-            rolesArray = Object.values(rolesObj);
-        }
-
-        if (rolesArray.length === 0) {
+    // Helper: affiche le rôle de l'utilisateur
+    // Le backend retourne `roles` comme un TABLEAU [{nom, code_role, ...}]
+    const renderRole = (rolesArr) => {
+        if (!Array.isArray(rolesArr) || rolesArr.length === 0)
             return <span className="text-gray">-</span>;
-        }
-
-        const mainRole = rolesArray[0];
-        const extraRolesCount = rolesArray.length - 1;
-
         return (
             <div className="roles-container">
-                <span className="role-pill">{mainRole.nom || mainRole}</span>
-                {extraRolesCount > 0 && (
-                    <span className="role-count-pill">+{extraRolesCount}</span>
-                )}
+                {rolesArr.map(r => (
+                    <span key={r.code_role} className="role-pill">{r.nom}</span>
+                ))}
             </div>
         );
+    };
+
+    // Helper: affiche l'entité métier
+    const renderEntite = (entiteObj) => {
+        if (!entiteObj) return '-';
+        if (typeof entiteObj === 'object') return entiteObj.nom || '-';
+        return entiteObj;
     };
 
     return (
@@ -38,7 +32,7 @@ const UsersTable = ({ users, onEdit, onToggle }) => {
                         <th>PRÉNOM</th>
                         <th>EMAIL</th>
                         <th>NOM D'UTILISATEUR</th>
-                        <th>RÔLE(S)</th>
+                        <th>RÔLE</th>
                         <th>STATUT</th>
                         <th className="th-actions">ACTIONS</th>
                     </tr>
@@ -47,19 +41,19 @@ const UsersTable = ({ users, onEdit, onToggle }) => {
                     {users && users.length > 0 ? (
                         users.map((user) => (
                             <tr key={user.id}>
-                                <td className="font-medium text-dark">{user.nom || '-'}</td>
-                                <td className="text-gray">{user.prenom || '-'}</td>
+                                <td className="font-medium text-dark">{user.last_name || '-'}</td>
+                                <td className="text-gray">{user.first_name || '-'}</td>
                                 <td className="text-gray">{user.email || '-'}</td>
                                 <td className="text-gray-code">{user.username}</td>
-                                <td>{renderRoles(user.roles)}</td>
+                                <td>{renderRole(user.roles)}</td>
                                 <td>
-                                    {user.actif || user.is_active ? (
+                                    {user.is_active ? (
                                         <div className="status-pill status-active">
                                             <span className="status-dot green-dot"></span> Active
                                         </div>
                                     ) : (
                                         <div className="status-pill status-inactive">
-                                            <span className="status-dot gray-dot"></span> Inactive
+                                            <span className="status-dot gray-dot"></span> Inactif
                                         </div>
                                     )}
                                 </td>
@@ -72,7 +66,7 @@ const UsersTable = ({ users, onEdit, onToggle }) => {
                                         <span className="material-symbols-outlined">edit</span>
                                     </button>
                                     
-                                    {user.actif || user.is_active ? (
+                                    {user.is_active ? (
                                         <button 
                                             className="action-btn delete-btn" 
                                             title="Désactiver"

@@ -1,72 +1,63 @@
 import React, { useState, useEffect } from 'react';
-import { createRole, updateRole } from '../../../../services/userService';
-import '../../UserManagement/components/Modals.css'; // On hérite des styles globaux des form/modales
+import { createRole, updateRole, assignPermissionToRole, removePermissionFromRole } from '../../../../services/userService';
+import '../../UserManagement/components/Modals.css';
 
 const RoleModal = ({ isOpen, onClose, role, allPermissions, onSuccess }) => {
     const isEditMode = !!role;
 
     const [formData, setFormData] = useState({
         nom: '',
+        code_role: '',
         description: '',
-        permissions: [] // tableau d'IDs
+        permissions: []
     });
 
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
+    const [permSearch, setPermSearch] = useState('');
 
     useEffect(() => {
-        if (role && isEditMode) {
-            setFormData({
-                nom: role.nom || '',
-                description: role.description || '',
-                permissions: role.permissions || []
-            });
+        if (isOpen) {
+            if (role && isEditMode) {
+                setFormData({
+                    nom: role.nom || '',
+                    code_role: role.code_role || '',
+                    description: role.description || '',
+                    permissions: role.permissions || []
+                });
+            } else {
+                setFormData({ nom: '', code_role: '', description: '', permissions: [] });
+            }
+            setError(null);
+            setPermSearch('');
         }
-    }, [role, isEditMode]);
-
-    // Grouper les permissions par catégorie pour l'affichage de la grille
-    const groupedPermissions = allPermissions.reduce((acc, perm) => {
-        if (!acc[perm.category]) {
-            acc[perm.category] = [];
-        }
-        acc[perm.category].push(perm);
-        return acc;
-    }, {});
+    }, [isOpen, role, isEditMode]);
 
     const handleChange = (e) => {
         const { name, value } = e.target;
-        setFormData(prev => ({
-            ...prev,
-            [name]: value
-        }));
+        setFormData(prev => ({ ...prev, [name]: value }));
     };
 
-    const handlePermissionToggle = (permId) => {
-        setFormData(prev => {
-            const currentPerms = prev.permissions;
-            if (currentPerms.includes(permId)) {
-                return { ...prev, permissions: currentPerms.filter(id => id !== permId) };
-            } else {
-                return { ...prev, permissions: [...currentPerms, permId] };
-            }
-        });
+    const handleNomBlur = () => {
+        if (!formData.code_role && formData.nom) {
+            const autoCode = formData.nom
+                .toLowerCase()
+                .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+                .replace(/[^a-z0-9\s]/gi, '')
+                .trim()
+                .replace(/\s+/g, '_');
+            setFormData(prev => ({ ...prev, code_role: autoCode }));
+        }
     };
 
-    const handleSelectAllCategory = (categoryName, isChecked) => {
-        const categoryPermIds = groupedPermissions[categoryName].map(p => p.id);
-        
+    const handlePermissionToggle = (permCode) => {
         setFormData(prev => {
-            let newPerms = [...prev.permissions];
-            if (isChecked) {
-                // Ajouter ceux qui n'y sont pas
-                categoryPermIds.forEach(id => {
-                    if (!newPerms.includes(id)) newPerms.push(id);
-                });
+            const current = prev.permissions || [];
+            if (current.includes(permCode)) {
+                return { ...prev, permissions: current.filter(c => c !== permCode) };
             } else {
-                // Retirer ceux de la catégorie
-                newPerms = newPerms.filter(id => !categoryPermIds.includes(id));
+                return { ...prev, permissions: [...current, permCode] };
             }
-            return { ...prev, permissions: newPerms };
         });
     };
 
@@ -74,17 +65,35 @@ const RoleModal = ({ isOpen, onClose, role, allPermissions, onSuccess }) => {
         e.preventDefault();
         setError(null);
         setLoading(true);
-
         try {
+            const rolePayload = {
+                nom: formData.nom || "",
+                nom_role: formData.nom || "",
+                code_role: formData.code_role || "",
+                description: formData.description || ""
+            };
+            let savedRole;
             if (isEditMode) {
-                await updateRole(role.id, formData);
+                savedRole = await updateRole(role.code_role, rolePayload);
             } else {
-                await createRole(formData);
+                savedRole = await createRole(rolePayload);
             }
+            const roleCode = savedRole?.code_role || formData.code_role;
+
+            if (isEditMode) {
+                const currentPerms = role.permissions || [];
+                const toAdd = formData.permissions.filter(c => !currentPerms.includes(c));
+                const toRemove = currentPerms.filter(c => !formData.permissions.includes(c));
+                for (const c of toAdd) { try { await assignPermissionToRole(roleCode, c); } catch (err) { console.warn(err); } }
+                for (const c of toRemove) { try { await removePermissionFromRole(roleCode, c); } catch (err) { console.warn(err); } }
+            } else {
+                for (const c of formData.permissions) { try { await assignPermissionToRole(roleCode, c); } catch (err) { console.warn(err); } }
+            }
+
             onSuccess();
             onClose();
         } catch (err) {
-            setError(err.message || "Erreur lors de l'enregistrement du rôle.");
+            setError(err.response?.data?.detail || err.response?.data?.code_role?.[0] || err.message || "Erreur lors de l'enregistrement.");
         } finally {
             setLoading(false);
         }
@@ -92,87 +101,142 @@ const RoleModal = ({ isOpen, onClose, role, allPermissions, onSuccess }) => {
 
     if (!isOpen) return null;
 
+    const filteredPerms = (allPermissions || []).filter(p =>
+        p.nom?.toLowerCase().includes(permSearch.toLowerCase()) ||
+        (p.code_permission || p.code || '')?.toLowerCase().includes(permSearch.toLowerCase())
+    );
+    const selectedCount = formData.permissions.length;
+
     return (
-        <div className="modal-overlay">
-            <div className="modal-content" style={{maxWidth: '800px'}}>
+        <div className="modal-overlay" onClick={(e) => e.target === e.currentTarget && onClose()}>
+            <div className="modal-content">
+
+                {/* ── Header ── */}
                 <div className="modal-header">
-                    <h2>{isEditMode ? "Modifier le Rôle" : "Créer un nouveau Rôle"}</h2>
-                    <button className="close-btn" onClick={onClose}>
+                    <div className="modal-header-text">
+                        <h2>{isEditMode ? 'Modifier le rôle' : 'Créer un rôle'}</h2>
+                        <p>Définissez les détails et les permissions pour ce rôle au sein de l'organisation.</p>
+                    </div>
+                    <button className="close-btn" onClick={onClose} type="button">
                         <span className="material-symbols-outlined">close</span>
                     </button>
                 </div>
-                
-                <form onSubmit={handleSubmit} className="modal-form" style={{maxHeight: '75vh', overflowY: 'auto'}}>
-                    {error && <div className="modal-error">{error}</div>}
 
-                    <div className="form-row">
-                        <div className="form-group">
-                            <label>Nom du rôle <span className="text-danger">*</span></label>
-                            <input type="text" name="nom" required value={formData.nom} onChange={handleChange} className="form-input" placeholder="ex: Superviseur Régional" />
-                        </div>
-                    </div>
-                    
-                    <div className="form-group">
-                        <label>Description du rôle</label>
-                        <textarea name="description" value={formData.description} onChange={handleChange} className="form-input" rows="2" placeholder="Résumé des accès conférés..."></textarea>
-                    </div>
+                {/* ── Form ── */}
+                <form onSubmit={handleSubmit} className="modal-form">
+                    <div className="modal-form-body">
+                        {error && <div className="modal-error">{error}</div>}
 
-                    <div className="permissions-section-title">
-                        <h3>Droits d'accès et Permissions</h3>
-                        <p>Cochez les actions autorisées pour ce profil.</p>
-                    </div>
+                        {/* ── Carte principale (CSS Grid 2 colonnes) ── */}
+                        <div className="form-card-grid">
 
-                    <div className="permissions-grid">
-                        {Object.entries(groupedPermissions).map(([category, perms]) => {
-                            // Vérifier si toute la catégorie est cochée
-                            const allChecked = perms.every(p => formData.permissions.includes(p.id));
-                            const someChecked = perms.some(p => formData.permissions.includes(p.id));
+                            {/* Colonne gauche : Nom du rôle */}
+                            <div className="rm-field">
+                                <label className="rm-label">Nom du rôle <span className="text-danger">*</span></label>
+                                <input
+                                    type="text"
+                                    name="nom"
+                                    required
+                                    value={formData.nom}
+                                    onChange={handleChange}
+                                    onBlur={handleNomBlur}
+                                    className="form-input"
+                                    placeholder="Ex: Administrateur de contenu"
+                                />
+                            </div>
 
-                            return (
-                                <div key={category} className="permission-card">
-                                    <div className="permission-category-header">
-                                        <h4>{category}</h4>
-                                        <label className="checkbox-container select-all-label">
-                                            <input 
-                                                type="checkbox" 
-                                                checked={allChecked}
-                                                ref={input => {
-                                                    if (input) input.indeterminate = someChecked && !allChecked;
-                                                }}
-                                                onChange={(e) => handleSelectAllCategory(category, e.target.checked)}
-                                            />
-                                            <span className="checkmark"></span>
-                                            Tout
+                            {/* Colonne droite : Code du rôle */}
+                            <div className="rm-field">
+                                <label className="rm-label">Code du rôle <span className="text-danger">*</span></label>
+                                <input
+                                    type="text"
+                                    name="code_role"
+                                    required
+                                    value={formData.code_role}
+                                    onChange={handleChange}
+                                    className="form-input"
+                                    placeholder="ex: admin_contenu"
+                                    disabled={isEditMode}
+                                />
+                                <span className="form-hint">
+                                    {isEditMode ? 'Non modifiable.' : 'Auto-généré à partir du nom.'}
+                                </span>
+                            </div>
+
+                            {/* Description — pleine largeur (2 colonnes) */}
+                            <div className="col-span-2 rm-field">
+                                <label className="rm-label">Description <span className="text-danger">*</span></label>
+                                <textarea
+                                    name="description"
+                                    value={formData.description || ""}
+                                    onChange={handleChange}
+                                    className="form-input"
+                                    rows={4}
+                                    placeholder="Décrivez les responsabilités et l'étendue de ce rôle..."
+                                ></textarea>
+                            </div>
+
+                            {/* Séparateur — pleine largeur */}
+                            <div className="col-span-2">
+                                <hr className="form-divider" />
+                            </div>
+
+                            {/* Section Permissions — pleine largeur */}
+                            <div className="col-span-2">
+                                <div className="checklist-section">
+                                    <div className="checklist-header">
+                                        <label>
+                                            Permissions associées
+                                            {selectedCount > 0 && (
+                                                <span className="checklist-counter" style={{ marginLeft: '8px' }}>
+                                                    {selectedCount} sélectionnée{selectedCount > 1 ? 's' : ''}
+                                                </span>
+                                            )}
                                         </label>
+                                        <div className="checklist-search">
+                                            <span className="material-symbols-outlined">search</span>
+                                            <input
+                                                type="text"
+                                                placeholder="Ajouter une permission..."
+                                                value={permSearch}
+                                                onChange={e => setPermSearch(e.target.value)}
+                                            />
+                                        </div>
                                     </div>
-                                    
-                                    <div className="permission-list">
-                                        {perms.map(perm => (
-                                            <label key={perm.id} className="checkbox-container">
-                                                <input 
-                                                    type="checkbox" 
-                                                    checked={formData.permissions.includes(perm.id)}
-                                                    onChange={() => handlePermissionToggle(perm.id)}
-                                                />
-                                                <span className="checkmark"></span>
-                                                <div className="perm-content">
-                                                    <span className="perm-action">{perm.action}</span>
-                                                    <span className="perm-desc">{perm.description}</span>
+
+                                    <div className="checklist-box">
+                                        {filteredPerms.length === 0 ? (
+                                            <div className="checklist-empty">
+                                                {permSearch ? 'Aucune permission trouvée' : 'Aucune permission disponible'}
+                                            </div>
+                                        ) : filteredPerms.map(perm => {
+                                            const permCode = perm.code_permission || perm.code || perm.id || perm.nom;
+                                            const isChecked = formData.permissions.includes(permCode);
+                                            return (
+                                                <div
+                                                    key={permCode}
+                                                    className="checklist-item"
+                                                    onClick={() => handlePermissionToggle(permCode)}
+                                                >
+                                                    <span className="checklist-item-label">{perm.nom}</span>
+                                                    <div className={`checklist-checkbox ${isChecked ? 'checked' : ''}`} />
                                                 </div>
-                                            </label>
-                                        ))}
+                                            );
+                                        })}
                                     </div>
                                 </div>
-                            );
-                        })}
+                            </div>
+
+                        </div>
                     </div>
 
-                    <div className="modal-actions" style={{position: 'sticky', bottom: '-24px', backgroundColor: 'white', padding: '16px 0', borderTop: '1px solid #e2e8f0', margin: '24px -24px -24px -24px', paddingRight: '24px'}}>
+                    {/* ── Footer ── */}
+                    <div className="modal-actions">
                         <button type="button" className="secondary-btn" onClick={onClose} disabled={loading}>
                             Annuler
                         </button>
                         <button type="submit" className="primary-btn" disabled={loading}>
-                            {loading ? "Patientez..." : (isEditMode ? "Enregistrer" : "Créer le rôle")}
+                            {loading ? 'Enregistrement...' : 'Enregistrer'}
                         </button>
                     </div>
                 </form>
