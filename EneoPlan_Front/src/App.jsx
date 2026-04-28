@@ -12,6 +12,10 @@ import WorkflowHistory from './pages/Workflow/WorkflowHistory/WorkflowHistory';
 import CreateProcess from './pages/Workflow/WorkflowHistory/createProccess/createProccess';
 import CreateGlobalWorkflow from './pages/Workflow/WorkflowHistory/createworkflo/createworkflo';
 
+import OP_home from './pages/op_saisie/Accuiel/Dashboard';
+import Planning from './pages/op_saisie/Plannings/Planning';
+import Tableaux_De_Bord from './pages/op_saisie/Plannings/TableauxDeBord/Tableaux';
+import Creer_Travail from "./pages/op_saisie/Creer_Travail/Nouveau_Travail";
 function App() {
     return (
         <div className="app-container">
@@ -33,6 +37,10 @@ function App() {
                         <Route path="workflow/historique" element={<WorkflowHistory />} />
                         <Route path="workflow/processus/creer" element={<CreateProcess />} />
                         <Route path="workflow/orchestrateur/creer" element={<CreateGlobalWorkflow />} />
+                        <Route path="OP-home" element={<OP_home />} />
+                        <Route path="Planning" element={<Planning />} />
+                        <Route path="Tableaux_De_Bord" element={<Tableaux_De_Bord />} />
+                        <Route path="CreerTravail" element={<Creer_Travail />} />
                     </Route>
                 </Routes>
             </Router>
