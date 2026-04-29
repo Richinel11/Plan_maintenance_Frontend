@@ -17,29 +17,54 @@ const CreateProcess = () => {
 
     // Listes dynamiques pour les dropdowns
     const [availableStates, setAvailableStates] = useState([]);
-    const [availableActions, setAvailableActions] = useState([]);
+    const [availableActions, setAvailableActions] = useState([]); // Sera rempli par les permissions des rôles
     const [dbRoles, setDbRoles] = useState([]); // Rôles venant de la BD
 
-    // État pour les transitions (Commence vide comme demandé)
+    // État pour les transitions
     const [transitions, setTransitions] = useState([]);
 
-    // État pour les lignes de création temporaires
+    // État pour les lignes de création temporaires (uniquement pour les États désormais)
     const [newItems, setNewItems] = useState([]);
     
     // État pour gérer quel sélecteur de rôle est ouvert
     const [activeRolePicker, setActiveRolePicker] = useState(null);
 
-    // Charger les rôles au montage
+    // Charger les rôles et extraire les permissions au montage
     useEffect(() => {
-        const fetchRoles = async () => {
+        const fetchData = async () => {
             try {
                 const roles = await getRoles();
                 setDbRoles(roles);
+
+                // Extraction des permissions uniques de tous les rôles
+                const permsMap = new Map(); // Utilisation d'une Map pour garantir l'unicité par Nom/Code
+                
+                roles.forEach(role => {
+                    if (role.permissions && Array.isArray(role.permissions)) {
+                        role.permissions.forEach(perm => {
+                            const pName = typeof perm === 'object' ? (perm.nom || perm.code) : perm;
+                            const pId = typeof perm === 'object' ? (perm.id || pName) : perm;
+                            
+                            if (pName && !permsMap.has(pName)) {
+                                permsMap.set(pName, {
+                                    id: pId,
+                                    nom: pName,
+                                    module: perm.module || 'Général'
+                                });
+                            }
+                        });
+                    }
+                });
+                
+                // Conversion de la Map en tableau et tri par nom
+                const uniquePerms = Array.from(permsMap.values()).sort((a, b) => a.nom.localeCompare(b.nom));
+                setAvailableActions(uniquePerms);
+
             } catch (error) {
-                console.error("Erreur lors de la récupération des rôles:", error);
+                console.error("Erreur lors de la récupération des données:", error);
             }
         };
-        fetchRoles();
+        fetchData();
     }, []);
 
     // Ajouter une nouvelle ligne de transition
@@ -70,8 +95,9 @@ const CreateProcess = () => {
         }));
     };
 
-    // Ajouter une ligne de création (État ou Action)
+    // Ajouter une ligne de création (État uniquement désormais)
     const addNewItemRow = (type) => {
+        if (type !== 'state') return;
         setNewItems([...newItems, { id: Date.now(), type, value: '' }]);
     };
 
@@ -81,21 +107,16 @@ const CreateProcess = () => {
         if (!trimmedValue) return;
         
         // Vérification d'unicité (Insensible à la casse)
-        const listToVerify = type === 'state' ? availableStates : availableActions;
-        const isDuplicate = listToVerify.some(
+        const isDuplicate = availableStates.some(
             item => item.toLowerCase() === trimmedValue.toLowerCase()
         );
 
         if (isDuplicate) {
-            alert(`Ce nom d'${type === 'state' ? 'état' : 'action'} existe déjà.`);
+            alert(`Cet état existe déjà.`);
             return;
         }
         
-        if (type === 'state') {
-            setAvailableStates(prev => [...prev, trimmedValue]);
-        } else {
-            setAvailableActions(prev => [...prev, trimmedValue]);
-        }
+        setAvailableStates(prev => [...prev, trimmedValue]);
         setNewItems(newItems.filter(item => item.id !== id));
     };
 
@@ -107,14 +128,12 @@ const CreateProcess = () => {
     const handleTransitionStateChange = (id, field, value) => {
         setTransitions(transitions.map((t, index) => {
             if (t.id === id) {
-                // 1. Validation de la ligne actuelle (from != to)
                 const otherField = field === 'from' ? 'to' : 'from';
                 if (value !== '' && value === t[otherField]) {
                     alert("L'état initial et l'état final d'une même transition doivent être différents.");
                     return t;
                 }
 
-                // 2. Validation Globale (Premier From != Dernier To)
                 const isFirstTransition = index === 0 && field === 'from';
                 const isLastTransition = index === transitions.length - 1 && field === 'to';
 
@@ -200,7 +219,6 @@ const CreateProcess = () => {
                         </div>
                         <div className="header-actions">
                             <button type="button" className="btn-outline" onClick={() => addNewItemRow('state')}><span className="material-symbols-outlined">add_circle</span> État</button>
-                            <button type="button" className="btn-outline" onClick={() => addNewItemRow('action')}><span className="material-symbols-outlined">settings_suggest</span> Action</button>
                             <button type="button" className="btn-add-transition" onClick={addTransition}><span className="material-symbols-outlined">add_task</span> Transition</button>
                         </div>
                     </div>
@@ -210,7 +228,7 @@ const CreateProcess = () => {
                             <thead>
                                 <tr>
                                     <th>ÉTAT INITIAL</th>
-                                    <th>ACTION</th>
+                                    <th>ACTION (PERMISSION)</th>
                                     <th>ÉTAT FINAL</th>
                                     <th>RÔLES AUTORISÉS</th>
                                     <th className="text-right">ACTIONS</th>
@@ -221,9 +239,9 @@ const CreateProcess = () => {
                                     <tr key={item.id} className="creation-row">
                                         <td colSpan="4">
                                             <div className="creation-input-wrapper">
-                                                <span className={`creation-badge ${item.type}`}>{item.type === 'state' ? 'NOUVEL ÉTAT' : 'NOUVELLE ACTION'}</span>
+                                                <span className={`creation-badge ${item.type}`}>NOUVEL ÉTAT</span>
                                                 <input 
-                                                    autoFocus type="text" className="table-input" placeholder="Nom..."
+                                                    autoFocus type="text" className="table-input" placeholder="Nom de l'état..."
                                                     value={item.value}
                                                     onChange={(e) => setNewItems(newItems.map(i => i.id === item.id ? {...i, value: e.target.value} : i))}
                                                     onKeyPress={(e) => e.key === 'Enter' && confirmNewItem(item.id, item.type, item.value)}
@@ -255,8 +273,12 @@ const CreateProcess = () => {
                                                 value={t.action} 
                                                 onChange={(e) => setTransitions(transitions.map(tr => tr.id === t.id ? {...tr, action: e.target.value} : tr))}
                                             >
-                                                <option value="">Sélectionner</option>
-                                                {availableActions.map(a => <option key={a} value={a}>{a}</option>)}
+                                                <option value="">Choisir une permission</option>
+                                                {availableActions.map(perm => {
+                                                    const permName = typeof perm === 'object' ? (perm.nom || perm.code) : perm;
+                                                    const permId = typeof perm === 'object' ? perm.id : perm;
+                                                    return <option key={permId} value={permName}>{permName}</option>;
+                                                })}
                                             </select>
                                         </td>
                                         <td>
@@ -283,9 +305,9 @@ const CreateProcess = () => {
                                                         <div className="role-picker-dropdown">
                                                             {dbRoles.length > 0 ? (
                                                                 dbRoles.map(role => (
-                                                                    <div key={role.id} className={`role-option ${t.roles.includes(role.name) ? 'selected' : ''}`} onClick={() => toggleRoleToTransition(t.id, role.name)}>
-                                                                        <span className="material-symbols-outlined">{t.roles.includes(role.name) ? 'check_box' : 'check_box_outline_blank'}</span>
-                                                                        {role.name}
+                                                                    <div key={role.id} className={`role-option ${t.roles.includes(role.nom) ? 'selected' : ''}`} onClick={() => toggleRoleToTransition(t.id, role.nom)}>
+                                                                        <span className="material-symbols-outlined">{t.roles.includes(role.nom) ? 'check_box' : 'check_box_outline_blank'}</span>
+                                                                        {role.nom}
                                                                     </div>
                                                                 ))
                                                             ) : (

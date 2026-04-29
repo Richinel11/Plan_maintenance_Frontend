@@ -5,11 +5,11 @@
 
 export const menuConfig = {
     // Profils liés à la conception
-    op_saisie: [
-        // { path: '/dashboard/OP-home', name: 'Accueil', icon: 'event_note' },
-        { path: '/dashboard/plannings', name: 'Plannings', icon: 'event_note' },
-        { path: '/dashboard/import', name: 'Importer Planning', icon: 'upload_file' },
-        { path: '/dashboard/create-job', name: 'Nouveau Travail', icon: 'add_box' },
+    operateur_de_saisie: [
+        { path: '/dashboard/OP-home', name: 'Accueil', icon: 'dashboard' },
+        { path: '/dashboard/Planning', name: 'Plannings & Import', icon: 'upload_file' },
+        { path: '/dashboard/Tableaux_De_Bord', name: 'Tableaux de bord', icon: 'analytics' },
+        { path: '/dashboard/CreerTravail', name: 'Nouveau Travail', icon: 'add_box' },
     ],
     gest_planif: [
         { path: '/dashboard/gantt', name: 'Diagramme Gantt', icon: 'bar_chart' },
@@ -55,6 +55,5 @@ export const menuConfig = {
 };
 
  // --- Mappings de compatibilité (Backend Django) ---
+ menuConfig['op1'] = menuConfig['operateur_de_saisie'];
  menuConfig['Ad1'] = menuConfig['admin'];
- menuConfig['ad1'] = menuConfig['admin'];
- menuConfig['Administrateur'] = menuConfig['admin'];

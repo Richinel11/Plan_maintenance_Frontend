@@ -87,8 +87,11 @@ const PermissionModal = ({ isOpen, onClose, permission, onSuccess }) => {
         <div className="modal-overlay">
             <div className="modal-content">
                 <div className="modal-header">
-                    <h2>{isEditMode ? 'Modifier la Permission' : 'Créer une nouvelle Permission'}</h2>
-                    <button className="close-btn" onClick={onClose}>
+                    <div className="modal-header-text">
+                        <h2>{isEditMode ? 'Modifier la Permission' : 'Créer une nouvelle Permission'}</h2>
+                        <p>{isEditMode ? 'Modifiez les informations de cette permission.' : 'Ajoutez une nouvelle permission au catalogue de l\'application.'}</p>
+                    </div>
+                    <button className="close-btn" onClick={onClose} type="button">
                         <span className="material-symbols-outlined">close</span>
                     </button>
                 </div>

@@ -16,22 +16,15 @@ const Sidebar = () => {
     const fullName = `${user.prenom || ''} ${user.nom || ''}`.trim() || 'Utilisateur Anonyme';
 
     // 2. Détermination du rôle actif pour savoir quels menus afficher
-    let activeRoleCode = Cookies.get('activeRole');
-    let activeRoleName = Cookies.get('activeRoleName');
-    
-    // Normalisation (pour gérer "Admin", "Administrateur", "1", "admin")
+    // On utilise le NOM du rôle (stable) plutôt que le CODE (instable ex: op1, Ad1...)
+    // Le nom est normalisé : "operateur de saisie" → "operateur_de_saisie" → clé dans menus.js
+    const activeRoleCode = Cookies.get('activeRole');     // Gardé uniquement pour l'affichage footer
+    const activeRoleName = Cookies.get('activeRoleName'); // Source principale pour le menu
+
     let dynamicLinks = [];
-    if (activeRoleCode) {
-        // Recherche clé stricte
-        dynamicLinks = menuConfig[activeRoleCode] || [];
-        
-        // Si aucun lien n'est trouvé, on tente de deviner si c'est un administrateur
-        if (dynamicLinks.length === 0) {
-            const roleStr = String(activeRoleCode).toLowerCase();
-            if (roleStr.includes('admin') || roleStr === '1') {
-                dynamicLinks = menuConfig['admin'] || [];
-            }
-        }
+    if (activeRoleName) {
+        const menuKey = activeRoleName.toLowerCase().replace(/\s+/g, '_');
+        dynamicLinks = menuConfig[menuKey] || [];
     }
 
     // 3. État pour gérer l'ouverture des sous-menus (ex: Workflow)
@@ -48,10 +41,10 @@ const Sidebar = () => {
             {/* Navigation Dynamique */}
             <nav className="sidebar-nav">
                 {/* 1. L'accueil est toujours présent pour tout le monde */}
-                <NavLink to="/dashboard/OP-home" className={({isActive}) => isActive ? "nav-item active" : "nav-item"}>
+                {/* <NavLink to="/dashboard/OP-home" className={({isActive}) => isActive ? "nav-item active" : "nav-item"}>
                     <span className="material-symbols-outlined nav-icon">dashboard</span>
                     Accueil
-                </NavLink>
+                </NavLink> */}
 
                 {/* 2. On boucle intelligemment sur les menus récupérés depuis le fichier de config */}
                 {dynamicLinks.map((link, index) => {

@@ -23,47 +23,7 @@
     margin: 0;
 }
 
-.primary-btn {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 8px;
-    background-color: #1B75BB; /* EneoPlan Primary Blue */
-    color: white;
-    border: none;
-    border-radius: 8px;
-    padding: 12px 20px;
-    font-size: 0.95rem;
-    font-weight: 600;
-    cursor: pointer;
-    box-shadow: 0 2px 4px rgba(27, 117, 187, 0.2);
-    transition: all 0.2s;
-}
-
-.primary-btn:hover {
-    background-color: #14689E; /* Secondary Blue for hover */
-    box-shadow: 0 4px 8px rgba(20, 104, 158, 0.3);
-}
-
-.secondary-btn {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 8px;
-    background-color: white;
-    color: #1B75BB;
-    border: 1px solid #1B75BB;
-    border-radius: 8px;
-    padding: 12px 20px;
-    font-size: 0.95rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.2s;
-}
-
-.secondary-btn:hover {
-    background-color: #f1f8ff;
-}
+/* .primary-btn et .secondary-btn sont définis dans Modals.css (source unique de vérité) */
 
 /* --- Barre de filtres --- */
 .filters-bar {

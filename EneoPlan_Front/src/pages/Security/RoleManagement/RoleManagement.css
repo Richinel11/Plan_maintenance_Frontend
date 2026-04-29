@@ -181,7 +181,4 @@
     margin-right: 6px;
 }
 
-textarea.form-input {
-    resize: vertical;
-    font-family: inherit;
-}
+/* textarea.form-input est défini dans Modals.css (source unique de vérité) */
