@@ -1,0 +1,24 @@
+/* Règles Globales du Layout Principal */
+.dashboard-layout {
+    display: flex;
+    height: 100vh;
+    width: 100vw;
+    background-color: #FFFFFF;
+    font-family: 'Inter', sans-serif;
+    overflow: hidden;
+}
+
+/* Zone principale contentant le header et le contenu, située à droite de la sidebar */
+.main-area {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+/* La zone de contenu où s'injecteront tous les différents modules (Outlet) */
+.content {
+    flex: 1;
+    padding: 40px;
+    overflow-y: auto;
+    background-color: #f8fafc; /* Légèrement gris pour faire ressortir les éléments de contenu */
+}

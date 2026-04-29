@@ -1,0 +1,446 @@
+/* 
+   DESIGN SYSTEM ORCHESTRATEUR GLOBAL
+   Inspiré du design ENEO
+*/
+
+.wf-container {
+    padding: 2rem 4rem;
+    background-color: #F9FAFB;
+    min-height: 100vh;
+    font-family: 'Inter', 'Poppins', sans-serif;
+}
+
+/* Header */
+.wf-header {
+    text-align: left;
+    margin-bottom: 2.5rem;
+}
+
+.wf-title {
+    font-size: 2.2rem;
+    font-weight: 800;
+    color: #1C1C1B;
+    margin: 0;
+}
+
+.wf-subtitle {
+    font-size: 15px;
+    color: #6B7280;
+    margin-top: 8px;
+    max-width: 600px;
+}
+
+/* Global Card Style */
+.wf-card {
+    background: #FFFFFF;
+    border: 1px solid #F0F0F0;
+    border-radius: 12px;
+    padding: 2rem;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+    margin-bottom: 2rem;
+}
+
+.card-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 1.5rem;
+}
+
+.icon-blue {
+    color: #1B75BB;
+    font-size: 24px;
+}
+
+.wf-form {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+}
+
+.wf-container .input-group label {
+    display: block;
+    font-size: 11px;
+    font-weight: 700;
+    color: #939597;
+    margin-bottom: 10px;
+    letter-spacing: 0.05em;
+}
+
+.wf-container .input-group input {
+    width: 100%;
+    padding: 1rem;
+    border: 1px solid #E5E7EB;
+    border-radius: 8px;
+    background-color: #F9FAFB;
+    font-size: 14px;
+    outline: none;
+    transition: all 0.2s;
+}
+
+.wf-container .input-group input:focus {
+    border-color: #1B75BB;
+    background-color: #FFFFFF;
+    box-shadow: 0 0 0 4px rgba(27, 117, 187, 0.05);
+}
+
+/* Builder Grid Layout */
+.wf-builder-grid {
+    display: grid;
+    grid-template-columns: 400px 1fr;
+    gap: 2rem;
+    align-items: flex-start;
+}
+
+.wf-column {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.column-header {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    padding: 0 0.5rem;
+}
+
+.header-top {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.header-top h4 {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #1C1C1B;
+    margin: 0;
+}
+
+.badge-count {
+    background-color: #EBF5FF;
+    color: #1B75BB;
+    font-size: 10px;
+    font-weight: 800;
+    padding: 4px 8px;
+    border-radius: 4px;
+}
+
+/* Search Bar */
+.wf-search-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.search-icon {
+    position: absolute;
+    left: 12px;
+    color: #9CA3AF;
+    font-size: 18px;
+}
+
+.wf-search-wrapper input {
+    width: 100%;
+    padding: 0.8rem 1rem 0.8rem 2.5rem;
+    border: 1px solid #E5E7EB;
+    border-radius: 8px;
+    background-color: #FFFFFF;
+    font-size: 13px;
+    outline: none;
+    transition: all 0.2s;
+}
+
+.wf-search-wrapper input:focus {
+    border-color: #1B75BB;
+    box-shadow: 0 4px 10px rgba(27, 117, 187, 0.05);
+}
+
+/* Process List */
+.list-scroll-area {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.process-card-item {
+    background: #FFFFFF;
+    border: 1px solid #F0F0F0;
+    border-radius: 12px;
+    padding: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    cursor: grab;
+    transition: all 0.2s;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+}
+
+.process-card-item:hover {
+    transform: translateX(5px);
+    border-color: #1B75BB;
+}
+
+.process-icon-box {
+    width: 45px;
+    height: 45px;
+    background-color: #F3F4F6;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+}
+
+.process-details h5 {
+    margin: 0;
+    font-size: 14px;
+    font-weight: 700;
+    color: #1C1C1B;
+}
+
+.process-details p {
+    margin: 4px 0 0 0;
+    font-size: 12px;
+    color: #939597;
+}
+
+.drag-indicator {
+    margin-left: auto;
+    color: #D1D5DB;
+}
+
+/* Sequence Area */
+.sequence-drop-area {
+    background-color: #f8fafc;
+    border: 2px dashed #E5E7EB;
+    border-radius: 16px;
+    min-height: 400px;
+    padding: 2rem;
+    transition: all 0.3s ease;
+    display: flex;
+    flex-direction: column;
+}
+
+.sequence-drop-area.drop-active {
+    background-color: rgba(27, 117, 187, 0.05);
+    border: 2px dashed #1B75BB;
+    transform: scale(1.01);
+}
+
+.process-card-item.dragging {
+    opacity: 0.5;
+    background: #fff;
+    box-shadow: 0 10px 25px rgba(27, 117, 187, 0.15);
+    border: 1px solid #1B75BB;
+}
+
+/* --- ÉLÉMENTS DE LA SÉQUENCE --- */
+.active-sequence {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.sequence-step-item {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    position: relative;
+    animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.step-number-active {
+    width: 32px;
+    height: 32px;
+    background: #1B75BB;
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 14px;
+    flex-shrink: 0;
+    box-shadow: 0 2px 5px rgba(27, 117, 187, 0.3);
+    z-index: 1;
+}
+
+.step-content-card {
+    flex: 1;
+    background: white;
+    padding: 12px 20px;
+    border-radius: 10px;
+    border: 1px solid #e2e8f0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+    transition: all 0.2s;
+    min-height: 60px;
+}
+
+.step-content-card:hover {
+    transform: translateX(5px);
+    border-color: #1B75BB;
+}
+
+.step-info {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.step-icon {
+    color: #1B75BB;
+    font-size: 22px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.step-content-card h5 {
+    margin: 0;
+    font-size: 15px;
+    color: #1C1C1B;
+    font-weight: 600;
+}
+
+/* --- BOUTON SUPPRIMER --- */
+.btn-remove-step {
+    background: none;
+    border: none;
+    color: #939597;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 6px;
+    border-radius: 50%;
+    transition: all 0.2s;
+}
+
+.btn-remove-step:hover {
+    background-color: #fee2e2;
+    color: #ef4444;
+}
+
+.btn-remove-step .material-symbols-outlined {
+    font-size: 18px;
+}
+
+/* --- CONNECTEUR --- */
+.step-connector {
+    position: absolute;
+    left: 15px;
+    top: 32px;
+    width: 2px;
+    height: 12px;
+    background: #cbd5e1;
+    z-index: 0;
+}
+
+/* --- INDICATEUR ÉTAPE SUIVANTE --- */
+.next-step-indicator {
+    margin-top: 12px;
+    margin-left: 48px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: #939597;
+    font-size: 13px;
+    padding: 12px;
+    border: 1px dashed #cbd5e1;
+    border-radius: 8px;
+    opacity: 0.7;
+}
+
+.next-step-indicator .material-symbols-outlined {
+    font-size: 18px;
+}
+
+.btn-submit-wf:disabled {
+    background-color: #D1D5DB;
+    cursor: not-allowed;
+    box-shadow: none;
+}
+
+/* Empty State Sequence */
+.empty-step {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.step-number-empty {
+    width: 35px;
+    height: 35px;
+    background-color: #14689E;
+    color: #FFFFFF;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+}
+
+.drop-box {
+    flex: 1;
+    height: 80px;
+    background-color: transparent;
+    border: 2px dashed #D1D5DB;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    color: #939597;
+    font-size: 14px;
+}
+
+.drop-box .material-symbols-outlined {
+    font-size: 24px;
+}
+
+/* Footer Actions */
+.wf-actions-footer {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 2rem;
+    margin-top: 4rem;
+}
+
+.btn-cancel-wf {
+    background: none;
+    border: none;
+    font-weight: 700;
+    color: #1C1C1B;
+    cursor: pointer;
+}
+
+.btn-submit-wf {
+    background-color: #14689E;
+    color: #FFFFFF;
+    border: none;
+    padding: 0.8rem 2.5rem;
+    border-radius: 10px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    box-shadow: 0 4px 15px rgba(20, 104, 158, 0.2);
+    transition: all 0.2s;
+}
+
+.btn-submit-wf:hover {
+    background-color: #1B75BB;
+    transform: translateY(-2px);
+}
