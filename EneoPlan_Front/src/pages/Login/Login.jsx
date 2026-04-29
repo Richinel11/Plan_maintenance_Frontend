@@ -20,6 +20,7 @@ const Login = () => {
         try {
             const data = await login(identifier, password);
 
+
             // Si c'est un compte Active Directory (LDAP), ils ne changent jamais leur mot de passe ici !
             // Sinon (compte externe), on vérifie si c'est la première connexion.
             if (!data.user.ldap_req && data.user.first_connection) {
