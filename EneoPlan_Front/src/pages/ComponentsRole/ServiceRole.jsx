@@ -1,15 +1,4 @@
-// ServiceSwitcher.jsx
 import { useMemo } from "react";
-
-/*
-  PURPOSE:
-  Only controls switch logic.
-  No UI.
-  No inputs.
-  No page.
-
-  Import inside CreationTravail.jsx
-*/
 
 const ServiceSwitcher = () => {
 
@@ -22,6 +11,8 @@ const ServiceSwitcher = () => {
         };
 
     const service = getCookie("service");
+
+  
 
   const fields = useMemo(() => {
     switch (service.toLowerCase()) {
@@ -100,7 +91,8 @@ const ServiceSwitcher = () => {
     }
   }, [service]);
 
-  return fields;
+//   return fields;
+    return { service, fields };
 };
 
 export default ServiceSwitcher;
