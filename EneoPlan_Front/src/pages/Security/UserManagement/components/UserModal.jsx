@@ -92,7 +92,7 @@ const UserModal = ({ isOpen, onClose, user, roles, entites, onSuccess }) => {
                     entite_metier: formData.entite_metier,
                     is_ldap: formData.is_ldap
                 };
-                if (formData.password) {
+                if (!formData.is_ldap && formData.password) {
                     payload.password = formData.password;
                 }
                 await createUser(payload);
@@ -194,23 +194,22 @@ const UserModal = ({ isOpen, onClose, user, roles, entites, onSuccess }) => {
                                 </div>
                             </div>
 
-                            <div className="form-group">
-                                <label>Entité Métier <span className="text-danger">*</span></label>
-                                <select
-                                    name="entite_metier"
-                                    value={formData.entite_metier}
-                                    onChange={handleChange}
-                                    className="form-input"
-                                >
-                                    <option value="">-- Sélectionner une entité --</option>
-                                    {entites && entites.map(e => (
-                                        <option key={e.id} value={e.id}>{e.name || e.nom}</option>
-                                    ))}
-                                </select>
-                                {(!entites || entites.length === 0) && (
-                                    <span className="form-hint" style={{color: '#ef4444'}}>Aucune entité disponible — vérifiez la connexion au serveur.</span>
-                                )}
-                            </div>
+                            {entites && entites.length > 0 && (
+                                <div className="form-group">
+                                    <label>Entité Métier</label>
+                                    <select
+                                        name="entite_metier"
+                                        value={formData.entite_metier}
+                                        onChange={handleChange}
+                                        className="form-input"
+                                    >
+                                        <option value="">-- Sélectionner une entité --</option>
+                                        {entites.map(e => (
+                                            <option key={e.id} value={e.id}>{e.name || e.nom}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                            )}
                         </div>
 
                         {/* Rôles */}
@@ -266,21 +265,22 @@ const UserModal = ({ isOpen, onClose, user, roles, entites, onSuccess }) => {
                                         checked={formData.is_ldap}
                                         onChange={e => setFormData(prev => ({
                                             ...prev,
-                                            is_ldap: e.target.checked
+                                            is_ldap: e.target.checked,
+                                            password: e.target.checked ? '' : prev.password
                                         }))}
                                     />
                                     <span className="toggle-slider" />
                                 </label>
                             </div>
 
-                            {!isEditMode && (
+                            {!formData.is_ldap && !isEditMode && (
                                 <div className="form-group" style={{marginTop: 4}}>
                                     <label>Mot de passe <span className="text-danger">*</span></label>
                                     <div className="password-wrapper">
                                         <input
                                             type={showPassword ? 'text' : 'password'}
                                             name="password"
-                                            required
+                                            required={!formData.is_ldap}
                                             value={formData.password}
                                             onChange={handleChange}
                                             className="form-input"

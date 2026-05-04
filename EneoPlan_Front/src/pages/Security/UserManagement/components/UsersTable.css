@@ -1,0 +1,200 @@
+.users-table-container {
+    width: 100%;
+    overflow-x: auto;
+}
+
+.users-table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+}
+
+.users-table th {
+    padding: 16px 24px;
+    font-size: 0.75rem;
+    font-weight: 800;
+    color: #475569;
+    background-color: transparent;
+    border-bottom: 1px solid #e2e8f0;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.users-table td {
+    padding: 16px 24px;
+    font-size: 0.9rem;
+    border-bottom: 1px solid #f1f5f9;
+    vertical-align: middle;
+}
+
+.users-table tr:hover td {
+    background-color: #f8fafc;
+}
+
+.font-medium {
+    font-weight: 600;
+}
+
+.text-dark {
+    color: #1e293b;
+}
+
+.text-gray {
+    color: #475569;
+}
+
+.text-gray-code {
+    color: #64748b;
+    font-family: monospace;
+    font-size: 0.85rem;
+}
+
+/* Actions */
+.td-actions {
+    display: flex;
+    gap: 12px;
+}
+
+.action-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 6px;
+    border-radius: 6px;
+    transition: all 0.2s;
+}
+
+.action-btn .material-symbols-outlined {
+    font-size: 20px;
+}
+
+.edit-btn {
+    color: #1B75BB; /* Bleu EneoPlan */
+}
+.edit-btn:hover {
+    background-color: #f1f8ff;
+}
+
+.delete-btn {
+    color: #ef4444; /* Rouge pastel */
+}
+.delete-btn:hover {
+    background-color: #fef2f2;
+}
+
+.activate-btn {
+    color: #8DC640; /* Vert EneoPlan (Accent) */
+}
+.activate-btn:hover {
+    background-color: #f6fcf0;
+}
+
+/* Rôles Pills */
+.roles-container {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.role-pill {
+    background-color: #eff6ff;
+    color: #1B75BB;
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 4px 12px;
+    border-radius: 20px;
+}
+
+.role-count-pill {
+    background-color: #f1f5f9;
+    color: #64748b;
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 4px 8px;
+    border-radius: 20px;
+}
+
+/* Status Pills */
+.status-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 4px 12px;
+    border-radius: 20px;
+}
+
+.status-active {
+    background-color: #ecfccb;
+    color: #65a30d;
+}
+
+.status-inactive {
+    background-color: #f1f5f9;
+    color: #94a3b8;
+}
+
+.status-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+}
+
+.green-dot {
+    background-color: #84cc16;
+}
+
+.gray-dot {
+    background-color: #94a3b8;
+}
+
+/* Footer & Pagination */
+.table-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 24px;
+    border-top: 1px solid #e2e8f0;
+    background-color: #fafaf9; /* Très léger fond footer */
+    border-bottom-left-radius: 12px;
+    border-bottom-right-radius: 12px;
+}
+
+.pagination-info {
+    color: #94a3b8;
+    font-size: 0.85rem;
+    font-weight: 500;
+}
+
+.pagination-controls {
+    display: flex;
+    gap: 8px;
+}
+
+.page-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    border: 1px solid #e2e8f0;
+    background-color: white;
+    color: #94a3b8;
+    cursor: pointer;
+}
+
+.page-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.empty-state {
+    text-align: center;
+    color: #64748b;
+    padding: 40px !important;
+}

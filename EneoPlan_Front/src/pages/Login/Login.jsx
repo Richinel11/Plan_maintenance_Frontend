@@ -28,20 +28,7 @@ const Login = () => {
                   navigate('/select-role');
              }
          } catch (err) {
-             console.error('Erreur de connexion:', err);
-             if (err.response) {
-                 if (err.response.status === 401) {
-                     setError('Identifiant ou mot de passe incorrect.');
-                 } else if (err.response.status === 404) {
-                     setError('Profil utilisateur introuvable. Ce compte n\'a pas de profil applicatif (superuser Django ?).');
-                 } else {
-                     setError(`Erreur serveur (${err.response.status}). Vérifiez que le backend est bien démarré.`);
-                 }
-             } else if (err.request) {
-                 setError('Impossible de joindre le serveur. Vérifiez que le backend tourne sur http://localhost:8000.');
-             } else {
-                 setError('Erreur inattendue : ' + err.message);
-             }
+             setError('Identifiant ou mot de passe incorrect.');
          } finally {
              setLoading(false);
          }

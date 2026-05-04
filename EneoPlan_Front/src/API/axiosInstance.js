@@ -25,12 +25,7 @@ api.interceptors.request.use(
    (response) => response,
    (error) => {
      if (error.response && error.response.status === 401) {
-       const token = Cookies.get('accessToken');
-       // Ne pas déconnecter le compte de test local (token bidon)
-       if (token === 'test.dGVzdA.test') {
-         return Promise.reject(error);
-       }
-       // Si on reçoit un 401 (Non autorisé), on nettoie la session et on redirige
+     // Si on reçoit un 401 (Non autorisé), on nettoie la session et on redirige
        Cookies.remove('user');
        Cookies.remove('accessToken');
        Cookies.remove('refreshToken');
@@ -41,6 +36,5 @@ api.interceptors.request.use(
      return Promise.reject(error);
    }
  );
-
 
 export default api;
