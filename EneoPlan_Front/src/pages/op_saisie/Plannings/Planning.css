@@ -1,0 +1,145 @@
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: #f5f7fb;
+}
+
+/* PAGE */
+.excel-container {
+  padding: 24px;
+}
+
+/* HEADER */
+.header-text {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 25px;
+}
+
+.excel-container h1 {
+  margin: 0;
+  font-size: 24px;
+}
+
+.excel-container p {
+  color: #64748b;
+}
+
+/* TABLE */
+.excel-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 8px 18px rgba(0,0,0,0.08);
+}
+
+/* HEADER */
+.excel-table thead {
+  background: #2563eb;
+  color: white;
+}
+
+.excel-table th {
+  padding: 14px;
+  text-align: left;
+}
+
+/* BODY */
+.excel-table td {
+  padding: 14px;
+  border-bottom: 1px solid #eee;
+}
+
+.excel-table tbody tr:nth-child(odd) {
+  background: #ffffff;
+}
+
+.excel-table tbody tr:nth-child(even) {
+  background: #f8fafc;
+}
+
+.excel-table tbody tr:hover {
+  background: #eff6ff;
+  transition: 0.2s ease;
+}
+
+/* ACTIONS */
+.action-cell {
+  display: flex;
+  gap: 10px;
+}
+
+.edit-btn,
+.delete-btn {
+  border: none;
+  padding: 8px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  background: #f1f5f9;
+}
+
+.edit-btn:hover {
+  background: #dbeafe;
+}
+
+.delete-btn:hover {
+  background: #fee2e2;
+}
+
+/* BUTTONS */
+.btn {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 20px;
+}
+
+button {
+  padding: 10px 18px;
+  border-radius: 10px;
+  border: none;
+  cursor: pointer;
+}
+
+/* MODAL */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.45);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.modal-grid {
+  background: white;
+  width: 700px;
+  max-width: 95%;
+  padding: 25px;
+  border-radius: 14px;
+}
+
+.grid-form {
+  display: grid;
+  grid-template-columns: repeat(2,1fr);
+  gap: 15px;
+}
+
+.grid-item {
+  display: flex;
+  flex-direction: column;
+}
+
+.grid-item input {
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 20px;
+}

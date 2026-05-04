@@ -21,6 +21,7 @@ const UserManagement = () => {
     const [searchEmail, setSearchEmail] = useState('');
     const [searchRole, setSearchRole] = useState('');
     const [searchStatus, setSearchStatus] = useState('');
+    const [searchEntite, setSearchEntite] = useState('');
 
     // Fetch data
     useEffect(() => {
@@ -75,7 +76,14 @@ const UserManagement = () => {
             if (searchStatus === 'inactive' && isActive) matchStatus = false;
         }
 
-        return matchName && matchEmail && matchRole && matchStatus;
+        // 5. Filtrage par Entité
+        let matchEntite = true;
+        if (searchEntite !== '') {
+            const userEntiteId = user.entite_metier?.id || user.entite_metier;
+            if (String(userEntiteId) !== searchEntite) matchEntite = false;
+        }
+        
+        return matchName && matchEmail && matchRole && matchStatus && matchEntite;
     });
 
     // Actions
@@ -153,6 +161,19 @@ const UserManagement = () => {
                         <option value="">Statut: Tous</option>
                         <option value="active">Actif</option>
                         <option value="inactive">Inactif</option>
+                    </select>
+                </div>
+                <div className="filter-dropdown-group">
+                    <span className="material-symbols-outlined filter-icon">domain</span>
+                    <select 
+                        className="filter-select"
+                        value={searchEntite}
+                        onChange={(e) => setSearchEntite(e.target.value)}
+                    >
+                        <option value="">Toutes les entités</option>
+                        {entites.map(e => (
+                            <option key={e.id} value={e.id}>{e.name || e.nom}</option>
+                        ))}
                     </select>
                 </div>
             </div>

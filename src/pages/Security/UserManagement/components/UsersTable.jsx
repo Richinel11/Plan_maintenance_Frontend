@@ -18,8 +18,8 @@ const UsersTable = ({ users, onEdit, onToggle }) => {
 
     // Helper: affiche l'entité métier
     const renderEntite = (entiteObj) => {
-        if (!entiteObj) return '-';
-        if (typeof entiteObj === 'object') return entiteObj.nom || '-';
+        if (!entiteObj) return <span className="text-gray">-</span>;
+        if (typeof entiteObj === 'object') return entiteObj.name || entiteObj.nom || '-';
         return entiteObj;
     };
 
@@ -32,6 +32,7 @@ const UsersTable = ({ users, onEdit, onToggle }) => {
                         <th>PRÉNOM</th>
                         <th>EMAIL</th>
                         <th>NOM D'UTILISATEUR</th>
+                        <th>ENTITÉ MÉTIER</th>
                         <th>RÔLE</th>
                         <th>STATUT</th>
                         <th className="th-actions">ACTIONS</th>
@@ -45,6 +46,7 @@ const UsersTable = ({ users, onEdit, onToggle }) => {
                                 <td className="text-gray">{user.first_name || '-'}</td>
                                 <td className="text-gray">{user.email || '-'}</td>
                                 <td className="text-gray-code">{user.username}</td>
+                                <td className="text-gray">{renderEntite(user.entite_metier)}</td>
                                 <td>{renderRole(user.roles)}</td>
                                 <td>
                                     {user.is_active ? (
@@ -88,7 +90,7 @@ const UsersTable = ({ users, onEdit, onToggle }) => {
                         ))
                     ) : (
                         <tr>
-                            <td colSpan="7" className="empty-state">
+                            <td colSpan="8" className="empty-state">
                                 Aucun utilisateur trouvé.
                             </td>
                         </tr>

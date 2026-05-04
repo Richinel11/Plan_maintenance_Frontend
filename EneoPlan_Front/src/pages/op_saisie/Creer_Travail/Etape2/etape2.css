@@ -1,0 +1,207 @@
+/* etape2.css */
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  background: #f8fafc;
+  font-family: "Inter", sans-serif;
+}
+
+/* MAIN CARD CONTAINER */
+.etape-container {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 24px;
+  width: 100%;
+  max-width: 1100px;
+  margin: 20px auto;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.05);
+}
+
+/* SECTION TITLE */
+.etape-title {
+  margin-bottom: 24px;
+}
+
+.etape-title span {
+  font-size: 13px;
+  font-weight: 700;
+  color: #2563eb;
+  text-transform: uppercase;
+}
+
+.etape-title h1 {
+  font-size: 34px;
+  font-weight: 800;
+  color: #0f172a;
+  margin-top: 6px;
+}
+
+.progress-wrapper {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 10px;
+}
+
+.progress-text {
+  font-size: 14px;
+  color: #64748b;
+}
+
+.progress-bar {
+  width: 100%;
+  height: 6px;
+  background: #e2e8f0;
+  border-radius: 30px;
+  margin-top: 12px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  width: 66%;
+  height: 100%;
+  background: #1d72b8;
+  border-radius: 30px;
+}
+
+/* FORM SECTIONS */
+.part1,
+.part2,
+.part3,
+.part4 {
+  margin-top: 28px;
+}
+
+.part1 h2,
+.part2 h2,
+.part3 h2,
+.part4 h2 {
+  font-size: 15px;
+  font-weight: 700;
+  color: #0f172a;
+  margin-bottom: 10px;
+}
+
+/* INPUTS */
+.part1 input,
+.part2 input,
+.part3 input,
+.part4 input,
+.part4 select {
+  width: 100%;
+  height: 52px;
+  border: 1px solid #dbe2ea;
+  border-radius: 10px;
+  padding: 0 16px;
+  font-size: 14px;
+  color: #0f172a;
+  background: #f8fafc;
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.part1 input:focus,
+.part2 input:focus,
+.part3 input:focus,
+.part4 input:focus,
+.part4 select:focus {
+  border-color: #2563eb;
+  background: #fff;
+}
+
+/* TEXTAREA STYLE FOR PART2 */
+.part2 input {
+  height: 90px;
+  padding-top: 14px;
+}
+
+/* SMALL TEXT */
+.helper-text {
+  margin-top: 8px;
+  font-size: 12px;
+  color: #64748b;
+}
+
+/* PART4 GRID */
+.part4 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.part-child {
+  display: flex;
+  flex-direction: column;
+}
+
+.part4 small {
+  grid-column: span 2;
+  font-size: 12px;
+  color: #2563eb;
+  margin-top: -6px;
+}
+
+/* FOOTER BUTTONS */
+.footer-buttons {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 40px;
+}
+
+.btn-prev,
+.btn-next {
+  height: 48px;
+  padding: 0 26px;
+  border-radius: 10px;
+  border: none;
+  font-weight: 700;
+  font-size: 14px;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.btn-prev {
+  background: white;
+  border: 1px solid #dbe2ea;
+  color: #0f172a;
+}
+
+.btn-prev:hover {
+  background: #f1f5f9;
+}
+
+.btn-next {
+  background: #1d72b8;
+  color: white;
+}
+
+.btn-next:hover {
+  background: #155a92;
+}
+
+/* RESPONSIVE */
+@media (max-width: 768px) {
+  .part4 {
+    grid-template-columns: 1fr;
+  }
+
+  .part4 small {
+    grid-column: span 1;
+  }
+
+  .footer-buttons {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .btn-prev,
+  .btn-next {
+    width: 100%;
+  }
+}

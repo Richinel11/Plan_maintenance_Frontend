@@ -1,0 +1,10 @@
+.Header{
+    display: flex;
+    justify-content: space-between;
+}
+
+.Header-inputs{
+    display: flex;
+    
+}
+

@@ -48,10 +48,10 @@ const Sidebar = () => {
             {/* Navigation Dynamique */}
             <nav className="sidebar-nav">
                 {/* 1. L'accueil est toujours présent pour tout le monde */}
-                {/* <NavLink to="/dashboard/home" className={({isActive}) => isActive ? "nav-item active" : "nav-item"}>
+                <NavLink to="/dashboard/OP-home" className={({isActive}) => isActive ? "nav-item active" : "nav-item"}>
                     <span className="material-symbols-outlined nav-icon">dashboard</span>
                     Accueil
-                </NavLink> */}
+                </NavLink>
 
                 {/* 2. On boucle intelligemment sur les menus récupérés depuis le fichier de config */}
                 {dynamicLinks.map((link, index) => {
