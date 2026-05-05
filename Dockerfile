@@ -18,6 +18,9 @@ COPY package.json package-lock.json ./
 # Installation des dépendances
 RUN npm install
 
+# Nettoyage du cache npm avant d'installer
+RUN npm cache clean --force
+
 # Copie du reste du code source
 COPY . .
 
