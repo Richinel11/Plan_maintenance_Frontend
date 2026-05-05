@@ -6,7 +6,7 @@ const AuthLayout = ({ title, subtitle, children }) => {
         <div className="login-page">
             <div className="login-left">
                 <div className="branding-container">
-                    <img src="/logo 1.svg" alt='EneoPlan' />
+                    <img src="/logo.svg" alt='EneoPlan' />
                 </div>
                 <div className="bottom-line-accent"></div>
             </div>

@@ -22,4 +22,7 @@ dist-ssr
 *.sln
 *.sw?
 *.env
+.vite/
+node_modules/
+dist/
 
