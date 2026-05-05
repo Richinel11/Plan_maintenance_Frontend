@@ -16,7 +16,7 @@ RUN rm -rf node_modules package-lock.json
 COPY package.json package-lock.json ./
 
 # Installation des dépendances
-RUN npm install
+RUN npm install --legacy-peer-deps
 
 # Nettoyage du cache npm avant d'installer
 RUN npm cache clean --force
