@@ -29,7 +29,7 @@ const Login = () => {
              if (!user.ldap_req && user.first_connection) {
             navigate('/change-password', { state: { userId: user.id } });
              } else {
-                //   navigate('/select-role');
+                  navigate('/select-role');
              }
          } catch (err) {
              console.error('Erreur de connexion:', err);

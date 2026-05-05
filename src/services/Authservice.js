@@ -45,7 +45,7 @@ export const getCurrentUser = () => {
   return user ? JSON.parse(user) : null;
 };
 
-export const changePassword = async (data) => {
-  const response = await api.post('users/change-password/', data);
+export const changePassword = async (password) => {
+  const response = await api.post('users/change-password/', {new_password: password});
   return response.data;
 };
