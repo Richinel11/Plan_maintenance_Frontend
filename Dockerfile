@@ -9,6 +9,9 @@ FROM node:20-alpine AS builder
 
 WORKDIR /app
 
+# Supprimer node_modules et package-lock.json avant de reconstruire
+RUN rm -rf node_modules package-lock.json
+
 # Copie des fichiers de dépendances en premier (cache Docker optimisé)
 COPY package.json package-lock.json ./
 
