@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import AuthLayout from './AuthLayout';
 import { login } from '../../services/Authservice';
+import { getUserById } from '../../services/userService';
 import './Login.css';
 
 const Login = () => {
@@ -19,13 +20,16 @@ const Login = () => {
 
          try {
              const data = await login(identifier, password);
+             const user = await getUserById(data.user.id);
+             console.log(data);
+             console.log(user);
 
              // Si c'est un compte Active Directory (LDAP), ils ne changent jamais leur mot de passe ici !
              // Sinon (compte externe), on vérifie si c'est la première connexion.
-             if (!data.user.ldap_req && data.user.first_connection) {
-            navigate('/change-password', { state: { userId: data.user.id } });
+             if (!user.ldap_req && user.first_connection) {
+            navigate('/change-password', { state: { userId: user.id } });
              } else {
-                  navigate('/select-role');
+                //   navigate('/select-role');
              }
          } catch (err) {
              console.error('Erreur de connexion:', err);

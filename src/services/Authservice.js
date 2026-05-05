@@ -44,3 +44,8 @@ export const getCurrentUser = () => {
   const user = Cookies.get('user');
   return user ? JSON.parse(user) : null;
 };
+
+export const changePassword = async (data) => {
+  const response = await api.post('users/change-password/', data);
+  return response.data;
+};
