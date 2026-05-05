@@ -28,7 +28,7 @@ npm-debug.log*
 .git
 .gitignore
 
-# Docker (pas besoin de copier les fichiers Docker dans eux-mêmes)
+
+# Docker
 Dockerfile
-docker-compose.yml
-nginx.conf
+.dockerignore
