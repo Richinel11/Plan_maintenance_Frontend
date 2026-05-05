@@ -26,7 +26,7 @@ COPY . .
 
 # Build de production Vite
 # La variable VITE_API_BASE_URL peut être injectée au build
-ARG VITE_API_BASE_URL=http://10.250.90.90:8000
+ARG VITE_API_BASE_URL=http://10.250.90.90:8002
 ENV VITE_API_BASE_URL=$VITE_API_BASE_URL
 
 RUN npm run build
