@@ -1,7 +1,7 @@
 import { useState } from "react";
 import * as XLSX from "xlsx";
 import { Upload, X, ChevronDown, ChevronUp, Download } from "lucide-react";
-import "./Importation.css";
+import "./importation.css";
 
 const FileInput = ({ onFileSelect, onContinue }) => {
   const [fileName, setFileName] = useState("");
