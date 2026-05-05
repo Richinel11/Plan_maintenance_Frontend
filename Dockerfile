@@ -16,7 +16,7 @@ RUN rm -rf node_modules package-lock.json
 COPY package.json package-lock.json ./
 
 # Installation des dépendances
-RUN npm ci
+RUN npm install
 
 # Copie du reste du code source
 COPY . .
