@@ -42,7 +42,7 @@ const Login = () => {
                      setError(`Erreur serveur (${err.response.status}). Vérifiez que le backend est bien démarré.`);
                  }
              } else if (err.request) {
-                 const apiUrl = import.meta.env.VITE_API_BASE_URL || 'http://10.250.90.90:8002';
+                 const apiUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api/';
                  setError(`Impossible de joindre le serveur. Vérifiez que le backend tourne sur ${apiUrl}.`);
              } else {
                  setError('Erreur inattendue : ' + err.message);

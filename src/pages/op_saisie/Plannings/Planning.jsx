@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from "react";
-import axios from "axios";
+import api from "../../API/axiosInstance";
 import { useNavigate } from "react-router-dom";
 
 import FileInput from "../Importer_Plannings/importation";
@@ -167,8 +167,8 @@ const ExcelDisplay = () => {
       for (const row of rows) {
         const payload = convertRowToPayload(headers, row);
 
-        await axios.post(
-          "http://10.250.90.90:8002/api/plannings/",
+        await api.post(
+          "plannings/",
           payload,
           {
             headers: {
