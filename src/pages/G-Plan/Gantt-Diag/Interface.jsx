@@ -1,4 +1,4 @@
-import TopControl from "../Gantt-Diag/topcontrol/Topcontrol";
+import TopControl from "./topcontrol/Topcontrol";
 import Detail from "./details/AdvancedGantt";
 
 const InterfaceGantt = () => {
