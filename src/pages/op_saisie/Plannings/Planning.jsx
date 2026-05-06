@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from "react";
-import api from "../../API/axiosInstance";
+import api from "../../../API/axiosInstance";
 import { useNavigate } from "react-router-dom";
 
 import FileInput from "../Importer_Plannings/importation";
@@ -126,13 +126,13 @@ const ExcelDisplay = () => {
 
   /* ---------------- HEADER MAP ---------------- */
   const headerMap = {
-    titr: "", 
-    reference:"",
-    type_activite :"",
+    titr: "",
+    reference: "",
+    type_activite: "",
     jour_debut_planifie: "",
-    jour_debut_effectif :"",
+    jour_debut_effectif: "",
     duree_planifiee: "",
-    jour_fin_planifie :"",
+    jour_fin_planifie: "",
     observation: "",
     statut_travaux: "",
   };
