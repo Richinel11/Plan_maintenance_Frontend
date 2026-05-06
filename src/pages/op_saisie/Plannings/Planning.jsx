@@ -168,7 +168,7 @@ const ExcelDisplay = () => {
         const payload = convertRowToPayload(headers, row);
 
         await axios.post(
-          "http://localhost:8000/api/plannings/",
+          "http://10.250.90.90:8002/api/plannings/",
           payload,
           {
             headers: {
