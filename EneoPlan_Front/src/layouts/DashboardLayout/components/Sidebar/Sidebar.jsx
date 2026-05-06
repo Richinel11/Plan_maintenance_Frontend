@@ -11,7 +11,7 @@ import './Sidebar.css';
 const Sidebar = () => {
     // 1. Récupération des informations de l'utilisateur stockées en session
     const userString = sessionStorage.getItem('user');
-    const user = userString ? JSON.parse(userString) : { nom: 'Utilisateur', prenom: '' };
+    const user = userString && userString !== "undefined" ? JSON.parse(userString) : { nom: 'Utilisateur', prenom: '' };
     const fullName = `${user.prenom || ''} ${user.nom || ''}`.trim() || 'Utilisateur Anonyme';
 
     // 2. Détermination du rôle actif pour savoir quels menus afficher

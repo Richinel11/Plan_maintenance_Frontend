@@ -12,6 +12,7 @@
   "dependencies": {
     "@tailwindcss/vite": "^4.2.2",
     "axios": "^1.14.0",
+    "dhtmlx-gantt": "^9.1.4",
     "lucide": "^1.8.0",
     "lucide-react": "^1.8.0",
     "react": "^19.2.5",

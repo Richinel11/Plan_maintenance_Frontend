@@ -41,6 +41,7 @@ const ChangePassword = () => {
             setTimeout(() => navigate('/login'), 2000);
 
         } catch (err) {
+            
             setError("Une erreur est survenue. Veuillez réessayer.");
         } finally {
             setLoading(false);

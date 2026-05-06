@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { logout } from '../../../services/authService';
+import { logout } from '../../../services/Authservice';
 import './SelectRole.css';
 
 // Ces données servent juste de fallback pour l'icône si on reconnaît le code_role

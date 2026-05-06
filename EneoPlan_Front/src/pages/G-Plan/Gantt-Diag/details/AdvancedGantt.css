@@ -1,0 +1,129 @@
+/* wrapper */
+.gantt-wrapper {
+  font-family: Arial;
+  background: #f5f6f8;
+  padding: 10px;
+}
+
+/* legend */
+.legend {
+  display: flex;
+  gap: 10px;
+  font-size: 12px;
+  font-weight: bold;
+  margin-bottom: 10px;
+ 
+}
+
+.dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-right: 5px;
+  position: relative;
+  top: 3px;
+}
+
+.green { background: #84cc16; }
+.blue { background: #2563eb; }
+.gray { background: #64748b; }
+.red { background: #ef4444; }
+
+/* layout */
+.gantt {
+  display: grid;
+  grid-template-columns: 260px 1fr;
+  background: white;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+/* sidebar */
+.sidebar {
+  background: #f9fafb;
+  border-right: 1px solid #e5e7eb;
+}
+
+.sidebar-header {
+  padding: 12px;
+  font-weight: bold;
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.sidebar-item {
+  padding: 12px;
+  border-top: 1px solid #eee;
+}
+
+.sidebar-item.alert {
+  background: #fff1f1;
+}
+
+.title {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.ref {
+  font-size: 11px;
+  color: #9ca3af;
+}
+
+/* badges */
+.badge {
+  margin-left: 8px;
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.badge.prd { background: #dcfce7; color: #166534; }
+.badge.trp { background: #dbeafe; color: #1e3a8a; }
+.badge.dst { background: #e5e7eb; }
+
+/* timeline */
+.timeline {
+  position: relative;
+}
+
+/* days */
+.days {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  border-bottom: 1px solid #eee;
+}
+
+.day {
+  padding: 10px;
+  font-size: 12px;
+  text-align: center;
+  border-left: 1px solid #eee;
+}
+
+/* rows */
+.row {
+  position: relative;
+  height: 60px;
+  border-bottom: 1px solid #f1f1f1;
+}
+
+/* tasks */
+.task {
+  position: absolute;
+  top: 18px;
+  height: 22px;
+  border-radius: 6px;
+  color: white;
+  font-size: 11px;
+  display: flex;
+  align-items: center;
+  padding: 0 8px;
+}
+
+/* colors */
+.task.green { background: #84cc16; }
+.task.blue { background: #2563eb; }
+.task.gray { background: #64748b; }
+.task.light-green { background: #bbf7d0; color: #065f46; }

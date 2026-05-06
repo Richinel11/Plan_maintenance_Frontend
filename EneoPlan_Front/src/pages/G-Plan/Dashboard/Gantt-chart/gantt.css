@@ -1,0 +1,85 @@
+/* container */
+.gantt-container {
+  background: #fff;
+  padding: 18px;
+  border-radius: 12px;
+  box-shadow: 0 2px 6px rgba(0,0,0,.05);
+  width: 100%;
+}
+
+/* header */
+.gantt-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.gantt-header h3 {
+  font-size: 16px;
+}
+
+.week {
+  font-size: 12px;
+  color: #6b7280;
+}
+
+/* days */
+.gantt-days {
+  display: grid;
+  grid-template-columns: 140px repeat(7, 1fr);
+  font-size: 11px;
+  color: #9ca3af;
+  margin-bottom: 10px;
+  gap: 8px; /* 🔥 space between name & timeline */
+}
+
+.resource-label {
+  font-weight: bold;
+}
+
+/* rows */
+.gantt-row {
+  display: grid;
+  grid-template-columns: 140px 1fr;
+  align-items: center;
+  margin-bottom: 18px; 
+  gap: 12px; /* 🔥 space between name & timeline */
+}
+
+.resource {
+  font-size: 13px;
+  color: #374151;
+}
+
+/* timeline */
+.timeline {
+  position: relative;
+  height: 30px;           /* slightly taller */
+  padding: 4px;           /* 🔥 inner spacing */
+  background: #f3f4f6;
+  border-radius: 6px;
+}
+
+/* tasks */
+.task {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  height: 12px;
+  border-radius: 8px;
+}
+
+/* colors */
+.light-blue { background: #c7d7f2; }
+.blue { background: #2b6cb0; }
+.blue-dark { background: #1e4e8c; }
+.green { background: #84cc16; }
+.light-green { background: #d9f99d; }
+
+/* responsive */
+@media (max-width: 768px) {
+  .gantt-days,
+  .gantt-row {
+    grid-template-columns: 100px repeat(7, 1fr);
+  }
+}

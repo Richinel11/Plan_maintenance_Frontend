@@ -12,6 +12,8 @@ import OP_home from './pages/op_saisie/Accuiel/Dashboard';
 import Planning from './pages/op_saisie/Plannings/Planning';
 import Tableaux_De_Bord from './pages/op_saisie/Plannings/TableauxDeBord/Tableaux';
 import Creer_Travail from "./pages/op_saisie/Creer_Travail/Nouveau_Travail";
+import Dashboard_Plan from './pages/G-Plan/Dashboard/Dashboard';
+import Gantt from './pages/G-Plan/Gantt-Diag/Interface';
 function App() {
     return (
         <div className="app-container">
@@ -29,10 +31,16 @@ function App() {
                         <Route path="users" element={<UserManagement />} />
                         <Route path="roles" element={<RoleManagement />} />
                         <Route path="permissions" element={<PermissionManagement />} />
+
+                        {/* Contenus OP-Saisie */}
                         <Route path="OP-home" element={<OP_home />} />
                         <Route path="Planning" element={<Planning />} />
                         <Route path="Tableaux_De_Bord" element={<Tableaux_De_Bord />} />
                         <Route path="CreerTravail" element={<Creer_Travail />} />
+
+                        {/* Contenus pour G-Plan */}
+                        <Route path="Dashboard_Plan" element={<Dashboard_Plan />} />
+                        <Route path="Gantt" element={<Gantt />} />
                     </Route>
                 </Routes>
             </Router>
