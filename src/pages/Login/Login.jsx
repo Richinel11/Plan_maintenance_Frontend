@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import AuthLayout from './AuthLayout';
 import { login } from '../../services/Authservice';
+import { getUserById } from '../../services/userService';
 import './Login.css';
 
 const Login = () => {
@@ -19,17 +20,33 @@ const Login = () => {
 
         try {
             const data = await login(identifier, password);
-
+            const user = await getUserById(data.user.id);
+            console.log(data);
+            console.log(user);
 
             // Si c'est un compte Active Directory (LDAP), ils ne changent jamais leur mot de passe ici !
             // Sinon (compte externe), on vérifie si c'est la première connexion.
-            if (!data.user.ldap_req && data.user.first_connection) {
-                navigate('/change-password', { state: { userId: data.user.id } });
+            if (!user.ldap_req && user.first_connection) {
+                navigate('/change-password', { state: { userId: user.id } });
             } else {
                 navigate('/select-role');
             }
         } catch (err) {
-            setError('Identifiant ou mot de passe incorrect.');
+            console.error('Erreur de connexion:', err);
+            if (err.response) {
+                if (err.response.status === 401) {
+                    setError('Identifiant ou mot de passe incorrect.');
+                } else if (err.response.status === 404) {
+                    setError('Profil utilisateur introuvable. Ce compte n\'a pas de profil applicatif (superuser Django ?).');
+                } else {
+                    setError(`Erreur serveur (${err.response.status}). Vérifiez que le backend est bien démarré.`);
+                }
+            } else if (err.request) {
+                const apiUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api/';
+                setError(`Impossible de joindre le serveur. Vérifiez que le backend tourne rellement sur ${apiUrl}.`);
+            } else {
+                setError('Erreur inattendue : ' + err.message);
+            }
         } finally {
             setLoading(false);
         }
@@ -66,7 +83,6 @@ const Login = () => {
                             placeholder="Entrez votre mot de passe"
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
-                            required
                         />
                         <span
                             className="material-symbols-outlined input-icon-right"
@@ -84,9 +100,9 @@ const Login = () => {
                     </div>
                 )}
 
-                <div className="forgot-password-container">
+                {/* <div className="forgot-password-container">
                     <a href="#" className="forgot-password-link">Mot de passe oublié ?</a>
-                </div>
+                </div> */}
 
                 <button type="submit" className="submit-btn uppercase" disabled={loading}>
                     {loading ? 'Connexion...' : 'SE CONNECTER'}

@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import { MOCK_OPTIONS } from "../../config/mockData";
 
 const ServiceSwitcher = () => {
 
@@ -10,7 +11,7 @@ const ServiceSwitcher = () => {
             : "";
         };
 
-    const service = getCookie("service");
+    const service = getCookie("service") || "transport"; // "transport" par défaut pour les tests
 
   
 
@@ -91,8 +92,20 @@ const ServiceSwitcher = () => {
     }
   }, [service]);
 
-//   return fields;
-    return { service, fields };
+  // Configuration de la génération de la référence
+  const referenceConfig = useMemo(() => {
+    switch (service.toLowerCase()) {
+      case "transport":
+      case "production":
+        return ["Segments", "Ouvrages", "Poste"];
+      case "distribution":
+        return ["Segments", "Ouvrages", "Poste", "Departs"];
+      default:
+        return [];
+    }
+  }, [service]);
+
+    return { service, fields, referenceConfig, options: MOCK_OPTIONS };
 };
 
 export default ServiceSwitcher;

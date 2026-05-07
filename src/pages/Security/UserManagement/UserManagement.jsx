@@ -21,6 +21,7 @@ const UserManagement = () => {
     const [searchEmail, setSearchEmail] = useState('');
     const [searchRole, setSearchRole] = useState('');
     const [searchStatus, setSearchStatus] = useState('');
+    const [searchEntite, setSearchEntite] = useState('');
 
     // Fetch data
     useEffect(() => {
@@ -35,46 +36,54 @@ const UserManagement = () => {
                 getRoles(),
                 getEntites()
             ]);
-            setUsers(usersData);
-            setRoles(rolesData);
-            setEntites(entitesData);
+            setUsers(Array.isArray(usersData) ? usersData : []);
+            setRoles(Array.isArray(rolesData) ? rolesData : []);
+            setEntites(Array.isArray(entitesData) ? entitesData : []);
         } catch (error) {
             console.error("Erreur lors du chargement des données", error);
+            setUsers([]);
+            setRoles([]);
+            setEntites([]);
         } finally {
             setLoading(false);
         }
     };
 
     // Filtrage des utilisateurs
+    // Backend retourne : id, username, first_name, last_name, email, is_active, is_ldap, roles[]
     const filteredUsers = users.filter(user => {
         // 1. Recherche par nom/prénom/username
         const queryLower = searchQuery.toLowerCase();
         const matchName = !searchQuery || 
-            (user.nom?.toLowerCase() || '').includes(queryLower) ||
-            (user.prenom?.toLowerCase() || '').includes(queryLower) ||
+            (user.last_name?.toLowerCase() || '').includes(queryLower) ||
+            (user.first_name?.toLowerCase() || '').includes(queryLower) ||
             (user.username?.toLowerCase() || '').includes(queryLower);
         
         // 2. Recherche par email
         const matchEmail = !searchEmail || (user.email?.toLowerCase() || '').includes(searchEmail.toLowerCase());
 
-        // 3. Filtrage par Rôle
+        // 3. Filtrage par Rôle via le tableau roles[] (champ code_role)
         let matchRole = true;
         if (searchRole !== '') {
-            const roleId = parseInt(searchRole);
-            matchRole = Array.isArray(user.roles) 
-                ? user.roles.some(r => (r.id || r) === roleId)
-                : (user.roles?.id === roleId);
+            matchRole = Array.isArray(user.roles) && user.roles.some(r => r.code_role === searchRole);
         }
 
-        // 4. Filtrage par Statut
+        // 4. Filtrage par Statut (le backend utilise `is_active`)
         let matchStatus = true;
         if (searchStatus !== '') {
-            const isActiveUser = user.is_active !== undefined ? user.is_active : user.actif;
-            if (searchStatus === 'active' && !isActiveUser) matchStatus = false;
-            if (searchStatus === 'inactive' && isActiveUser) matchStatus = false;
+            const isActive = user.is_active;
+            if (searchStatus === 'active' && !isActive) matchStatus = false;
+            if (searchStatus === 'inactive' && isActive) matchStatus = false;
         }
 
-        return matchName && matchEmail && matchRole && matchStatus;
+        // 5. Filtrage par Entité
+        let matchEntite = true;
+        if (searchEntite !== '') {
+            const userEntiteId = user.entite_metier?.id || user.entite_metier;
+            if (String(userEntiteId) !== searchEntite) matchEntite = false;
+        }
+        
+        return matchName && matchEmail && matchRole && matchStatus && matchEntite;
     });
 
     // Actions
@@ -138,8 +147,8 @@ const UserManagement = () => {
                         value={searchRole}
                         onChange={(e) => setSearchRole(e.target.value)}
                     >
-                        <option value="">Tous les rôles</option>
-                        {roles.map(r => <option key={r.id} value={r.id}>{r.nom}</option>)}
+                    <option value="">Tous les rôles</option>
+                        {roles.map(r => <option key={r.code_role} value={r.code_role}>{r.nom}</option>)}
                     </select>
                 </div>
                 <div className="filter-dropdown-group">
@@ -152,6 +161,19 @@ const UserManagement = () => {
                         <option value="">Statut: Tous</option>
                         <option value="active">Actif</option>
                         <option value="inactive">Inactif</option>
+                    </select>
+                </div>
+                <div className="filter-dropdown-group">
+                    <span className="material-symbols-outlined filter-icon">domain</span>
+                    <select 
+                        className="filter-select"
+                        value={searchEntite}
+                        onChange={(e) => setSearchEntite(e.target.value)}
+                    >
+                        <option value="">Toutes les entités</option>
+                        {entites.map(e => (
+                            <option key={e.id} value={e.id}>{e.name || e.nom}</option>
+                        ))}
                     </select>
                 </div>
             </div>

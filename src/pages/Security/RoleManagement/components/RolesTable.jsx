@@ -3,7 +3,7 @@ import '../../UserManagement/components/UsersTable.css'; // On réutilise intell
 
 const RolesTable = ({ roles, permissions, onEdit, onDelete }) => {
     
-    // Fonction qui convertit des IDs de permissions en petits badges (pour les 3 premières, etc.)
+    // Fonction qui affiche un résumé des permissions d'un rôle
     const renderPermissionsSummary = (rolePermsIds) => {
         if (!rolePermsIds || rolePermsIds.length === 0) return <span className="text-gray-code">Aucune permission</span>;
         
@@ -23,8 +23,8 @@ const RolesTable = ({ roles, permissions, onEdit, onDelete }) => {
                 <thead>
                     <tr>
                         <th>NOM DU RÔLE</th>
+                        <th>CODE</th>
                         <th>DESCRIPTION</th>
-                        <th>UTILISATEURS</th>
                         <th>PERMISSIONS</th>
                         <th className="th-actions">ACTIONS</th>
                     </tr>
@@ -34,13 +34,8 @@ const RolesTable = ({ roles, permissions, onEdit, onDelete }) => {
                         roles.map((role) => (
                             <tr key={role.id}>
                                 <td className="font-medium text-dark">{role.nom}</td>
+                                <td className="text-gray-code">{role.code_role || '-'}</td>
                                 <td className="text-gray" style={{maxWidth: '250px'}}>{role.description || '-'}</td>
-                                <td>
-                                    <div className="status-pill" style={{backgroundColor: '#f1f5f9', color: '#475569'}}>
-                                        <span className="material-symbols-outlined" style={{fontSize: '14px'}}>group</span>
-                                        {role.nbUsers || 0}
-                                    </div>
-                                </td>
                                 <td>{renderPermissionsSummary(role.permissions)}</td>
                                 <td className="td-actions">
                                     <button 

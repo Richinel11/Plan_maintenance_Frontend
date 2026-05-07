@@ -1,0 +1,30 @@
+# Dépendances (réinstallées dans le container)
+node_modules
+
+# Build précédents
+dist
+dist-ssr
+
+
+# Logs
+*.log
+npm-debug.log*
+
+# Fichiers éditeur
+.vscode
+.idea
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+.DS_Store
+
+# Git
+.git
+.gitignore
+
+
+# Docker
+Dockerfile
+.dockerignore

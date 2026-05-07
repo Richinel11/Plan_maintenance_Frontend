@@ -1,16 +1,15 @@
 /**
  * Fichier de configuration centralisé.
  * Il définit quels liens doivent apparaître dans la Sidebar selon le Rôle actif.
- * Très simple à comprendre, et extrêmement facile à maintenir si l'on veut ajouter un bouton.
  */
 
 export const menuConfig = {
     // Profils liés à la conception
-    op_saisie: [
-        // { path: '/dashboard/OP-home', name: 'Accueil', icon: 'event_note' },
-        { path: '/dashboard/plannings', name: 'Plannings', icon: 'event_note' },
-        { path: '/dashboard/import', name: 'Importer Planning', icon: 'upload_file' },
-        { path: '/dashboard/create-job', name: 'Nouveau Travail', icon: 'add_box' },
+    operateur_de_saisie: [
+        { path: '/dashboard/OP-home', name: 'Accueil', icon: 'dashboard' },
+        { path: '/dashboard/Planning', name: 'Plannings & Import', icon: 'upload_file' },
+        { path: '/dashboard/Tableaux_De_Bord', name: 'Tableaux de bord', icon: 'analytics' },
+        { path: '/dashboard/CreerTravail', name: 'Nouveau Travail', icon: 'add_box' },
     ],
     gest_planif: [
         { path: '/dashboard/gantt', name: 'Diagramme Gantt', icon: 'bar_chart' },
@@ -38,15 +37,23 @@ export const menuConfig = {
     eq_comm: [
         { path: '/dashboard/alertes-publiques', name: 'Alertes Publiques', icon: 'campaign' },
     ],
-    // Profil Administrateur Système (Gestion Permissions)
-    admin: [
-        { path: '/dashboard/users', name: 'Utilisateurs', icon: 'group' },
-        { path: '/dashboard/roles', name: 'Rôles', icon: 'security' },
-        { path: '/dashboard/permissions', name: 'Permissions', icon: 'shield_locked' },
-    ]
+     //rofil Administrateur Système (Gestion Permissions et workflow)
+     admin: [
+         { path: '/dashboard/users', name: 'Utilisateurs', icon: 'group' },
+         { path: '/dashboard/roles', name: 'Rôles', icon: 'security' },
+         { path: '/dashboard/permissions', name: 'Permissions', icon: 'shield_locked' },
+         { 
+             name: 'Workflow', 
+             icon: 'account_tree',
+             children: [
+                 { path: '/dashboard/workflow/historique', name: 'Historiques', icon: 'history' },
+                 { path: '/dashboard/workflow/processus/creer', name: 'Créer Processus', icon: 'schema' },
+                 { path: '/dashboard/workflow/orchestrateur/creer', name: 'Créer Orchestrateur', icon: 'add_circle' },
+             ]
+         }
+     ]
 };
 
-// --- Mappings de compatibilité (Backend Django) ---
-menuConfig['Ad1'] = menuConfig['admin'];
-menuConfig['ad1'] = menuConfig['admin'];
-menuConfig['Administrateur'] = menuConfig['admin'];
+ // --- Mappings de compatibilité (Backend Django) ---
+ menuConfig['op1'] = menuConfig['operateur_de_saisie'];
+ menuConfig['Ad1'] = menuConfig['admin'];

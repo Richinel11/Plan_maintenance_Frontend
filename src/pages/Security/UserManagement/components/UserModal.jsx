@@ -1,50 +1,64 @@
 import React, { useState, useEffect } from 'react';
-import { createUser, updateUser } from '../../../../services/userService';
+import { createUser, updateUser , update_userrole } from '../../../../services/userService';
 import './Modals.css';
 
 const UserModal = ({ isOpen, onClose, user, roles, entites, onSuccess }) => {
     const isEditMode = !!user;
 
     const [formData, setFormData] = useState({
-        nom: '',
-        prenom: '',
+        last_name: '',
+        first_name: '',
         username: '',
         email: '',
-        password: '', // Seulement pour l'ajout
-        roles: [],
-        entite: ''
+        password: '',
+        code_role: '',
+        entite_metier: '',
+        is_ldap: false
     });
 
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
+    const [showPassword, setShowPassword] = useState(false);
+    const [roleSearch, setRoleSearch] = useState('');
 
     useEffect(() => {
-        if (user && isEditMode) {
-            // Pre-fill
-            setFormData({
-                nom: user.nom || '',
-                prenom: user.prenom || '',
-                username: user.username || '',
-                email: user.email || '',
-                password: '', // on ne préremplit jamais le mot de passe
-                roles: Array.isArray(user.roles) ? user.roles.map(r => r.id || r) : (user.roles ? [user.roles] : []),
-                entite: user.entite || ''
-            });
+        if (isOpen) {
+            if (user && isEditMode) {
+                const firstRole = user.roles?.[0]?.code_role || '';
+                setFormData({
+                    last_name: user.last_name || '',
+                    first_name: user.first_name || '',
+                    username: user.username || '',
+                    email: user.email || '',
+                    password: '',
+                    code_role: firstRole,
+                    entite_metier: user.entite_metier?.id || user.entite_metier || '',
+                    is_ldap: user.is_ldap || false
+                });
+            } else {
+                setFormData({
+                    last_name: '',
+                    first_name: '',
+                    username: '',
+                    email: '',
+                    password: '',
+                    code_role: '',
+                    entite_metier: '',
+                    is_ldap: false
+                });
+            }
+            setError(null);
+            setRoleSearch('');
         }
-    }, [user, isEditMode]);
+    }, [isOpen, user, isEditMode]);
 
     const handleChange = (e) => {
         const { name, value } = e.target;
-        setFormData(prev => ({
-            ...prev,
-            [name]: value
-        }));
+        setFormData(prev => ({ ...prev, [name]: value }));
     };
 
-    const handleRoleChange = (e) => {
-        // Pour un select multiple ou select simple, adapté selon le backend
-        const value = Array.from(e.target.selectedOptions, option => parseInt(option.value));
-        setFormData(prev => ({ ...prev, roles: value }));
+    const handleRoleToggle = (code) => {
+        setFormData(prev => ({ ...prev, code_role: prev.code_role === code ? '' : code }));
     };
 
     const handleSubmit = async (e) => {
@@ -53,21 +67,48 @@ const UserModal = ({ isOpen, onClose, user, roles, entites, onSuccess }) => {
         setLoading(true);
 
         try {
-            // Nettoyage des champs vides
-            const payload = { ...formData };
             if (isEditMode) {
-                delete payload.password; // On n'update pas le mot de passe ici
-            }
+                const payload = {
+                    username: formData.username,
+                    first_name: formData.first_name,
+                    last_name: formData.last_name,
+                    email: formData.email,
+                    entite_metier: formData.entite_metier,
+                    is_ldap: formData.is_ldap,
 
-            if (isEditMode) {
+                };
                 await updateUser(user.id, payload);
+                const payload2 = {
+                    role: formData.code_role
+                };
+                await update_userrole(user.id, payload2);
             } else {
+                const payload = {
+                    username: formData.username,
+                    first_name: formData.first_name,
+                    last_name: formData.last_name,
+                    email: formData.email,
+                    code_role: formData.code_role,
+                    entite_metier: formData.entite_metier,
+                    is_ldap: formData.is_ldap
+                };
+                if (formData.password) {
+                    payload.password = formData.password;
+                }
                 await createUser(payload);
             }
-            onSuccess(); // Rafraîchir
-            onClose(); // Fermer modale
+            onSuccess();
+            onClose();
         } catch (err) {
-            setError(err.response?.data?.detail || err.response?.data?.message || "Une erreur est survenue lors de l'enregistrement.");
+            const apiError = err.response?.data;
+            if (apiError && typeof apiError === 'object') {
+                const messages = Object.entries(apiError)
+                    .map(([key, val]) => `${key}: ${Array.isArray(val) ? val.join(', ') : val}`)
+                    .join(' | ');
+                setError(messages);
+            } else {
+                setError(err.message || "Une erreur est survenue lors de l'enregistrement.");
+            }
         } finally {
             setLoading(false);
         }
@@ -75,66 +116,186 @@ const UserModal = ({ isOpen, onClose, user, roles, entites, onSuccess }) => {
 
     if (!isOpen) return null;
 
+    const filteredRoles = (roles || []).filter(r =>
+        r.nom?.toLowerCase().includes(roleSearch.toLowerCase()) ||
+        r.code_role?.toLowerCase().includes(roleSearch.toLowerCase())
+    );
+
     return (
-        <div className="modal-overlay">
+        <div className="modal-overlay" onClick={(e) => e.target === e.currentTarget && onClose()}>
             <div className="modal-content">
+                {/* Header */}
                 <div className="modal-header">
-                    <h2>{isEditMode ? "Modifier l'utilisateur" : "Créer un utilisateur"}</h2>
-                    <button className="close-btn" onClick={onClose}>
+                    <div className="modal-header-text">
+                        <h2>{isEditMode ? "Modifier l'utilisateur" : "Créer un utilisateur"}</h2>
+                        <p>{isEditMode ? "Modifiez les informations de l'utilisateur." : "Remplissez les informations pour ajouter un nouvel utilisateur au système."}</p>
+                    </div>
+                    <button className="close-btn" onClick={onClose} type="button">
                         <span className="material-symbols-outlined">close</span>
                     </button>
                 </div>
-                
+
                 <form onSubmit={handleSubmit} className="modal-form">
-                    {error && <div className="modal-error">{error}</div>}
+                    <div className="modal-form-body">
+                        {error && <div className="modal-error">{error}</div>}
 
-                    <div className="form-row">
-                        <div className="form-group">
-                            <label>Nom <span className="text-danger">*</span></label>
-                            <input type="text" name="nom" required value={formData.nom} onChange={handleChange} className="form-input" />
-                        </div>
-                        <div className="form-group">
-                            <label>Prénom <span className="text-danger">*</span></label>
-                            <input type="text" name="prenom" required value={formData.prenom} onChange={handleChange} className="form-input" />
-                        </div>
-                    </div>
+                        {/* Infos de base */}
+                        <div className="form-card">
+                            <div className="form-row">
+                                <div className="form-group">
+                                    <label>Nom <span className="text-danger">*</span></label>
+                                    <input
+                                        type="text"
+                                        name="last_name"
+                                        required
+                                        value={formData.last_name}
+                                        onChange={handleChange}
+                                        className="form-input"
+                                        placeholder="Ex: Dupont"
+                                    />
+                                </div>
+                                <div className="form-group">
+                                    <label>Prénom <span className="text-danger">*</span></label>
+                                    <input
+                                        type="text"
+                                        name="first_name"
+                                        required
+                                        value={formData.first_name}
+                                        onChange={handleChange}
+                                        className="form-input"
+                                        placeholder="Ex: Jean"
+                                    />
+                                </div>
+                            </div>
 
-                    <div className="form-row">
-                        <div className="form-group">
-                            <label>Nom d'utilisateur <span className="text-danger">*</span></label>
-                            <input type="text" name="username" required value={formData.username} onChange={handleChange} className="form-input" />
-                        </div>
-                        <div className="form-group">
-                            <label>Email <span className="text-danger">*</span></label>
-                            <input type="email" name="email" required value={formData.email} onChange={handleChange} className="form-input" />
-                        </div>
-                    </div>
+                            <div className="form-row">
+                                <div className="form-group">
+                                    <label>Adresse mail <span className="text-danger">*</span></label>
+                                    <input
+                                        type="email"
+                                        name="email"
+                                        value={formData.email}
+                                        onChange={handleChange}
+                                        className="form-input"
+                                        placeholder="exemple@mjn.fr"
+                                    />
+                                </div>
+                                <div className="form-group">
+                                    <label>Nom d'utilisateur <span className="text-danger">*</span></label>
+                                    <input
+                                        type="text"
+                                        name="username"
+                                        required
+                                        value={formData.username}
+                                        onChange={handleChange}
+                                        className="form-input"
+                                        placeholder="j.dupont"
+                                    />
+                                </div>
+                            </div>
 
-                    {!isEditMode && (
-                        <div className="form-group">
-                            <label>Mot de passe provisoire <span className="text-danger">*</span></label>
-                            <input type="password" name="password" required value={formData.password} onChange={handleChange} className="form-input" />
+                            <div className="form-group">
+                                <label>Entité Métier <span className="text-danger">*</span></label>
+                                <select
+                                    name="entite_metier"
+                                    value={formData.entite_metier}
+                                    onChange={handleChange}
+                                    className="form-input"
+                                >
+                                    <option value="">-- Sélectionner une entité --</option>
+                                    {entites && entites.map(e => (
+                                        <option key={e.id} value={e.id}>{e.name || e.nom}</option>
+                                    ))}
+                                </select>
+                                {(!entites || entites.length === 0) && (
+                                    <span className="form-hint" style={{color: '#ef4444'}}>Aucune entité disponible — vérifiez la connexion au serveur.</span>
+                                )}
+                            </div>
                         </div>
-                    )}
 
-                    <div className="form-group">
-                        <label>Rôle(s) <span className="text-danger">*</span></label>
-                        <select name="roles" multiple value={formData.roles} onChange={handleRoleChange} className="form-input" required size="3">
-                            {roles.map(r => (
-                                <option key={r.id} value={r.id}>{r.nom}</option>
-                            ))}
-                        </select>
-                        <small className="form-hint">Maintenez Ctrl (ou Cmd) pour sélectionner plusieurs rôles.</small>
-                    </div>
+                        {/* Rôles */}
+                        <div className="form-card">
+                            <div className="checklist-section">
+                                <div className="checklist-header">
+                                    <label>
+                                        Rôles associés
+                                        {formData.code_role && (
+                                            <span className="checklist-counter" style={{marginLeft: '8px'}}>1 sélectionné</span>
+                                        )}
+                                    </label>
+                                    <div className="checklist-search">
+                                        <span className="material-symbols-outlined">search</span>
+                                        <input
+                                            type="text"
+                                            placeholder="Rechercher un rôle..."
+                                            value={roleSearch}
+                                            onChange={e => setRoleSearch(e.target.value)}
+                                        />
+                                    </div>
+                                </div>
+                                <div className="checklist-box">
+                                    {filteredRoles.length === 0 ? (
+                                        <div className="checklist-empty">Aucun rôle trouvé</div>
+                                    ) : filteredRoles.map(r => {
+                                        const isChecked = formData.code_role === r.code_role;
+                                        return (
+                                            <div
+                                                key={r.code_role}
+                                                className="checklist-item"
+                                                onClick={() => handleRoleToggle(r.code_role)}
+                                            >
+                                                <span className="checklist-item-label">{r.nom}</span>
+                                                <div className={`checklist-checkbox ${isChecked ? 'checked' : ''}`} />
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+                        </div>
 
-                    <div className="form-group">
-                        <label>Entité Métier</label>
-                        <select name="entite" value={formData.entite} onChange={handleChange} className="form-input">
-                            <option value="">-- Aucune --</option>
-                            {entites.map(e => (
-                                <option key={e.id} value={e.id}>{e.nom}</option>
-                            ))}
-                        </select>
+                        {/* Auth */}
+                        <div className="toggle-card">
+                            <div className="toggle-row">
+                                <div className="toggle-label-group">
+                                    <strong>Authentification via AD</strong>
+                                    <span>Synchroniser avec l'Active Directory</span>
+                                </div>
+                                <label className="toggle-switch">
+                                    <input
+                                        type="checkbox"
+                                        checked={formData.is_ldap}
+                                        onChange={e => setFormData(prev => ({
+                                            ...prev,
+                                            is_ldap: e.target.checked
+                                        }))}
+                                    />
+                                    <span className="toggle-slider" />
+                                </label>
+                            </div>
+
+                            {!isEditMode && (
+                                <div className="form-group" style={{marginTop: 4}}>
+                                    <label>Mot de passe <span className="text-danger">*</span></label>
+                                    <div className="password-wrapper">
+                                        <input
+                                            type={showPassword ? 'text' : 'password'}
+                                            name="password"
+                                            required
+                                            value={formData.password}
+                                            onChange={handleChange}
+                                            className="form-input"
+                                            placeholder="••••••••"
+                                        />
+                                        <span
+                                            className="material-symbols-outlined password-toggle-btn"
+                                            onClick={() => setShowPassword(!showPassword)}
+                                        >
+                                            {showPassword ? 'visibility_off' : 'visibility'}
+                                        </span>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
                     </div>
 
                     <div className="modal-actions">
@@ -142,7 +303,7 @@ const UserModal = ({ isOpen, onClose, user, roles, entites, onSuccess }) => {
                             Annuler
                         </button>
                         <button type="submit" className="primary-btn" disabled={loading}>
-                            {loading ? "Enregistrement..." : (isEditMode ? "Mettre à jour" : "Créer")}
+                            {loading ? 'Enregistrement...' : (isEditMode ? 'Enregistrer' : 'Créer')}
                         </button>
                     </div>
                 </form>

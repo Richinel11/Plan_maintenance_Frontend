@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import './Login.css';
 import { useNavigate, useLocation } from 'react-router-dom';
 import AuthLayout from './AuthLayout';
-import api from '../../api/axiosInstance';
+import api from '../../API/axiosInstance';
+import { changePassword } from '../../services/Authservice';
 
 const ChangePassword = () => {
     const [password, setPassword] = useState('');
@@ -34,7 +35,7 @@ const ChangePassword = () => {
 
         setLoading(true);
         try {
-            await api.post(`/users/${userId}/set_password/`, { password });
+            await changePassword(password);
             setSuccess(true);
 
             // Redirection vers login après succès

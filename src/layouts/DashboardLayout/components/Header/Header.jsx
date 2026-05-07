@@ -1,5 +1,6 @@
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { logout } from '../../../../services/Authservice';
 import './Header.css';
 
 /**
@@ -56,7 +57,7 @@ const Header = () => {
     };
 
     const handleLogout = () => {
-        sessionStorage.clear();
+        logout();
         navigate('/login', { replace: true });
     };
 
