@@ -8,14 +8,8 @@ const Dashboard = () => {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
 
-  // Données mockées pour la démo
-  const recentWorks = [
-    { id: 1, ref: "MT-2024-001", titre: "Maintenance Transformateur T1", statut: "Brouillon", date: "2024-04-20" },
-    { id: 2, ref: "MT-2024-002", titre: "Réparation Ligne A12", statut: "Soumis", date: "2024-04-21" },
-    { id: 3, ref: "MT-2024-003", titre: "Inspection Poteaux Secteur B", statut: "En cours", date: "2024-04-22" },
-    { id: 4, ref: "MT-2024-004", titre: "Changement Isolateurs", statut: "Clôturé", date: "2024-04-23" },
-    { id: 5, ref: "MT-2024-005", titre: "Élagage Zone Nord", statut: "Brouillon", date: "2024-04-24" },
-  ];
+  // En attente de données réelles depuis le backend
+  const recentWorks = [];
 
   const filteredWorks = recentWorks.filter(work => 
     work.titre.toLowerCase().includes(searchTerm.toLowerCase()) ||

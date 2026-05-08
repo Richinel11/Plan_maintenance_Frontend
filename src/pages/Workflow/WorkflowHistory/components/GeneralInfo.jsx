@@ -15,15 +15,10 @@ const GeneralInfo = ({
     isActive = true,
     onIsActiveChange,
     isReadOnly = false,
+    plannings = [], // Liste réelle des plannings venant du backend
     wrapperClassName = "info-card",
     formClassName = "form-container"
 }) => {
-    // MOCK: Liste des plannings pour l'association
-    const MOCK_PLANNINGS = [
-        { id: 'plan-001', name: 'Planning Maintenance Préventive 2026' },
-        { id: 'plan-002', name: 'Planning Urgences Secteur Douala' },
-        { id: 'plan-003', name: 'Planning Inspections Annuelles' }
-    ];
 
     return (
         <section className={wrapperClassName} style={{ marginBottom: '15px' }}>
@@ -83,8 +78,8 @@ const GeneralInfo = ({
                             style={{ padding: '6px 10px', fontSize: '0.9rem', height: '32px', backgroundColor: isReadOnly ? '#f5f5f5' : '' }}
                         >
                             <option value="">-- Aucun --</option>
-                            {MOCK_PLANNINGS.map(p => (
-                                <option key={p.id} value={p.id}>{p.name}</option>
+                            {plannings.map(p => (
+                                <option key={p.id} value={p.id}>{p.nom || p.name}</option>
                             ))}
                         </select>
                     </div>
