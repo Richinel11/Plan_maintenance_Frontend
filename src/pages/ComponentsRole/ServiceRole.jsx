@@ -1,7 +1,7 @@
-import { useMemo } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { MOCK_OPTIONS } from "../../config/mockData";
 
-const ServiceSwitcher = () => {
+const useServiceRole = () => {
 
     const getCookie = (name) => {
         const value = `; ${document.cookie}`;
@@ -11,7 +11,11 @@ const ServiceSwitcher = () => {
             : "";
         };
 
-    const service = getCookie("service") || "transport"; // "transport" par défaut pour les tests
+    const [service, setService] = useState(getCookie("service") || "transport");
+
+    useEffect(() => {
+        document.cookie = `service=${service}; path=/`;
+    }, [service]);
 
   
 
@@ -105,7 +109,7 @@ const ServiceSwitcher = () => {
     }
   }, [service]);
 
-    return { service, fields, referenceConfig, options: MOCK_OPTIONS };
+    return { service, setService, fields, referenceConfig, options: MOCK_OPTIONS };
 };
 
-export default ServiceSwitcher;
+export default useServiceRole;

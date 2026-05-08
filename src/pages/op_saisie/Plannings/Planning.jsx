@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from "react";
 import api from "../../../API/axiosInstance";
 import { useNavigate } from "react-router-dom";
+import { getCurrentUser } from "../../../services/Authservice";
 
 import FileInput from "../Importer_Plannings/importation";
 import readExcel from "./readFile";
@@ -163,9 +164,16 @@ const ExcelDisplay = () => {
       setLoading(true);
 
       const token = localStorage.getItem("token");
+      const user = getCurrentUser();
+      const entiteId = user?.entite_metier?.id || user?.entite_metier;
 
       for (const row of rows) {
         const payload = convertRowToPayload(headers, row);
+        
+        // Assign the user's entite_metier automatically
+        if (entiteId) {
+          payload.entite_metier = entiteId;
+        }
 
         await api.post(
           "plannings/",

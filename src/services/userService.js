@@ -68,8 +68,13 @@ export const updateRole = async (code_role, roleData) => {
     return data;
 };
 
-export const deleteRole = async (id) => {
-    await api.delete(`roles/${id}/`);
+export const patchRole = async (roleId, roleData) => {
+    const { data } = await api.patch(`roles/${roleId}/`, roleData);
+    return data;
+};
+
+export const deleteRole = async (roleId) => {
+    await api.delete(`roles/${roleId}/`);
     return true;
 };
 

@@ -34,12 +34,46 @@ const Login = () => {
         } catch (err) {
             console.error('Erreur de connexion:', err);
             if (err.response) {
-                if (err.response.status === 401) {
-                    setError('Identifiant ou mot de passe incorrect.');
-                } else if (err.response.status === 404) {
-                    setError('Profil utilisateur introuvable. Ce compte n\'a pas de profil applicatif (superuser Django ?).');
+                const backendData = err.response.data;
+                let backendMessage = null;
+                
+                // Tente d'extraire le message d'erreur depuis les formats standards de Django DRF
+                if (backendData && backendData.detail) {
+                    backendMessage = backendData.detail;
+                } else if (backendData && backendData.error) {
+                    backendMessage = backendData.error;
+                } else if (backendData && backendData.non_field_errors) {
+                    backendMessage = backendData.non_field_errors[0];
+                } else if (typeof backendData === 'object') {
+                    // S'il y a d'autres champs d'erreurs (ex: {"username": ["Ce champ est requis"]})
+                    const firstKey = Object.keys(backendData)[0];
+                    if (firstKey && Array.isArray(backendData[firstKey])) {
+                        backendMessage = backendData[firstKey][0];
+                    } else if (firstKey && typeof backendData[firstKey] === 'string') {
+                        backendMessage = backendData[firstKey];
+                    }
+                } else if (typeof backendData === 'string' && backendData.length < 100) {
+                    backendMessage = backendData;
+                }
+
+                // Si on a réussi à extraire le message du backend, on l'affiche
+                if (backendMessage) {
+                    setError(backendMessage);
                 } else {
-                    setError(`Erreur serveur (${err.response.status}). Vérifiez que le backend est bien démarré.`);
+                    // Fallbacks par défaut liés au contexte de connexion
+                    if (err.response.status === 400) {
+                        setError('Format des identifiants invalide. Veuillez vérifier votre saisie.');
+                    } else if (err.response.status === 401) {
+                        setError('Identifiant ou mot de passe incorrect.');
+                    } else if (err.response.status === 403) {
+                        setError('Votre compte est désactivé ou vous n\'avez pas la permission de vous connecter.');
+                    } else if (err.response.status === 404) {
+                        setError('Profil introuvable. Ce compte existe mais ne possède pas de profil applicatif valide dans EneoPlan.');
+                    } else if (err.response.status >= 500) {
+                        setError('Le serveur d\'authentification est indisponible (Erreur ' + err.response.status + '). Veuillez réessayer plus tard.');
+                    } else {
+                        setError(`Erreur de connexion inattendue (Code ${err.response.status}).`);
+                    }
                 }
             } else if (err.request) {
                 const apiUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api/';

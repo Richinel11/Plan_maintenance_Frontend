@@ -74,7 +74,7 @@ const UsersTable = ({ users, onEdit, onToggle }) => {
                                             title="Désactiver"
                                             onClick={() => onToggle(user)}
                                         >
-                                            <span className="material-symbols-outlined">delete</span>
+                                            <span className="material-symbols-outlined">block</span>
                                         </button>
                                     ) : (
                                         <button 
