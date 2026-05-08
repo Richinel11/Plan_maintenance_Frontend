@@ -241,6 +241,7 @@ const ExcelDisplay = () => {
           </div>
 
           {/* TABLE */}
+        <div className="table-scroll-wrapper">
           <table className="excel-table">
 
             <thead>
@@ -291,6 +292,7 @@ const ExcelDisplay = () => {
             </tbody>
 
           </table>
+          </div>
 
           {/* FOOTER BUTTONS */}
           <div className="btn">

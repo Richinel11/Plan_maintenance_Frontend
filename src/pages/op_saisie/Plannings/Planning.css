@@ -26,20 +26,50 @@ body {
   color: #64748b;
 }
 
+/* TABLE WRAPPER - NEW */
+.table-scroll-wrapper {
+  max-height: 500px; /* Adjust this value as needed */
+  overflow-y: auto;
+  overflow-x: auto;
+  border-radius: 14px;
+  box-shadow: 0 8px 18px rgba(0,0,0,0.08);
+  margin-bottom: 20px;
+}
+
+/* Custom scrollbar styling (optional) */
+.table-scroll-wrapper::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.table-scroll-wrapper::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 10px;
+}
+
+.table-scroll-wrapper::-webkit-scrollbar-thumb {
+  background: #2563eb;
+  border-radius: 10px;
+}
+
+.table-scroll-wrapper::-webkit-scrollbar-thumb:hover {
+  background: #1d4ed8;
+}
+
 /* TABLE */
 .excel-table {
   width: 100%;
   border-collapse: collapse;
   background: white;
-  border-radius: 14px;
-  overflow: hidden;
-  box-shadow: 0 8px 18px rgba(0,0,0,0.08);
 }
 
-/* HEADER */
+/* HEADER - Make it sticky */
 .excel-table thead {
   background: #2563eb;
   color: white;
+  position: sticky;
+  top: 0;
+  z-index: 10;
 }
 
 .excel-table th {
@@ -111,14 +141,17 @@ button {
   display: flex;
   justify-content: center;
   align-items: center;
+  z-index: 1000;
 }
 
 .modal-grid {
   background: white;
   width: 700px;
   max-width: 95%;
+  max-height: 90vh; /* Prevent modal from being too tall */
   padding: 25px;
   border-radius: 14px;
+  overflow-y: auto; /* Make modal scrollable if content is long */
 }
 
 .grid-form {
@@ -142,4 +175,35 @@ button {
   display: flex;
   justify-content: space-between;
   margin-top: 20px;
+}
+
+/* FADE ANIMATIONS */
+.fade-in {
+  animation: fadeIn 0.3s ease-in;
+}
+
+.fade-out {
+  animation: fadeOut 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
 }

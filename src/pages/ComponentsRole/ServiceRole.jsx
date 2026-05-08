@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { MOCK_OPTIONS } from "../../config/mockData";
 
-const ServiceSwitcher = () => {
+const ServiceSwitcher = (overrideService = null) => {
 
     const getCookie = (name) => {
         const value = `; ${document.cookie}`;
@@ -11,9 +11,10 @@ const ServiceSwitcher = () => {
             : "";
         };
 
-    const service = getCookie("service") || "transport"; // "transport" par défaut pour les tests
+    const userService = getCookie("service") || "transport"; // "transport" par défaut pour les tests
 
-  
+    // Service réellement utilisé dans le formulaire
+    const service = overrideService || userService;
 
   const fields = useMemo(() => {
     switch (service.toLowerCase()) {
@@ -105,7 +106,7 @@ const ServiceSwitcher = () => {
     }
   }, [service]);
 
-    return { service, fields, referenceConfig, options: MOCK_OPTIONS };
+    return { service, fields, userService, referenceConfig, options: MOCK_OPTIONS };
 };
 
 export default ServiceSwitcher;

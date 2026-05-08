@@ -5,10 +5,13 @@ import Etape2 from '../Etape2/etape2';
 import Etape3 from "../etape3/etape3";
 import Recap from "../Recap/recap";
 import useServiceRole from "../../../ComponentsRole/ServiceRole";
+import {  Truck, Factory, Network} from "lucide-react";
+
 
 export default function MultiStepForm() {
   const [step, setStep] = useState(0);
-  const { service, fields, options, referenceConfig } = useServiceRole();
+  const [selectedService, setSelectedService] = useState(""); //new
+  const { service, fields, userService, options, referenceConfig } = useServiceRole(selectedService);
   
   const [formData, setFormData] = useState({
     Reference: '',
@@ -68,6 +71,41 @@ export default function MultiStepForm() {
 
   return (
     <div className="wrapper">
+
+            {/* Selectionner un service de soit  */}
+            <div className="service-selector-container">
+
+              <div className="field-row">
+                <span className="field-label">Service de travail</span>
+
+                {/* <div className="badge-auto">
+                  <ClipboardCheck size={12} />
+                  <span>{userService.toUpperCase()}</span>
+                </div> */}
+              </div>
+
+              <div className="service-select-wrapper">
+
+                <div className={`service-icon ${service.toLowerCase()}`}>
+                  {service.toLowerCase() === "transport" && <Zap size={18} />}
+                  {service.toLowerCase() === "production" && <Building2 size={18} />}
+                  {service.toLowerCase() === "distribution" && <MapPin size={18} />}
+                </div>
+
+                <select
+                  value={service}
+                  onChange={(e) => setSelectedService(e.target.value)}
+                >
+                  <option value="transport">Transport</option>
+                  <option value="production">Production</option>
+                  <option value="distribution">Distribution</option>
+                </select>
+
+                <ChevronDown className="chevron" size={18} />
+              </div>
+
+            </div>
+
       {/* Progress Header */}
       <div className="progress-header">
         <div className="header-top">
