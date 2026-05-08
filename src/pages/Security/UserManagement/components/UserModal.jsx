@@ -170,7 +170,7 @@ const UserModal = ({ isOpen, onClose, user, roles, entites, onSuccess }) => {
 
                             <div className="form-row">
                                 <div className="form-group">
-                                    <label>Adresse mail <span className="text-danger">*</span></label>
+                                    <label>Adresse mail </label>
                                     <input
                                         type="email"
                                         name="email"

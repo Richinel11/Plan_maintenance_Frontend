@@ -56,8 +56,8 @@ const WorkflowHistory = () => {
           <button className="wfh-btn-secondary" onClick={() => navigate('/dashboard/workflow/processus/creer')}>
             + Nouveau Processus
           </button>
-          <button className="wfh-btn-primary" onClick={() => navigate('/dashboard/workflow/orchestrateur/creer')}>
-            + Nouvel Orchestrateur
+          <button className="wfh-btn-primary" onClick={() => navigate('/dashboard/workflow/Workflow/creer')}>
+            + Nouveau Workflow
           </button>
         </div>
       </div>

@@ -48,7 +48,7 @@ export const menuConfig = {
              children: [
                  { path: '/dashboard/workflow/historique', name: 'Historiques', icon: 'history' },
                  { path: '/dashboard/workflow/processus/creer', name: 'Créer Processus', icon: 'schema' },
-                 { path: '/dashboard/workflow/orchestrateur/creer', name: 'Créer Orchestrateur', icon: 'add_circle' },
+                 { path: '/dashboard/workflow/Workflow/creer', name: 'Créer Workflow', icon: 'add_circle' },
              ]
          }
      ]

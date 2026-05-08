@@ -36,7 +36,7 @@ function App() {
                         {/* Routes Workflow */}
                         <Route path="workflow/historique" element={<WorkflowHistory />} />
                         <Route path="workflow/processus/creer" element={<CreateProcess />} />
-                        <Route path="workflow/orchestrateur/creer" element={<CreateGlobalWorkflow />} />
+                        <Route path="workflow/Workflow/creer" element={<CreateGlobalWorkflow />} />
                         <Route path="OP-home" element={<OP_home />} />
                         <Route path="Planning" element={<Planning />} />
                         <Route path="Tableaux_De_Bord" element={<Tableaux_De_Bord />} />
