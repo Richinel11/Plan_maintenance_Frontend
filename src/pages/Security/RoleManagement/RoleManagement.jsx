@@ -83,18 +83,15 @@ const RoleManagement = () => {
         setIsRoleModalOpen(true);
     };
 
-    const handleToggleRoleClick = async (role) => {
-        const isActive = role.is_active !== false;
-        const actionText = isActive ? "désactiver" : "activer";
-        
-        if (window.confirm(`Êtes-vous sûr de vouloir ${actionText} le rôle "${role.nom}" ?`)) {
+    const handleDeleteRoleClick = async (role) => {
+        if (window.confirm(`Êtes-vous sûr de vouloir supprimer définitivement le rôle "${role.nom}" ? Cette action est irréversible.`)) {
             try {
-                // Appel à la future route du backend
-                await patchRole(role.id, { is_active: !isActive });
+                // Appel à la route de suppression
+                await deleteRole(role.id);
                 refreshData(); 
             } catch (error) {
-                console.error(`Erreur lors de la tentative pour ${actionText}:`, error);
-                alert(error.response?.data?.detail || error.message || `Impossible de ${actionText} ce rôle. La route backend n'est probablement pas encore prête.`);
+                console.error(`Erreur lors de la tentative de suppression:`, error);
+                alert(error.response?.data?.detail || error.message || `Impossible de supprimer ce rôle. Il est peut-être déjà utilisé.`);
             }
         }
     };
@@ -154,7 +151,7 @@ const RoleManagement = () => {
                         roles={filteredRoles} 
                         permissions={allPermissions}
                         onEdit={handleEditRoleClick} 
-                        onDelete={handleToggleRoleClick}
+                        onDelete={handleDeleteRoleClick}
                     />
                 )}
             </div>
