@@ -8,7 +8,7 @@ import useServiceRole from "../../../ComponentsRole/ServiceRole";
 
 export default function MultiStepForm() {
   const [step, setStep] = useState(0);
-  const { service, fields, options, referenceConfig } = useServiceRole();
+  const { service, setService, fields, options, referenceConfig } = useServiceRole();
   
   const [formData, setFormData] = useState({
     Reference: '',
@@ -41,14 +41,15 @@ export default function MultiStepForm() {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
-  const steps = [
+  const baseSteps = [
     {
       title: "Identification & Organisation",
-      content: <StepOne formData={formData} onChange={handleInputChange} fields={fields} options={options} />,
+      content: <StepOne formData={formData} onChange={handleInputChange} fields={fields} options={options} service={service} />,
     },
     {
       title: "Localisation & Consistance",
       content: <Etape2 formData={formData} onChange={handleInputChange} fields={fields} options={options} />,
+      isDistributionOnly: true
     },
     {
       title: "Programmation & Impact",
@@ -60,6 +61,13 @@ export default function MultiStepForm() {
     },
   ];
 
+  const steps = baseSteps.filter(step => {
+    if (step.isDistributionOnly) {
+      return service === 'distribution';
+    }
+    return true;
+  });
+
   const total = steps.length;
   const percent = ((step + 1) / total) * 100;
 
@@ -68,6 +76,20 @@ export default function MultiStepForm() {
 
   return (
     <div className="wrapper">
+      {/* TEMP SERVICE SWITCHER (TEMPORAIRE) */}
+      <div style={{ padding: '10px', background: '#f8d7da', color: '#721c24', marginBottom: '15px', borderRadius: '5px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', border: '1px solid #f5c6cb' }}>
+        <strong>🛠️ Outil de Test : Changer le Service Applicatif</strong>
+        <select 
+          value={service} 
+          onChange={(e) => setService(e.target.value)} 
+          style={{ padding: '6px 12px', borderRadius: '4px', border: '1px solid #ccc', cursor: 'pointer' }}
+        >
+          <option value="transport">Transport</option>
+          <option value="distribution">Distribution</option>
+          <option value="production">Production</option>
+        </select>
+      </div>
+
       {/* Progress Header */}
       <div className="progress-header">
         <div className="header-top">
@@ -104,69 +126,71 @@ export default function MultiStepForm() {
 }
 
 /* STEP 1 COMPONENT */
-function StepOne({ formData, onChange, fields, options }) {
+function StepOne({ formData, onChange, fields, options, service }) {
   const isFieldVisible = (field) => fields.includes(field);
 
   return (
     <div className="step-one-container">
       {/* Référence Section */}
       <div className="ref-section">
-        <label className="label-main">Référence</label>
+        <div className="field-row" style={{ marginBottom: '8px', display: 'flex', alignItems: 'center' }}>
+          <label className="label-main" style={{ margin: 0 }}>Référence</label>
+          <div className="badge-auto" style={{ display: 'inline-flex', alignItems: 'center', background: '#dcfce7', color: '#166534', padding: '4px 8px', borderRadius: '4px', fontSize: '10px', fontWeight: 'bold', marginLeft: '10px' }}>
+            <ClipboardCheck size={12} style={{ marginRight: '4px' }} />
+            <span>AUTO-REMPLI</span>
+          </div>
+        </div>
         <div className="ref-input-wrapper">
-          <Search className="search-icon" size={20} />
           <input 
             type="text" 
             value={formData.Reference} 
             readOnly 
-            placeholder="Ex: MAINT-2023-089..."
+            placeholder="La référence se génère automatiquement..."
+            style={{ paddingLeft: '15px' }}
           />
         </div>
       </div>
 
       {/* Main Content Card */}
       <div className="form-card">
-        {/* Auto-filled Fields */}
-        <div className="auto-fields-section">
-          {isFieldVisible("Segments") && (
-            <DisplayField 
-              label="Segment" 
-              value={formData.Segments} 
-              icon={<FileText size={20} />} 
-              isAuto 
-            />
-          )}
-          
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
-            {isFieldVisible("Ouvrages") && (
-              <DisplayField 
-                label="Ouvrages" 
-                value={formData.Ouvrages} 
-                icon={<MapPin size={20} />} 
-                isAuto 
-              />
-            )}
-            {isFieldVisible("Poste") && (
-              <DisplayField 
-                label="Poste" 
-                value={formData.Poste} 
-                icon={<Building2 size={20} />} 
-                isAuto 
-              />
-            )}
-          </div>
-
-          {isFieldVisible("Departs") && (
-             <DisplayField 
-             label="Départ" 
-             value={formData.Departs} 
-             icon={<Zap size={20} />} 
-             isAuto 
-           />
-          )}
-        </div>
-
         {/* Grid for Selects */}
         <div className="fields-grid">
+          {isFieldVisible("Segments") && (
+            <SelectField 
+              label="Segment" 
+              value={formData.Segments} 
+              options={options.Segments}
+              placeholder="Sélectionner le segment"
+              onChange={(val) => onChange("Segments", val)}
+            />
+          )}
+          {isFieldVisible("Ouvrages") && (
+            <SelectField 
+              label="Ouvrage" 
+              value={formData.Ouvrages} 
+              options={options.Ouvrages}
+              placeholder="Sélectionner l'ouvrage"
+              onChange={(val) => onChange("Ouvrages", val)}
+            />
+          )}
+          {isFieldVisible("Poste") && (
+            <SelectField 
+              label="Poste" 
+              value={formData.Poste} 
+              options={options.Poste}
+              placeholder="Sélectionner le poste"
+              onChange={(val) => onChange("Poste", val)}
+            />
+          )}
+          {isFieldVisible("Departs") && (
+            <SelectField 
+              label="Départ" 
+              value={formData.Departs} 
+              options={options.Departs}
+              placeholder="Sélectionner le départ"
+              onChange={(val) => onChange("Departs", val)}
+            />
+          )}
           {isFieldVisible("Unite_demanderesse") && (
             <SelectField 
               label="Unité demanderesse" 
@@ -204,6 +228,20 @@ function StepOne({ formData, onChange, fields, options }) {
             />
           )}
         </div>
+
+        {/* Champs déplacés depuis l'étape 2 (Transport / Production) */}
+        {isFieldVisible("Consistances_Des_Travaux") && service !== "distribution" && (
+          <div style={{ marginTop: '20px' }}>
+            <label className="field-label">Consistances des travaux</label>
+            <textarea 
+                placeholder="Décrivez en détail la nature technique de l'intervention..." 
+                value={formData.Consistances_Des_Travaux || ""}
+                onChange={(e) => onChange("Consistances_Des_Travaux", e.target.value)}
+                className="form-textarea"
+                style={{ width: '100%', padding: '12px', marginTop: '8px', border: '1px solid #e2e8f0', borderRadius: '6px', minHeight: '100px', resize: 'vertical', fontFamily: 'inherit' }}
+            />
+          </div>
+        )}
       </div>
     </div>
   );

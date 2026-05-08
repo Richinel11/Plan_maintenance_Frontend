@@ -2,18 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './WorkflowHistory.css';
 
-// ─── DONNÉES SIMULÉES ───────────────────────────────────
-const MOCK_PROCESSES = [
-  { id: 'p1', name: 'Validation DDR – Niveaux 1 & 2', app: 'ENEOPLAN', object: 'DDR',     states: 5, createdAt: '2026-04-10', author: 'R. Ngomba', status: 'actif' },
-  { id: 'p2', name: 'Approbation NAPT Simplifiée',    app: 'ENEOPLAN', object: 'NAPT',    states: 3, createdAt: '2026-04-08', author: 'R. Ngomba', status: 'actif' },
-  { id: 'p3', name: 'Validation Planning Maintenance', app: 'ENEOPLAN', object: 'PLANNING', states: 4, createdAt: '2026-04-05', author: 'Admin',     status: 'brouillon' },
-];
-
-const MOCK_ORCHESTRATORS = [
-  { id: 'w1', name: 'Circuit DDR complet',       processes: 2, triggers: 1, createdAt: '2026-04-12', author: 'R. Ngomba', status: 'actif' },
-  { id: 'w2', name: 'Cycle Maintenance Urgence', processes: 3, triggers: 1, createdAt: '2026-04-09', author: 'Admin',     status: 'brouillon' },
-];
-
+// ─── DONNÉES ───────────────────────────────────
 const STATUS_BADGE = {
   actif:      { label: 'Actif',      bg: 'rgba(141,198,64,0.15)',     color: '#5d8b1f' },
   brouillon:  { label: 'Brouillon',  bg: 'rgba(147,149,151,0.15)',    color: '#5a5c5e' },
@@ -39,14 +28,18 @@ const WorkflowHistory = () => {
   const [tab, setTab] = useState('processes'); // 'processes' | 'orchestrators'
   const [searchProcess, setSearchProcess] = useState('');
   const [searchOrch, setSearchOrch] = useState('');
+  
+  // Remplacé par des states vides pour l'intégration API
+  const [processes, setProcesses] = useState([]);
+  const [orchestrators, setOrchestrators] = useState([]);
 
-  const filteredProcesses = MOCK_PROCESSES.filter(p =>
-    p.name.toLowerCase().includes(searchProcess.toLowerCase()) ||
-    p.object.toLowerCase().includes(searchProcess.toLowerCase())
+  const filteredProcesses = processes.filter(p =>
+    (p.name && p.name.toLowerCase().includes(searchProcess.toLowerCase())) ||
+    (p.object && p.object.toLowerCase().includes(searchProcess.toLowerCase()))
   );
 
-  const filteredOrch = MOCK_ORCHESTRATORS.filter(w =>
-    w.name.toLowerCase().includes(searchOrch.toLowerCase())
+  const filteredOrch = orchestrators.filter(w =>
+    (w.name && w.name.toLowerCase().includes(searchOrch.toLowerCase()))
   );
 
   return (
@@ -72,22 +65,22 @@ const WorkflowHistory = () => {
       {/* ─── KPI CARDS ─── */}
       <div className="wfh-kpis">
         <div className="wfh-kpi-card">
-          <div className="wfh-kpi-value" style={{ color: '#1B75BB' }}>{MOCK_PROCESSES.length}</div>
+          <div className="wfh-kpi-value" style={{ color: '#1B75BB' }}>{processes.length}</div>
           <div className="wfh-kpi-label">Processus modélisés</div>
         </div>
         <div className="wfh-kpi-card">
-          <div className="wfh-kpi-value" style={{ color: '#14689E' }}>{MOCK_ORCHESTRATORS.length}</div>
+          <div className="wfh-kpi-value" style={{ color: '#14689E' }}>{orchestrators.length}</div>
           <div className="wfh-kpi-label">Orchestrateurs actifs</div>
         </div>
         <div className="wfh-kpi-card">
           <div className="wfh-kpi-value" style={{ color: '#8DC640' }}>
-            {MOCK_PROCESSES.filter(p => p.status === 'actif').length}
+            {processes.filter(p => p.status === 'actif').length}
           </div>
           <div className="wfh-kpi-label">Processus en production</div>
         </div>
         <div className="wfh-kpi-card">
           <div className="wfh-kpi-value" style={{ color: '#939597' }}>
-            {MOCK_PROCESSES.filter(p => p.status === 'brouillon').length + MOCK_ORCHESTRATORS.filter(w => w.status === 'brouillon').length}
+            {processes.filter(p => p.status === 'brouillon').length + orchestrators.filter(w => w.status === 'brouillon').length}
           </div>
           <div className="wfh-kpi-label">Brouillons en attente</div>
         </div>
@@ -97,11 +90,11 @@ const WorkflowHistory = () => {
       <div className="wfh-tabs">
         <button className={`wfh-tab ${tab === 'processes' ? 'active' : ''}`}
           onClick={() => setTab('processes')}>
-          ⚙ Processus ({MOCK_PROCESSES.length})
+          ⚙ Processus ({processes.length})
         </button>
         <button className={`wfh-tab ${tab === 'orchestrators' ? 'active' : ''}`}
           onClick={() => setTab('orchestrators')}>
-          🔀 Orchestrateurs ({MOCK_ORCHESTRATORS.length})
+          🔀 Orchestrateurs ({orchestrators.length})
         </button>
       </div>
 

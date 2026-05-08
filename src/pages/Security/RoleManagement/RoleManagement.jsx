@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { getRoles, getPermissions, deleteRole, getRolePermissions } from '../../../services/userService';
+import { getRoles, getPermissions, deleteRole, patchRole, getRolePermissions } from '../../../services/userService';
 import RolesTable from './components/RolesTable';
 import RoleModal from './components/RoleModal';
 import './RoleManagement.css';
@@ -83,14 +83,18 @@ const RoleManagement = () => {
         setIsRoleModalOpen(true);
     };
 
-    const handleDeleteRoleClick = async (role) => {
-        if (window.confirm(`Êtes-vous sûr de vouloir supprimer le rôle "${role.nom}" ?`)) {
+    const handleToggleRoleClick = async (role) => {
+        const isActive = role.is_active !== false;
+        const actionText = isActive ? "désactiver" : "activer";
+        
+        if (window.confirm(`Êtes-vous sûr de vouloir ${actionText} le rôle "${role.nom}" ?`)) {
             try {
-                await deleteRole(role.id);
+                // Appel à la future route du backend
+                await patchRole(role.id, { is_active: !isActive });
                 refreshData(); 
             } catch (error) {
-                console.error("Erreur lors de la suppression:", error);
-                alert(error.response?.data?.detail || error.message || "Impossible de supprimer ce rôle.");
+                console.error(`Erreur lors de la tentative pour ${actionText}:`, error);
+                alert(error.response?.data?.detail || error.message || `Impossible de ${actionText} ce rôle. La route backend n'est probablement pas encore prête.`);
             }
         }
     };
@@ -150,7 +154,7 @@ const RoleManagement = () => {
                         roles={filteredRoles} 
                         permissions={allPermissions}
                         onEdit={handleEditRoleClick} 
-                        onDelete={handleDeleteRoleClick}
+                        onDelete={handleToggleRoleClick}
                     />
                 )}
             </div>

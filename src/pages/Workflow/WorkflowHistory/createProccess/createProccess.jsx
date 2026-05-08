@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getRoles } from '../../../../services/userService';
+import { getCurrentUser } from '../../../../services/Authservice';
+import { createProcess } from '../../../../services/workflowService';
+import GeneralInfo from '../components/GeneralInfo';
 import './createproccess.css';
 
 /**
@@ -12,8 +15,10 @@ const CreateProcess = () => {
     // État local pour le formulaire
     const [processInfo, setProcessInfo] = useState({
         name: '',
+        code: '',
         description: ''
     });
+    const [isActive, setIsActive] = useState(true);
 
     // Listes dynamiques pour les dropdowns
     const [availableStates, setAvailableStates] = useState([]);
@@ -25,9 +30,6 @@ const CreateProcess = () => {
 
     // État pour les lignes de création temporaires (uniquement pour les États désormais)
     const [newItems, setNewItems] = useState([]);
-    
-    // État pour gérer quel sélecteur de rôle est ouvert
-    const [activeRolePicker, setActiveRolePicker] = useState(null);
 
     // Charger les rôles et extraire les permissions au montage
     useEffect(() => {
@@ -76,23 +78,8 @@ const CreateProcess = () => {
             id: Date.now(), 
             from: newFrom, 
             action: '', 
-            to: '', 
-            roles: [] 
+            to: ''
         }]);
-    };
-
-    // Ajouter/Retirer un rôle à une transition
-    const toggleRoleToTransition = (transitionId, roleName) => {
-        setTransitions(transitions.map(t => {
-            if (t.id === transitionId) {
-                const hasRole = t.roles.includes(roleName);
-                const newRoles = hasRole 
-                    ? t.roles.filter(r => r !== roleName)
-                    : [...t.roles, roleName];
-                return { ...t, roles: newRoles };
-            }
-            return t;
-        }));
     };
 
     // Ajouter une ligne de création (État uniquement désormais)
@@ -159,8 +146,26 @@ const CreateProcess = () => {
         }));
     };
 
-    const handleSave = () => {
-        console.log("Données sauvegardées :", { processInfo, transitions });
+    const handleSave = async () => {
+        const currentUser = getCurrentUser();
+        const payload = {
+            nom: processInfo.name,
+            code: processInfo.code,
+            description: processInfo.description,
+            is_active: isActive,
+            created_by: currentUser ? currentUser.id : null,
+            transitions: transitions
+        };
+        console.log("Données envoyées à l'API :", payload);
+
+        try {
+            await createProcess(payload);
+            alert("Processus créé avec succès (Mock)");
+            navigate('/dashboard/workflow/historique');
+        } catch (error) {
+            console.error("Erreur lors de la création du processus :", error);
+            alert("Erreur lors de la création : la route backend n'est probablement pas prête.");
+        }
     };
 
     return (
@@ -181,32 +186,18 @@ const CreateProcess = () => {
             </header>
 
             <main className="process-content">
-                <section className="info-card">
-                    <div className="card-header">
-                        <div className="status-icon-container info-theme"><span className="material-symbols-outlined">info</span></div>
-                        <div className="card-titles">
-                            <h2>Informations Générales</h2>
-                            <p>Nommez et décrivez l'usage de ce processus.</p>
-                        </div>
-                    </div>
-
-                    <div className="form-container">
-                        <div className="input-group">
-                            <label className="field-label">NOM DU PROCESSUS <span className="required-star">*</span></label>
-                            <input 
-                                type="text" className="form-input" placeholder="Ex: Validation de Factures"
-                                value={processInfo.name} onChange={(e) => setProcessInfo({...processInfo, name: e.target.value})}
-                            />
-                        </div>
-                        <div className="input-group full-width">
-                            <label className="field-label">DESCRIPTION DÉTAILLÉE</label>
-                            <textarea 
-                                className="form-textarea" rows="3" placeholder="Décrivez les objectifs..."
-                                value={processInfo.description} onChange={(e) => setProcessInfo({...processInfo, description: e.target.value})}
-                            ></textarea>
-                        </div>
-                    </div>
-                </section>
+                <GeneralInfo 
+                    type="Processus"
+                    name={processInfo.name}
+                    code={processInfo.code}
+                    description={processInfo.description}
+                    onNameChange={(val) => setProcessInfo({...processInfo, name: val})}
+                    onCodeChange={(val) => setProcessInfo({...processInfo, code: val})}
+                    onDescriptionChange={(val) => setProcessInfo({...processInfo, description: val})}
+                    showIsActive={true}
+                    isActive={isActive}
+                    onIsActiveChange={setIsActive}
+                />
 
                 <section className="info-card">
                     <div className="card-header flex-between">
@@ -230,14 +221,13 @@ const CreateProcess = () => {
                                     <th>ÉTAT INITIAL</th>
                                     <th>ACTION (PERMISSION)</th>
                                     <th>ÉTAT FINAL</th>
-                                    <th>RÔLES AUTORISÉS</th>
                                     <th className="text-right">ACTIONS</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {newItems.map((item) => (
                                     <tr key={item.id} className="creation-row">
-                                        <td colSpan="4">
+                                        <td colSpan="3">
                                             <div className="creation-input-wrapper">
                                                 <span className={`creation-badge ${item.type}`}>NOUVEL ÉTAT</span>
                                                 <input 
@@ -290,33 +280,6 @@ const CreateProcess = () => {
                                                 <option value="">Sélectionner</option>
                                                 {availableStates.map(s => <option key={s} value={s}>{s}</option>)}
                                             </select>
-                                        </td>
-                                        <td>
-                                            <div className="roles-chips-container">
-                                                {t.roles.map((role, i) => (
-                                                    <span key={i} className="role-chip">
-                                                        {role}
-                                                        <span className="material-symbols-outlined remove-chip" onClick={() => toggleRoleToTransition(t.id, role)}>close</span>
-                                                    </span>
-                                                ))}
-                                                <div className="role-picker-wrapper">
-                                                    <button type="button" className="btn-add-role" onClick={() => setActiveRolePicker(activeRolePicker === t.id ? null : t.id)}>+ Rôle</button>
-                                                    {activeRolePicker === t.id && (
-                                                        <div className="role-picker-dropdown">
-                                                            {dbRoles.length > 0 ? (
-                                                                dbRoles.map(role => (
-                                                                    <div key={role.id} className={`role-option ${t.roles.includes(role.nom) ? 'selected' : ''}`} onClick={() => toggleRoleToTransition(t.id, role.nom)}>
-                                                                        <span className="material-symbols-outlined">{t.roles.includes(role.nom) ? 'check_box' : 'check_box_outline_blank'}</span>
-                                                                        {role.nom}
-                                                                    </div>
-                                                                ))
-                                                            ) : (
-                                                                <div className="no-role">Aucun rôle trouvé</div>
-                                                            )}
-                                                        </div>
-                                                    )}
-                                                </div>
-                                            </div>
                                         </td>
                                         <td className="text-right">
                                             <button type="button" className="btn-delete-row" onClick={() => removeTransition(t.id)}><span className="material-symbols-outlined">delete</span></button>

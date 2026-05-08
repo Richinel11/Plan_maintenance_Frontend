@@ -1,5 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { getCurrentUser } from '../../../../services/Authservice';
+import { createWorkflow } from '../../../../services/workflowService';
+import GeneralInfo from '../components/GeneralInfo';
 import { 
     DndContext, 
     useDraggable, 
@@ -120,7 +123,9 @@ const CreateGlobalWorkflow = () => {
     const navigate = useNavigate();
 
     const [workflowName, setWorkflowName] = useState('');
+    const [workflowCode, setWorkflowCode] = useState('');
     const [workflowDesc, setWorkflowDesc] = useState('');
+    const [isActive, setIsActive] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
     const [isOverDropZone, setIsOverDropZone] = useState(false);
 
@@ -130,12 +135,7 @@ const CreateGlobalWorkflow = () => {
         })
     );
 
-    const availableProcesses = [
-        { id: 1, name: 'Diagnostic Initial', desc: 'Analyse technique des pannes', icon: '📊' },
-        { id: 2, name: 'Commande Pièces', desc: 'Gestion logistique des composants', icon: '🛒' },
-        { id: 3, name: 'Intervention Terrain', desc: "Main-d'œuvre et réparation", icon: '👷' },
-        { id: 4, name: 'Validation Qualité', desc: 'Contrôle final et signature', icon: '✅' },
-    ];
+    const [availableProcesses, setAvailableProcesses] = useState([]);
 
     const [sequence, setSequence] = useState([]);
 
@@ -179,8 +179,26 @@ const CreateGlobalWorkflow = () => {
         setSequence(sequence.filter(step => step.instanceId !== instanceId));
     };
 
-    const handleSave = () => {
-        console.log("Workflow prêt :", { workflowName, workflowDesc, sequence });
+    const handleSave = async () => {
+        const currentUser = getCurrentUser();
+        const payload = {
+            nom: workflowName,
+            code: workflowCode,
+            description: workflowDesc,
+            is_active: isActive,
+            created_by: currentUser ? currentUser.id : null,
+            sequence: sequence
+        };
+        console.log("Données envoyées à l'API :", payload);
+
+        try {
+            await createWorkflow(payload);
+            alert("Workflow créé avec succès (Mock)");
+            navigate('/dashboard/workflow/historique');
+        } catch (error) {
+            console.error("Erreur lors de la création du workflow :", error);
+            alert("Erreur lors de la création : la route backend n'est probablement pas prête.");
+        }
     };
 
     return (
@@ -197,32 +215,18 @@ const CreateGlobalWorkflow = () => {
                 </header>
 
                 <main className="wf-content">
-                    <section className="wf-card info-card">
-                        <div className="card-header">
-                            <span className="material-symbols-outlined icon-blue">info</span>
-                            <h3>Informations Générales</h3>
-                        </div>
-                        <div className="wf-form">
-                            <div className="input-group">
-                                <label>NOM DU WORKFLOW</label>
-                                <input 
-                                    type="text" 
-                                    placeholder="ex: Maintenance Préventive Transformateur"
-                                    value={workflowName}
-                                    onChange={(e) => setWorkflowName(e.target.value)}
-                                />
-                            </div>
-                            <div className="input-group">
-                                <label>DESCRIPTION</label>
-                                <input 
-                                    type="text" 
-                                    placeholder="Décrivez l'objectif de ce workflow..."
-                                    value={workflowDesc}
-                                    onChange={(e) => setWorkflowDesc(e.target.value)}
-                                />
-                            </div>
-                        </div>
-                    </section>
+                    <GeneralInfo 
+                        type="Workflow"
+                        name={workflowName}
+                        code={workflowCode}
+                        description={workflowDesc}
+                        onNameChange={setWorkflowName}
+                        onCodeChange={setWorkflowCode}
+                        onDescriptionChange={setWorkflowDesc}
+                        showIsActive={true}
+                        isActive={isActive}
+                        onIsActiveChange={setIsActive}
+                    />
 
                     <div className="wf-builder-grid">
                         

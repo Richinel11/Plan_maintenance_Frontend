@@ -12,6 +12,9 @@
     background-color: #F9FAFB;
     min-height: 100vh;
     font-family: 'Inter', 'Poppins', sans-serif;
+    max-width: 100vw;
+    box-sizing: border-box;
+    overflow-x: hidden;
 }
 
 /* Header */
@@ -100,6 +103,9 @@
     padding: 2.5rem;
     box-shadow: 0 2px 15px rgba(0, 0, 0, 0.03);
     margin-bottom: 2rem;
+    max-width: 100%;
+    overflow-x: hidden;
+    box-sizing: border-box;
 }
 
 .card-header {
@@ -313,13 +319,17 @@
 .visualizer-canvas {
     position: relative;
     height: 350px;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
     background-color: #FDFDFD;
     border: 1px dashed #E5E7EB;
     border-radius: 16px;
-    overflow: hidden;
+    overflow-x: auto;
+    overflow-y: hidden;
     display: flex;
     align-items: center;
-    justify-content: center;
+    padding: 0 40px;
 }
 
 .canvas-grid {
@@ -328,6 +338,7 @@
     background-image: radial-gradient(#E5E7EB 1px, transparent 1px);
     background-size: 24px 24px;
     opacity: 0.5;
+    min-width: 100%;
 }
 
 /* Nodes & Connectors */
@@ -337,6 +348,8 @@
     display: flex;
     align-items: center;
     gap: 0;
+    margin: 0 auto;
+    min-width: max-content;
 }
 
 .node-group {
@@ -344,6 +357,7 @@
     flex-direction: column;
     align-items: center;
     gap: 12px;
+    flex-shrink: 0;
 }
 
 .node-label {
@@ -391,6 +405,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
+    flex-shrink: 0;
 }
 
 .connector-line {
