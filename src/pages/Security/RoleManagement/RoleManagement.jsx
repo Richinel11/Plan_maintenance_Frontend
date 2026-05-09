@@ -86,8 +86,8 @@ const RoleManagement = () => {
     const handleDeleteRoleClick = async (role) => {
         if (window.confirm(`Êtes-vous sûr de vouloir supprimer définitivement le rôle "${role.nom}" ? Cette action est irréversible.`)) {
             try {
-                // Appel à la route de suppression
-                await deleteRole(role.id);
+                // Appel à la route de suppression avec le code_role (clé métier)
+                await deleteRole(role.code_role);
                 refreshData(); 
             } catch (error) {
                 console.error(`Erreur lors de la tentative de suppression:`, error);

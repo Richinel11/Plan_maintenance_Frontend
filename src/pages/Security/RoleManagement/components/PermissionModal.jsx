@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { createPermission, updatePermission } from '../../../../services/userService';
+import React, { useState, useEffect } from 'react';
+import { createPermission, updatePermission, getPermissionModules } from '../../../../services/userService';
 import '../../UserManagement/components/Modals.css';
 
 const PermissionModal = ({ isOpen, onClose, permission, onSuccess }) => {
@@ -12,9 +12,32 @@ const PermissionModal = ({ isOpen, onClose, permission, onSuccess }) => {
 
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
+    const [modules, setModules] = useState([]);
+    const [modulesLoading, setModulesLoading] = useState(false);
     const isEditMode = !!permission;
 
-    React.useEffect(() => {
+    // Fetch des modules disponibles depuis le backend
+    useEffect(() => {
+        if (isOpen) {
+            setModulesLoading(true);
+            getPermissionModules()
+                .then(data => {
+                    // Le backend renvoie [{ value: 'PLAN', label: 'Planning' }, ...]
+                    setModules(Array.isArray(data) ? data : []);
+                })
+                .catch(() => {
+                    // Fallback statique si l'endpoint n'est pas encore disponible
+                    setModules([
+                        { value: 'PLAN', label: 'Planning' },
+                        { value: 'DDR',  label: 'DDR' },
+                        { value: 'NAPT', label: 'NAPT' },
+                    ]);
+                })
+                .finally(() => setModulesLoading(false));
+        }
+    }, [isOpen]);
+
+    useEffect(() => {
         if (permission && isOpen) {
             setFormData({
                 nom: permission.nom || '',
@@ -141,16 +164,22 @@ const PermissionModal = ({ isOpen, onClose, permission, onSuccess }) => {
                             {/* Ligne 2 : Module (100%) */}
                             <div className="col-span-2 rm-field">
                                 <label className="rm-label">Module <span className="text-danger">*</span></label>
-                                <input
-                                    type="text"
+                                <select
                                     name="module"
                                     required
                                     value={formData.module}
                                     onChange={handleChange}
                                     className="form-input"
-                                    placeholder="ex: planning, security, exploitation..."
-                                />
-                                <span className="form-hint">Permet de regrouper les permissions par module fonctionnel.</span>
+                                    disabled={modulesLoading}
+                                >
+                                    <option value="">
+                                        {modulesLoading ? 'Chargement...' : '-- Sélectionner un module --'}
+                                    </option>
+                                    {modules.map(m => (
+                                        <option key={m.value} value={m.value}>{m.label}</option>
+                                    ))}
+                                </select>
+                                <span className="form-hint">Regroupe la permission dans un module fonctionnel de l'application.</span>
                             </div>
 
                             {/* Ligne 3 : Description (100%) */}

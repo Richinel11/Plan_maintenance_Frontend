@@ -26,29 +26,17 @@ const RolesTable = ({ roles, permissions, onEdit, onDelete }) => {
                         <th>CODE</th>
                         <th>DESCRIPTION</th>
                         <th>PERMISSIONS</th>
-                        <th>STATUT</th>
                         <th className="th-actions">ACTIONS</th>
                     </tr>
                 </thead>
                 <tbody>
                     {roles && roles.length > 0 ? (
                         roles.map((role) => (
-                            <tr key={role.id}>
+                            <tr key={role.id || role.code_role}>
                                 <td className="font-medium text-dark">{role.nom}</td>
                                 <td className="text-gray-code">{role.code_role || '-'}</td>
                                 <td className="text-gray" style={{maxWidth: '250px'}}>{role.description || '-'}</td>
                                 <td>{renderPermissionsSummary(role.permissions)}</td>
-                                <td>
-                                    {role.is_active !== false ? (
-                                        <div className="status-pill status-active">
-                                            <span className="status-dot green-dot"></span> Actif
-                                        </div>
-                                    ) : (
-                                        <div className="status-pill status-inactive">
-                                            <span className="status-dot gray-dot"></span> Inactif
-                                        </div>
-                                    )}
-                                </td>
                                 <td className="td-actions">
                                     <button 
                                         className="action-btn edit-btn" 

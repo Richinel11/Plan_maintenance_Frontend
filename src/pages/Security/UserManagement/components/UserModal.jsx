@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { createUser, updateUser , update_userrole } from '../../../../services/userService';
+import { createUser, updateUser, update_userrole } from '../../../../services/userService';
 import './Modals.css';
 
 const UserModal = ({ isOpen, onClose, user, roles, entites, onSuccess }) => {
@@ -208,7 +208,7 @@ const UserModal = ({ isOpen, onClose, user, roles, entites, onSuccess }) => {
                                     ))}
                                 </select>
                                 {(!entites || entites.length === 0) && (
-                                    <span className="form-hint" style={{color: '#ef4444'}}>Aucune entité disponible — vérifiez la connexion au serveur.</span>
+                                    <span className="form-hint" style={{ color: '#ef4444' }}>Aucune entité disponible — vérifiez la connexion au serveur.</span>
                                 )}
                             </div>
                         </div>
@@ -220,7 +220,7 @@ const UserModal = ({ isOpen, onClose, user, roles, entites, onSuccess }) => {
                                     <label>
                                         Rôles associés
                                         {formData.code_role && (
-                                            <span className="checklist-counter" style={{marginLeft: '8px'}}>1 sélectionné</span>
+                                            <span className="checklist-counter" style={{ marginLeft: '8px' }}>1 sélectionné</span>
                                         )}
                                     </label>
                                     <div className="checklist-search">
@@ -274,7 +274,7 @@ const UserModal = ({ isOpen, onClose, user, roles, entites, onSuccess }) => {
                             </div>
 
                             {!isEditMode && (
-                                <div className="form-group" style={{marginTop: 4}}>
+                                <div className="form-group" style={{ marginTop: 4 }}>
                                     <label>Mot de passe <span className="text-danger">*</span></label>
                                     <div className="password-wrapper">
                                         <input

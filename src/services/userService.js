@@ -8,6 +8,11 @@ export const getUsers = async () => {
     return data;
 };
 
+export const getEntites = async () => {
+    const { data } = await api.get('users/entites/');
+    return data;
+};
+
 export const getUserById = async (id) => {
     const { data } = await api.get(`users/find-user/${id}/`);
     return data;
@@ -28,27 +33,28 @@ export const patchUser = async (id, userData) => {
     return data;
 };
 
-export const deleteUser = async (id) => {
-    await api.delete(`users/delete-user/${id}`);
+// Désactiver un utilisateur : passe is_active à False (route: DELETE users/delete-user/<uuid>)
+export const deactivateUser = async (user_id) => {
+    await api.delete(`users/delete-user/${user_id}`);
     return true;
 };
 
-export const restoreUser = async (id) => {
-    const { data } = await api.post(`users/restore-user/${id}`);
+// Réactiver un utilisateur : passe is_active à True (route: PATCH users/restore-user/<uuid>)
+export const activateUser = async (user_id) => {
+    const { data } = await api.patch(`users/restore-user/${user_id}`);
     return data;
 };
+
+// Alias pour rétrocompatibilité
+export const deleteUser = deactivateUser;
+export const restoreUser = activateUser;
 export const update_userrole = async (id, userData) => {
     const { data } = await api.put(`user/${id}/update-user-role`, userData);
     return data;
 };
 
 
-// ============ ENTITÉS ============
-// Via DefaultRouter → users/entites/
-export const getEntites = async () => {
-    const { data } = await api.get('users/entites/');
-    return data;
-};
+
 
 // ============ RÔLES ============
 // App Django "security" montée à la racine dans core/urls.py
@@ -73,8 +79,8 @@ export const patchRole = async (roleId, roleData) => {
     return data;
 };
 
-export const deleteRole = async (roleId) => {
-    await api.delete(`roles/${roleId}/`);
+export const deleteRole = async (code_role) => {
+    await api.delete(`roles/delete-role/${code_role}`);
     return true;
 };
 
@@ -83,6 +89,13 @@ export const deleteRole = async (roleId) => {
 export const getPermissions = async () => {
     const { data } = await api.get('permissions/all-permission');
     return data;
+};
+
+// Récupère les choix de modules définis dans le backend (MODULES_CHOICES)
+// Endpoint attendu : GET /permissions/modules/
+export const getPermissionModules = async () => {
+    const { data } = await api.get('permissions/modules/');
+    return data; // Attendu : [{ value: 'PLAN', label: 'Planning' }, ...]
 };
 
 export const createPermission = async (permData) => {
@@ -95,10 +108,8 @@ export const updatePermission = async (code_permission, permData) => {
     return data;
 };
 
-
-
-export const deletePermission = async (id) => {
-    await api.delete(`permissions/${id}/`);
+export const deletePermission = async (code_permission) => {
+    await api.delete(`permission/delete-permission/${code_permission}`);
     return true;
 };
 

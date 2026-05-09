@@ -19,6 +19,10 @@ const UsersTable = ({ users, onEdit, onToggle }) => {
     // Helper: affiche l'entité métier
     const renderEntite = (entiteObj) => {
         if (!entiteObj) return <span className="text-gray">-</span>;
+        if (Array.isArray(entiteObj)) {
+            if (entiteObj.length === 0) return <span className="text-gray">-</span>;
+            return entiteObj.map(e => e.name || e.nom || '-').join(', ');
+        }
         if (typeof entiteObj === 'object') return entiteObj.name || entiteObj.nom || '-';
         return entiteObj;
     };
@@ -60,25 +64,25 @@ const UsersTable = ({ users, onEdit, onToggle }) => {
                                     )}
                                 </td>
                                 <td className="td-actions">
-                                    <button 
-                                        className="action-btn edit-btn" 
+                                    <button
+                                        className="action-btn edit-btn"
                                         title="Modifier"
                                         onClick={() => onEdit(user)}
                                     >
                                         <span className="material-symbols-outlined">edit</span>
                                     </button>
-                                    
+
                                     {user.is_active ? (
-                                        <button 
-                                            className="action-btn delete-btn" 
+                                        <button
+                                            className="action-btn delete-btn"
                                             title="Désactiver"
                                             onClick={() => onToggle(user)}
                                         >
                                             <span className="material-symbols-outlined">block</span>
                                         </button>
                                     ) : (
-                                        <button 
-                                            className="action-btn activate-btn" 
+                                        <button
+                                            className="action-btn activate-btn"
                                             title="Activer"
                                             onClick={() => onToggle(user)}
                                         >
@@ -97,7 +101,7 @@ const UsersTable = ({ users, onEdit, onToggle }) => {
                     )}
                 </tbody>
             </table>
-            
+
             {/* Pied de page Tableau : Pagination */}
             <div className="table-footer">
                 <span className="pagination-info">Affichage de 1 à {users?.length || 0} sur {users?.length || 0} utilisateurs</span>
