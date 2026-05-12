@@ -1,8 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getCurrentUser } from '../../../../services/Authservice';
-import { createWorkflow } from '../../../../services/workflowService';
-import GeneralInfo from '../components/GeneralInfo';
+import { createWorkflow, getWorkflows } from '../../../../services/workflowService';
 import { 
     DndContext, 
     useDraggable, 
@@ -137,6 +136,25 @@ const CreateGlobalWorkflow = () => {
 
     const [availableProcesses, setAvailableProcesses] = useState([]);
 
+    useEffect(() => {
+        const fetchProcesses = async () => {
+            try {
+                const data = await getWorkflows();
+                // On transforme les workflows en format "process" pour le drag & drop
+                const processes = Array.isArray(data) ? data.map(wf => ({
+                    id: wf.id,
+                    name: wf.name || wf.nom,
+                    desc: wf.description || "Pas de description",
+                    icon: "account_tree" // Icône par défaut
+                })) : [];
+                setAvailableProcesses(processes);
+            } catch (error) {
+                console.error("Erreur lors du chargement des processus :", error);
+            }
+        };
+        fetchProcesses();
+    }, []);
+
     const [sequence, setSequence] = useState([]);
 
     const filteredProcesses = availableProcesses.filter(p => 
@@ -215,18 +233,57 @@ const CreateGlobalWorkflow = () => {
                 </header>
 
                 <main className="wf-content">
-                    <GeneralInfo 
-                        type="Workflow"
-                        name={workflowName}
-                        code={workflowCode}
-                        description={workflowDesc}
-                        onNameChange={setWorkflowName}
-                        onCodeChange={setWorkflowCode}
-                        onDescriptionChange={setWorkflowDesc}
-                        showIsActive={true}
-                        isActive={isActive}
-                        onIsActiveChange={setIsActive}
-                    />
+                    <section className="wf-card">
+                        <div className="card-header">
+                            <span className="material-symbols-outlined icon-blue">info</span>
+                            <div className="card-titles">
+                                <h4 style={{ margin: 0 }}>Informations Générales</h4>
+                                <p style={{ margin: '4px 0 0 0', fontSize: '13px', color: '#939597' }}>Nommez et décrivez l'usage de ce workflow.</p>
+                            </div>
+                        </div>
+
+                        <div className="wf-form">
+                            <div className="input-group">
+                                <label>NOM DU WORKFLOW <span className="required-star">*</span></label>
+                                <input 
+                                    type="text" 
+                                    placeholder="Ex: Maintenance Préventive"
+                                    value={workflowName} 
+                                    onChange={(e) => setWorkflowName(e.target.value)}
+                                />
+                            </div>
+                            <div className="input-group">
+                                <label>CODE DU WORKFLOW <span className="required-star">*</span></label>
+                                <input 
+                                    type="text" 
+                                    placeholder="Ex: WF_MAINT_PREV"
+                                    value={workflowCode} 
+                                    onChange={(e) => setWorkflowCode(e.target.value.toUpperCase().replace(/\s/g, '_'))}
+                                />
+                            </div>
+                            <div className="input-group" style={{ gridColumn: 'span 2' }}>
+                                <label>DESCRIPTION DÉTAILLÉE</label>
+                                <textarea 
+                                    className="wf-textarea"
+                                    rows="3" 
+                                    placeholder="Décrivez les objectifs..."
+                                    value={workflowDesc} 
+                                    onChange={(e) => setWorkflowDesc(e.target.value)}
+                                ></textarea>
+                            </div>
+                            <div className="input-group" style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: '10px', gridColumn: 'span 2' }}>
+                                <input 
+                                    type="checkbox" 
+                                    checked={isActive} 
+                                    onChange={(e) => setIsActive(e.target.checked)} 
+                                    style={{ width: '18px', height: '18px', cursor: 'pointer' }}
+                                />
+                                <label style={{ marginBottom: 0, cursor: 'pointer', fontSize: '14px', color: '#1C1C1B' }}>
+                                    <strong>Activer ce workflow dès la création</strong>
+                                </label>
+                            </div>
+                        </div>
+                    </section>
 
                     <div className="wf-builder-grid">
                         

@@ -58,16 +58,21 @@
     gap: 2rem;
 }
 
-.wf-container .input-group label {
+.input-group label {
     display: block;
     font-size: 11px;
     font-weight: 700;
     color: #939597;
     margin-bottom: 10px;
     letter-spacing: 0.05em;
+    text-transform: uppercase;
 }
 
-.wf-container .input-group input {
+.required-star {
+    color: #8DC640;
+}
+
+.input-group input {
     width: 100%;
     padding: 1rem;
     border: 1px solid #E5E7EB;
@@ -78,10 +83,25 @@
     transition: all 0.2s;
 }
 
-.wf-container .input-group input:focus {
+.input-group input:focus,
+.wf-textarea:focus {
     border-color: #1B75BB;
     background-color: #FFFFFF;
     box-shadow: 0 0 0 4px rgba(27, 117, 187, 0.05);
+}
+
+.wf-textarea {
+    width: 100%;
+    padding: 1rem;
+    border: 1px solid #E5E7EB;
+    border-radius: 8px;
+    background-color: #F9FAFB;
+    font-size: 14px;
+    outline: none;
+    transition: all 0.2s;
+    font-family: inherit;
+    resize: vertical;
+    min-height: 100px;
 }
 
 /* Builder Grid Layout */

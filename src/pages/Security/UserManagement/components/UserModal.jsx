@@ -13,6 +13,7 @@ const UserModal = ({ isOpen, onClose, user, roles, entites, onSuccess }) => {
         password: '',
         code_role: '',
         entite_metier: '',
+        region: '',
         is_ldap: false
     });
 
@@ -33,6 +34,7 @@ const UserModal = ({ isOpen, onClose, user, roles, entites, onSuccess }) => {
                     password: '',
                     code_role: firstRole,
                     entite_metier: user.entite_metier?.id || user.entite_metier || '',
+                    region: user.region || '',
                     is_ldap: user.is_ldap || false
                 });
             } else {
@@ -44,6 +46,7 @@ const UserModal = ({ isOpen, onClose, user, roles, entites, onSuccess }) => {
                     password: '',
                     code_role: '',
                     entite_metier: '',
+                    region: '',
                     is_ldap: false
                 });
             }
@@ -74,6 +77,7 @@ const UserModal = ({ isOpen, onClose, user, roles, entites, onSuccess }) => {
                     last_name: formData.last_name,
                     email: formData.email,
                     entite_metier: formData.entite_metier,
+                    region: formData.region,
                     is_ldap: formData.is_ldap,
 
                 };
@@ -90,6 +94,7 @@ const UserModal = ({ isOpen, onClose, user, roles, entites, onSuccess }) => {
                     email: formData.email,
                     code_role: formData.code_role,
                     entite_metier: formData.entite_metier,
+                    region: formData.region,
                     is_ldap: formData.is_ldap
                 };
                 if (formData.password) {
@@ -194,22 +199,35 @@ const UserModal = ({ isOpen, onClose, user, roles, entites, onSuccess }) => {
                                 </div>
                             </div>
 
-                            <div className="form-group">
-                                <label>Entité Métier <span className="text-danger">*</span></label>
-                                <select
-                                    name="entite_metier"
-                                    value={formData.entite_metier}
-                                    onChange={handleChange}
-                                    className="form-input"
-                                >
-                                    <option value="">-- Sélectionner une entité --</option>
-                                    {entites && entites.map(e => (
-                                        <option key={e.id} value={e.id}>{e.name || e.nom}</option>
-                                    ))}
-                                </select>
-                                {(!entites || entites.length === 0) && (
-                                    <span className="form-hint" style={{ color: '#ef4444' }}>Aucune entité disponible — vérifiez la connexion au serveur.</span>
-                                )}
+                            <div className="form-row">
+                                <div className="form-group">
+                                    <label>Région</label>
+                                    <input
+                                        type="text"
+                                        name="region"
+                                        value={formData.region}
+                                        onChange={handleChange}
+                                        className="form-input"
+                                        placeholder="Ex: Littoral"
+                                    />
+                                </div>
+                                <div className="form-group">
+                                    <label>Entité Métier <span className="text-danger">*</span></label>
+                                    <select
+                                        name="entite_metier"
+                                        value={formData.entite_metier}
+                                        onChange={handleChange}
+                                        className="form-input"
+                                    >
+                                        <option value="">-- Sélectionner une entité --</option>
+                                        {entites && entites.map(e => (
+                                            <option key={e.id} value={e.id}>{e.name || e.nom}</option>
+                                        ))}
+                                    </select>
+                                    {(!entites || entites.length === 0) && (
+                                        <span className="form-hint" style={{ color: '#ef4444' }}>Aucune entité disponible — vérifiez la connexion au serveur.</span>
+                                    )}
+                                </div>
                             </div>
                         </div>
 

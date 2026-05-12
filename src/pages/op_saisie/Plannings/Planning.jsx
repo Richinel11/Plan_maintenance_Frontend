@@ -169,7 +169,7 @@ const ExcelDisplay = () => {
 
       for (const row of rows) {
         const payload = convertRowToPayload(headers, row);
-        
+
         // Assign the user's entite_metier automatically
         if (entiteId) {
           payload.entite_metier = entiteId;

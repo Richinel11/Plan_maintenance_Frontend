@@ -9,8 +9,8 @@ import UserManagement from './pages/Security/UserManagement/UserManagement';
 import RoleManagement from './pages/Security/RoleManagement/RoleManagement';
 import PermissionManagement from './pages/Security/PermissionManagement/PermissionManagement';
 import WorkflowHistory from './pages/Workflow/WorkflowHistory/WorkflowHistory';
-import CreateProcess from './pages/Workflow/WorkflowHistory/createProccess/createProccess';
 import CreateGlobalWorkflow from './pages/Workflow/WorkflowHistory/createworkflo/createworkflo';
+import WorkflowDetail from './pages/Workflow/WorkflowHistory/WorkflowDetail/WorkflowDetail';
 
 import OP_home from './pages/op_saisie/Accuiel/Dashboard';
 import Planning from './pages/op_saisie/Plannings/Planning';
@@ -35,7 +35,7 @@ function App() {
                         <Route path="permissions" element={<PermissionManagement />} />
                         {/* Routes Workflow */}
                         <Route path="workflow/historique" element={<WorkflowHistory />} />
-                        <Route path="workflow/processus/creer" element={<CreateProcess />} />
+                        <Route path="workflow/:id" element={<WorkflowDetail />} />
                         <Route path="workflow/Workflow/creer" element={<CreateGlobalWorkflow />} />
                         <Route path="OP-home" element={<OP_home />} />
                         <Route path="Planning" element={<Planning />} />

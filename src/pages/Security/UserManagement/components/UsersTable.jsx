@@ -36,6 +36,7 @@ const UsersTable = ({ users, onEdit, onToggle }) => {
                         <th>PRÉNOM</th>
                         <th>EMAIL</th>
                         <th>NOM D'UTILISATEUR</th>
+                        <th>RÉGION</th>
                         <th>ENTITÉ MÉTIER</th>
                         <th>RÔLE</th>
                         <th>STATUT</th>
@@ -50,6 +51,7 @@ const UsersTable = ({ users, onEdit, onToggle }) => {
                                 <td className="text-gray">{user.first_name || '-'}</td>
                                 <td className="text-gray">{user.email || '-'}</td>
                                 <td className="text-gray-code">{user.username}</td>
+                                <td className="text-gray">{user.region || '-'}</td>
                                 <td className="text-gray">{renderEntite(user.entite_metier)}</td>
                                 <td>{renderRole(user.roles)}</td>
                                 <td>
@@ -94,7 +96,7 @@ const UsersTable = ({ users, onEdit, onToggle }) => {
                         ))
                     ) : (
                         <tr>
-                            <td colSpan="8" className="empty-state">
+                            <td colSpan="9" className="empty-state">
                                 Aucun utilisateur trouvé.
                             </td>
                         </tr>
