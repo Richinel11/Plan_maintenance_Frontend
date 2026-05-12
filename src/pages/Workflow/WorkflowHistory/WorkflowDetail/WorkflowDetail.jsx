@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import {
   getWorkflowById,
   getStepsByWorkflow,
-  getTransitionsByWorkflow,
+  getTransitions,
   createStep,
   deleteStep,
   createTransition,
@@ -53,7 +53,7 @@ const WorkflowDetail = () => {
       const [wf, sts, trs, rls] = await Promise.all([
         getWorkflowById(id),
         getStepsByWorkflow(id).catch(() => []),
-        getTransitionsByWorkflow(id).catch(() => []),
+        getTransitions(id).catch(() => []),
         getRoles().catch(() => []),
       ]);
       setWorkflow(wf);

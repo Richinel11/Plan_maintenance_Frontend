@@ -10,7 +10,7 @@ export const getWorkflows = async () => {
 
 /** Récupérer un workflow par ID */
 export const getWorkflowById = async (workflowId) => {
-    const { data } = await api.get(`workflows/${workflowId}/`);
+    const { data } = await api.get(`workflows/find-workflow/${workflowId}`);
     return data;
 };
 
@@ -80,7 +80,7 @@ export const getTransitionById = async (workflowId, transitionId) => {
 
 // update transition 
 export const updateTransition = async (transitionData, workflowId, transitionId) => {
-    const { data } = await api.put(`workflows/<uuid:workflow_id>/update-transition/<uuid:transition_id>}`, transitionData);
+    const { data } = await api.put(`workflows/${workflowId}/update-transition/${transitionId}`, transitionData);
     return data;
 };
 

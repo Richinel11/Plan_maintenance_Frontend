@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   getWorkflows, deleteWorkflow,
-  getSteps, createStep, deleteStep,
+  getStepsByWorkflow, createStep, deleteStep,
   getTransitions, createTransition, deleteTransition
 } from '../../../services/workflowService';
 import { getRoles } from '../../../services/userService';
@@ -14,14 +14,14 @@ import './WorkflowHistory.css';
 
 // ─── Badge statut ─────────────────────────────────────────────────────────────
 const STATUS_BADGE = {
-  actif:     { label: 'Actif',     bg: 'rgba(141,198,64,0.15)',  color: '#5d8b1f' },
+  actif: { label: 'Actif', bg: 'rgba(141,198,64,0.15)', color: '#5d8b1f' },
   brouillon: { label: 'Brouillon', bg: 'rgba(147,149,151,0.15)', color: '#5a5c5e' },
-  archivé:   { label: 'Archivé',   bg: 'rgba(229,57,53,0.10)',   color: '#c62828' },
+  archivé: { label: 'Archivé', bg: 'rgba(229,57,53,0.10)', color: '#c62828' },
 };
 const Badge = ({ status }) => {
   const s = STATUS_BADGE[status] || STATUS_BADGE.brouillon;
   return (
-    <span style={{ background: s.bg, color: s.color, padding:'3px 10px', borderRadius:'20px', fontSize:'11px', fontWeight:700, letterSpacing:'0.4px' }}>
+    <span style={{ background: s.bg, color: s.color, padding: '3px 10px', borderRadius: '20px', fontSize: '11px', fontWeight: 700, letterSpacing: '0.4px' }}>
       {s.label}
     </span>
   );
@@ -48,14 +48,30 @@ const WorkflowHistory = () => {
     setLoadingData(true);
     setError(null);
     try {
-      const [wfs, sts, trs] = await Promise.all([
-        getWorkflows().catch(() => []),
-        getSteps().catch(() => []),
-        getTransitions().catch(() => []),
-      ]);
-      setWorkflows(Array.isArray(wfs) ? wfs : []);
-      setSteps(Array.isArray(sts) ? sts : []);
-      setTransitions(Array.isArray(trs) ? trs : []);
+      const wfs = await getWorkflows().catch(() => []);
+      const workflowList = Array.isArray(wfs) ? wfs : [];
+      setWorkflows(workflowList);
+
+      const allSteps = [];
+      const allTransitions = [];
+
+      await Promise.all(workflowList.map(async (w) => {
+        try {
+          const sts = await getStepsByWorkflow(w.id);
+          if (Array.isArray(sts)) {
+            allSteps.push(...sts.map(s => ({ ...s, workflow: s.workflow || w.id })));
+          }
+        } catch (e) { }
+        try {
+          const trs = await getTransitions(w.id);
+          if (Array.isArray(trs)) {
+            allTransitions.push(...trs.map(t => ({ ...t, workflow: t.workflow || w.id })));
+          }
+        } catch (e) { }
+      }));
+
+      setSteps(allSteps);
+      setTransitions(allTransitions);
     } catch (e) {
       setError('Impossible de charger les données. Vérifiez la connexion au backend.');
     } finally {
@@ -137,20 +153,20 @@ const WorkflowHistory = () => {
 
       {/* ─── KPI CARDS ─── */}
       <div className="wfh-kpis">
-        <div className="wfh-kpi-card" style={{ borderLeftColor:'#1B75BB' }}>
-          <div className="wfh-kpi-value" style={{ color:'#1B75BB' }}>{workflows.length}</div>
+        <div className="wfh-kpi-card" style={{ borderLeftColor: '#1B75BB' }}>
+          <div className="wfh-kpi-value" style={{ color: '#1B75BB' }}>{workflows.length}</div>
           <div className="wfh-kpi-label">Workflows</div>
         </div>
-        <div className="wfh-kpi-card" style={{ borderLeftColor:'#8DC640' }}>
-          <div className="wfh-kpi-value" style={{ color:'#8DC640' }}>{steps.length}</div>
+        <div className="wfh-kpi-card" style={{ borderLeftColor: '#8DC640' }}>
+          <div className="wfh-kpi-value" style={{ color: '#8DC640' }}>{steps.length}</div>
           <div className="wfh-kpi-label">États (Steps) globaux</div>
         </div>
-        <div className="wfh-kpi-card" style={{ borderLeftColor:'#F59E0B' }}>
-          <div className="wfh-kpi-value" style={{ color:'#F59E0B' }}>{transitions.length}</div>
+        <div className="wfh-kpi-card" style={{ borderLeftColor: '#F59E0B' }}>
+          <div className="wfh-kpi-value" style={{ color: '#F59E0B' }}>{transitions.length}</div>
           <div className="wfh-kpi-label">Transitions globales</div>
         </div>
-        <div className="wfh-kpi-card" style={{ borderLeftColor:'#8DC640' }}>
-          <div className="wfh-kpi-value" style={{ color:'#8DC640' }}>
+        <div className="wfh-kpi-card" style={{ borderLeftColor: '#8DC640' }}>
+          <div className="wfh-kpi-value" style={{ color: '#8DC640' }}>
             {workflows.filter(w => w.is_active).length}
           </div>
           <div className="wfh-kpi-label">Workflows actifs</div>
@@ -206,7 +222,7 @@ const WorkflowHistory = () => {
                       </span>
                     </td>
                     <td className="wfh-center">
-                      <span className="wfh-count-pill" style={{backgroundColor: '#fef3c7', color: '#b45309'}}>
+                      <span className="wfh-count-pill" style={{ backgroundColor: '#fef3c7', color: '#b45309' }}>
                         {transitions.filter(t => String(t.workflow) === String(w.id)).length}
                       </span>
                     </td>
@@ -220,7 +236,7 @@ const WorkflowHistory = () => {
                         <span className="material-symbols-outlined">edit</span>
                       </button>
                       <button className="wfh-action-btn delete"
-                        onClick={() => setConfirmDelete({ type:'workflow', id:w.id })}
+                        onClick={() => setConfirmDelete({ type: 'workflow', id: w.id })}
                         title="Supprimer">
                         <span className="material-symbols-outlined">delete</span>
                       </button>
