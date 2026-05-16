@@ -43,6 +43,11 @@ function App() {
                         <Route path="workflow/orchestrateur/creer" element={<CreateGlobalWorkflow />} />
                         <Route path="OP-home" element={<OP_home />} />
                         <Route path="Planning" element={<Planning />} />
+                        {/* new */}
+                        <Route
+                            path="Planning/:id"
+                            element={<Planning />}
+                            />
                         <Route path="Tableaux_De_Bord" element={<Tableaux_De_Bord />} />
                         <Route path="CreerTravail" element={<Creer_Travail />} />
 

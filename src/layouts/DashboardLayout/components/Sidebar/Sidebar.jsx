@@ -31,6 +31,8 @@ const Sidebar = () => {
     const [openMenus, setOpenMenus] = useState({});
     const toggleMenu = (name) => setOpenMenus(prev => ({ ...prev, [name]: !prev[name] }));
 
+
+
     return (
         <aside className="sidebar">
             {/* Logo de l'application */}

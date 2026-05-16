@@ -1,37 +1,164 @@
 import React, { useMemo, useState } from "react";
-import api from "../../../API/axiosInstance";
 import { useNavigate } from "react-router-dom";
 
 import FileInput from "../Importer_Plannings/importation";
 import readExcel from "./readFile";
+
 import "./Planning.css";
+import PlanningForm from "../Creer_Travail/components/PlanningForm";
 import SearchBar from "../components/Filter_search/search";
 import Filter from "./filterCards/filter";
-
+import useServiceRole from "../../../pages/ComponentsRole/ServiceRole";
+import { createPlanningBatch } from "../../../API/planningService";
+import { mapPlanningPayload } from "../../../utils/planningMapper";
+import Etape2 from "../Creer_Travail/Etape2/etape2";
+import Etape3 from "../Creer_Travail/components/Etape3";
+import Recap from "../Creer_Travail/components/Recap";
 const ExcelDisplay = () => {
   const navigate = useNavigate();
+  const step = addStep;
+  const filteredFields = fields.filter(f => f.step === step);
 
-  /* ---------------- STATE ---------------- */
   const [fileName, setFileName] = useState("");
   const [excelData, setExcelData] = useState([]);
+  // const [planningName, setPlanningName] = useState(""); // ✅ NEW FIELD
   const [showImport, setShowImport] = useState(true);
   const [fade, setFade] = useState("fade-in");
 
   const [searchTerm, setSearchTerm] = useState("");
 
-  /* EDIT MODAL */
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedRow, setSelectedRow] = useState(null);
+  const [selectedRowIndex, setSelectedRowIndex] =
+    useState(null);
+const { fields, options } = useServiceRole();
   const [editData, setEditData] = useState([]);
 
-  /* ADD MODAL */
-  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  const [newRowData, setNewRowData] = useState([]);
-
-  /* SUBMIT */
   const [loading, setLoading] = useState(false);
 
+  const [isPlanningModalOpen, setIsPlanningModalOpen] = useState(false);
+const [addStep, setAddStep] = useState(0);
+const [planningFormData, setPlanningFormData] = useState({
+  Reference: "",
+  reference_id: null,
+  ouvrage_id: null,
+  poste_id: null,
+  depart_id: null,
+  troncon_id: null,
+
+  Segments: "",
+  Ouvrages: "",
+  Poste: "",
+  Departs: "",
+
+  Unite_demanderesse: "",
+  Exploitations: "",
+  Type_de_travaux: "",
+  Types_de_reseau: "",
+
+  service: "",
+});
+
+
+const handleOpenAddModal = () => {
+  setPlanningFormData({
+    Reference: "",
+    reference_id: null,
+    ouvrage_id: null,
+    poste_id: null,
+    depart_id: null,
+    troncon_id: null,
+    Segments: "",
+    Ouvrages: "",
+    Poste: "",
+    Departs: "",
+    Unite_demanderesse: "",
+    Exploitations: "",
+    Type_de_travaux: "",
+    Types_de_reseau: "",
+    service: "",
+  });
+
+  setAddStep(0); // ✅ IMPORTANT
+  setIsPlanningModalOpen(true);
+};
+
+const addSteps = [
+  {
+    title: "Identification & Organisation",
+    content: (
+      <PlanningForm
+        formData={planningFormData}
+        onChange={handlePlanningChange}
+        service={planningFormData.service}
+        fields={fields}
+        options={options}
+        step={addStep}
+      />
+    ),
+  },
+
+  {
+    title: "Localisation & Consistance",
+    content: (
+      <Etape2
+        formData={planningFormData}
+        onChange={handlePlanningChange}
+        fields={fields}
+        options={options}
+      />
+    ),
+  },
+
+  {
+    title: "Programmation & Impact",
+    content: (
+      <Etape3
+        formData={planningFormData}
+        onChange={handlePlanningChange}
+        fields={fields}
+        options={options}
+      />
+    ),
+  },
+
+  {
+    title: "Récapitulatif",
+    content: <Recap formData={planningFormData} />,
+  },
+];
+const nextStep = () => {
+  setAddStep((prev) => Math.min(prev + 1, addSteps.length - 1));
+};
+
+const prevStep = () => {
+  setAddStep((prev) => Math.max(prev - 1, 0));
+};
+
+{addStep < addSteps.length - 1 ? (
+  <button onClick={nextStep}>Suivant</button>
+) : (
+  <button onClick={handleAddPlanningRow}>Ajouter</button>
+)};
+
+const handlePlanningChange = (field, value) => {
+  setPlanningFormData((prev) => ({
+    ...prev,
+    [field]: value,
+  }));
+};
+
+const handleAddPlanningRow = () => {
+  const rowObject = { ...planningFormData };
+
+  const row = headers.map((header) => {
+    return rowObject[header] ?? "";
+  });
+
+  setExcelData((prev) => [...prev, row]);
+  setIsPlanningModalOpen(false);
+};
   /* ---------------- IMPORT ---------------- */
+
   const handleContinue = () => {
     setFade("fade-out");
 
@@ -43,61 +170,90 @@ const ExcelDisplay = () => {
   const handleFileSelect = async (file) => {
     try {
       setFileName(file.name);
+
       const data = await readExcel(file);
+
       setExcelData(data);
+
     } catch (error) {
       console.error(error);
+
       alert("Erreur importation fichier");
     }
   };
 
   /* ---------------- HEADERS / ROWS ---------------- */
+
   const headers = useMemo(() => {
-    return excelData.length > 0 ? excelData[0] : [];
+    return excelData.length > 0
+      ? excelData[0]
+      : [];
   }, [excelData]);
 
   const rows = useMemo(() => {
-    return excelData.length > 1 ? excelData.slice(1) : [];
+    return excelData.length > 1
+      ? excelData.slice(1)
+      : [];
   }, [excelData]);
 
   /* ---------------- SEARCH ---------------- */
+
   const filteredRows = useMemo(() => {
-    if (!searchTerm.trim()) return rows;
+    if (!searchTerm.trim()) {
+      return rows;
+    }
 
     return rows.filter((row) =>
       row.some((cell) =>
-        String(cell).toLowerCase().includes(searchTerm.toLowerCase())
+        String(cell)
+          .toLowerCase()
+          .includes(searchTerm.toLowerCase())
       )
     );
   }, [rows, searchTerm]);
 
   /* ---------------- EDIT ---------------- */
+
   const handleEditRow = (rowIndex) => {
-    setSelectedRow(rowIndex + 1);
+    setSelectedRowIndex(rowIndex);
+
     setEditData([...rows[rowIndex]]);
+
     setIsModalOpen(true);
   };
 
-  const handleChange = (index, value) => {
+  const handleEditChange = (
+    cellIndex,
+    value
+  ) => {
     const updated = [...editData];
-    updated[index] = value;
+
+    updated[cellIndex] = value;
+
     setEditData(updated);
   };
 
-  const handleSave = () => {
-    const updated = [...excelData];
-    updated[selectedRow] = editData;
-    setExcelData(updated);
+  const handleSaveEdit = () => {
+    const updatedExcelData = [...excelData];
+
+    updatedExcelData[selectedRowIndex + 1] =
+      editData;
+
+    setExcelData(updatedExcelData);
+
     setIsModalOpen(false);
   };
 
   /* ---------------- DELETE ---------------- */
+
   const handleDeleteRow = (rowIndex) => {
-    const confirmDelete = window.confirm(
+    const confirmed = window.confirm(
       "Voulez-vous supprimer cette ligne ?"
     );
 
-    if (!confirmDelete) return;
+    if (!confirmed) {
+      return;
+    }
 
     const updated = excelData.filter(
       (_, index) => index !== rowIndex + 1
@@ -106,195 +262,260 @@ const ExcelDisplay = () => {
     setExcelData(updated);
   };
 
-  /* ---------------- ADD NEW ROW ---------------- */
-  const handleOpenAddModal = () => {
-    setNewRowData(headers.map(() => ""));
-    setIsAddModalOpen(true);
-  };
+  /* ---------------- ADD ROW ---------------- */
 
-  const handleAddChange = (index, value) => {
-    const updated = [...newRowData];
-    updated[index] = value;
-    setNewRowData(updated);
-  };
 
-  const handleAddRow = () => {
-    const updated = [...excelData, newRowData];
-    setExcelData(updated);
-    setIsAddModalOpen(false);
-  };
 
-  /* ---------------- HEADER MAP ---------------- */
-  const headerMap = {
-    titr: "",
-    reference: "",
-    type_activite: "",
-    jour_debut_planifie: "",
-    jour_debut_effectif: "",
-    duree_planifiee: "",
-    jour_fin_planifie: "",
-    observation: "",
-    statut_travaux: "",
-  };
 
-  /* ---------------- CONVERT ROW ---------------- */
-  const convertRowToPayload = (headers, row) => {
+  /* ---------------- CONVERT EXCEL ROW ---------------- */
+
+  const convertRowToObject = (
+    headersArray,
+    rowArray
+  ) => {
     const obj = {};
 
-    headers.forEach((header, i) => {
-      const field = headerMap[header];
-
-      if (field) {
-        obj[field] = row[i];
-      }
+    headersArray.forEach((header, index) => {
+      obj[header] = rowArray[index];
     });
 
     return obj;
   };
 
-  /* ---------------- SUBMIT TO BACKEND ---------------- */
+
+
+
+  /* ---------------- SUBMIT ---------------- */
+
   const handleSubmit = async () => {
-    if (rows.length === 0) {
+    if (!rows.length) {
       alert("Aucune donnée");
+
       return;
     }
 
     try {
       setLoading(true);
 
-      const token = localStorage.getItem("token");
+      const payloads = rows.map((row) => {
+        const rowObject =
+          convertRowToObject(headers, row);
 
-      for (const row of rows) {
-        const payload = convertRowToPayload(headers, row);
-
-        await api.post(
-          "plannings/",
-          payload,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-              "Content-Type": "application/json",
-            },
-          }
+        return mapPlanningPayload(
+          rowObject
         );
-      }
+      });
 
-      alert("Planning soumis avec succès");
+      console.log(
+        "BATCH PAYLOAD =>",
+        payloads
+      );
 
-      /* REDIRECT TO NEXT PAGE */
-      navigate("/dashboard/travaux-de-bord");
+      await createPlanningBatch({
+        file_name: fileName,
+        // planning_name: planningName, // ✅ IMPORTANT ADDITION
+        data: payloads,
+      });
+
+      alert(
+        "Planning importé avec succès"
+      );
+
+      navigate(
+        "/dashboard/Tableaux_De_Bord"
+      );
 
     } catch (error) {
       console.error(error);
-      alert("Erreur lors de l'envoi");
+
+      console.log(
+        "BACKEND ERROR =>",
+        error.response?.data
+      );
+
+      alert(
+        "Erreur lors de l'importation"
+      );
+
     } finally {
       setLoading(false);
     }
   };
 
+  /* ---------------- EMPTY ---------------- */
+
+  if (
+    !showImport &&
+    excelData.length === 0
+  ) {
+    return <p>Aucune donnée</p>;
+  }
+
   return (
     <div className="excel-container">
 
       {/* IMPORT SCREEN */}
+
       {showImport && (
         <div className={fade}>
           <FileInput
-            onFileSelect={handleFileSelect}
-            onContinue={handleContinue}
+            onFileSelect={
+              handleFileSelect
+            }
+            onContinue={
+              handleContinue
+            }
           />
         </div>
       )}
 
       {/* TABLE SCREEN */}
+
       {!showImport && (
         <div className="fade-in">
 
           {/* HEADER */}
-          <div className="header-text">
-            <div className="text">
-              <h1>📄 {fileName}</h1>
 
-              <p>
-                Veuillez vérifier et ajuster les données
-                extraites du fichier source avant validation
-              </p>
+          <div className="header-text">
+
+          <div className="text">
+
+            <div className="file-name-edit">
+
+              <label
+                htmlFor="fileName"
+                className="file-label"
+              >
+                File Name :
+              </label>
+
+              <input
+                id="fileName"
+                type="text"
+                value={fileName}
+                onChange={(e) =>
+                  setFileName(e.target.value)
+                }
+                className="file-name-input"
+              />
+
             </div>
+
+            <p>
+              Vérifiez les données
+              avant validation
+            </p>
+
+          </div>
 
             <SearchBar
               value={searchTerm}
               onChange={(e) =>
-                setSearchTerm(e.target.value)
+                setSearchTerm(
+                  e.target.value
+                )
               }
             />
+
           </div>
 
           <Filter />
 
-          {/* ADD ROW BUTTON */}
-          <div style={{ marginBottom: "15px" }}>
+          {/* ADD BUTTON */}
+
+          <div
+            style={{
+              marginBottom: "15px",
+            }}
+          >
             <button
               type="button"
-              onClick={handleOpenAddModal}
+              onClick={
+                handleOpenAddModal
+              }
             >
               ➕ Ajouter une ligne
             </button>
           </div>
 
           {/* TABLE */}
-        <div className="table-scroll-wrapper">
-          <table className="excel-table">
 
-            <thead>
-              <tr>
-                {headers.map((header, i) => (
-                  <th key={i}>{header}</th>
-                ))}
+          <div className="table-scroll-wrapper">
 
-                {/* ACTIONS HEADER */}
-                <th>Actions</th>
-              </tr>
-            </thead>
+            <table className="excel-table">
 
-            <tbody>
-              {filteredRows.map((row, rowIndex) => (
-                <tr key={rowIndex}>
+              <thead>
+                <tr>
 
-                  {row.map((cell, cellIndex) => (
-                    <td key={cellIndex}>{cell}</td>
-                  ))}
+                
 
-                  {/* ACTION BUTTONS */}
-                  <td className="action-cell">
+                  <th>Actions</th>
 
-                    <button
-                      type="button"
-                      className="edit-btn"
-                      onClick={() =>
-                        handleEditRow(rowIndex)
-                      }
-                    >
-                      ✏️
-                    </button>
-
-                    <button
-                      type="button"
-                      className="delete-btn"
-                      onClick={() =>
-                        handleDeleteRow(rowIndex)
-                      }
-                    >
-                      🗑
-                    </button>
-
-                  </td>
                 </tr>
-              ))}
-            </tbody>
+              </thead>
 
-          </table>
+              <tbody>
+
+                {filteredRows.map(
+                  (row, rowIndex) => (
+                    <tr key={rowIndex}>
+
+                      {row.map(
+                        (
+                          cell,
+                          cellIndex
+                        ) => (
+                          <td
+                            key={
+                              cellIndex
+                            }
+                          >
+                            {cell}
+                          </td>
+                        )
+                      )}
+
+                      <td className="action-cell">
+
+                        <button
+                          type="button"
+                          className="edit-btn"
+                          onClick={() =>
+                            handleEditRow(
+                              rowIndex
+                            )
+                          }
+                        >
+                          ✏️
+                        </button>
+
+                        <button
+                          type="button"
+                          className="delete-btn"
+                          onClick={() =>
+                            handleDeleteRow(
+                              rowIndex
+                            )
+                          }
+                        >
+                          🗑
+                        </button>
+
+                      </td>
+
+                    </tr>
+                  )
+                )}
+
+              </tbody>
+
+            </table>
+
           </div>
 
-          {/* FOOTER BUTTONS */}
+
+          {/* FOOTER */}
+
           <div className="btn">
 
             <button type="button">
@@ -312,30 +533,50 @@ const ExcelDisplay = () => {
             </button>
 
           </div>
-
         </div>
       )}
 
       {/* EDIT MODAL */}
+
       {isModalOpen && (
         <div className="modal-overlay">
+
           <div className="modal-grid">
 
-            <h2>Modifier la ligne</h2>
+            <h2>
+              Modifier la ligne
+            </h2>
 
             <div className="grid-form">
-              {headers.map((header, i) => (
-                <div className="grid-item" key={i}>
-                  <label>{header}</label>
 
-                  <input
-                    value={editData[i] || ""}
-                    onChange={(e) =>
-                      handleChange(i, e.target.value)
-                    }
-                  />
-                </div>
-              ))}
+              {headers.map(
+                (header, index) => (
+                  <div
+                    className="grid-item"
+                    key={index}
+                  >
+
+                    <label>
+                      {header}
+                    </label>
+
+                    <input
+                      value={
+                        editData[index] ||
+                        ""
+                      }
+                      onChange={(e) =>
+                        handleEditChange(
+                          index,
+                          e.target.value
+                        )
+                      }
+                    />
+
+                  </div>
+                )
+              )}
+
             </div>
 
             <div className="modal-actions">
@@ -348,57 +589,93 @@ const ExcelDisplay = () => {
                 Annuler
               </button>
 
-              <button onClick={handleSave}>
+              <button
+                onClick={
+                  handleSaveEdit
+                }
+              >
                 Sauvegarder
               </button>
 
             </div>
 
           </div>
+
         </div>
       )}
 
       {/* ADD MODAL */}
-      {isAddModalOpen && (
-        <div className="modal-overlay">
-          <div className="modal-grid">
+{isPlanningModalOpen && (
+  <div
+    className="modal-overlay"
+    style={{
+      position: "fixed",
+      top: 0,
+      left: 0,
+      width: "100%",
+      height: "100%",
+      background: "rgba(0,0,0,0.5)",
+      display: "flex",
+      justifyContent: "center",
+      alignItems: "center",
+      zIndex: 9999,
+    }}
+  >
+    <div
+      className="modal-grid"
+      style={{
+        background: "#fff",
+        padding: "20px",
+        borderRadius: "10px",
+        width: "85%",
+        maxHeight: "90vh",
+        overflowY: "auto",
+      }}
+    >
+      {/* HEADER STEP */}
+      <h2>
+        Étape {addStep + 1} / {addSteps.length} — {addSteps[addStep].title}
+      </h2>
 
-            <h2>Ajouter une ligne</h2>
+      {/* CONTENT */}
+      <div style={{ marginTop: 20 }}>
+        {addSteps[addStep].content}
+      </div>
 
-            <div className="grid-form">
-              {headers.map((header, i) => (
-                <div className="grid-item" key={i}>
-                  <label>{header}</label>
+      {/* FOOTER BUTTONS */}
+      <div
+        className="modal-actions"
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          marginTop: 20,
+        }}
+      >
+        <button onClick={() => setIsPlanningModalOpen(false)}>
+          Annuler
+        </button>
 
-                  <input
-                    value={newRowData[i] || ""}
-                    onChange={(e) =>
-                      handleAddChange(i, e.target.value)
-                    }
-                  />
-                </div>
-              ))}
-            </div>
+        <div style={{ display: "flex", gap: 10 }}>
+          {addStep > 0 && (
+            <button onClick={prevStep}>
+              Précédent
+            </button>
+          )}
 
-            <div className="modal-actions">
-
-              <button
-                onClick={() =>
-                  setIsAddModalOpen(false)
-                }
-              >
-                Annuler
-              </button>
-
-              <button onClick={handleAddRow}>
-                Ajouter
-              </button>
-
-            </div>
-
-          </div>
+          {addStep < addSteps.length - 1 ? (
+            <button onClick={nextStep}>
+              Suivant
+            </button>
+          ) : (
+            <button onClick={handleAddPlanningRow}>
+              Ajouter
+            </button>
+          )}
         </div>
-      )}
+      </div>
+    </div>
+  </div>
+)}
 
     </div>
   );

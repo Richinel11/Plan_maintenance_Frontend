@@ -1,286 +1,639 @@
 import { useState, useEffect } from "react";
-import { Search, FileText, MapPin, Zap, ChevronDown, ArrowRight, ClipboardCheck, Building2 } from "lucide-react";
+
+import {
+  ArrowRight,
+} from "lucide-react";
+
 import "./Progress.css";
-import Etape2 from '../Etape2/etape2';
+
+import Etape2 from "../Etape2/etape2";
 import Etape3 from "../etape3/etape3";
 import Recap from "../Recap/recap";
-import useServiceRole from "../../../ComponentsRole/ServiceRole";
-import {  Truck, Factory, Network} from "lucide-react";
+import PlanningForm from "../components/PlanningForm";
 
+import useServiceRole from "../../../ComponentsRole/ServiceRole";
+
+import {
+  getReferences,
+  getTypesActivite,
+  getOuvrages,
+  getPostes,
+  getDeparts,
+  getTroncons,
+} from "../../../../services/referencetielService";
+
+
+
+import {
+  mapPlanningPayload,
+} from "../../../../utils/planningMapper";
+
+import {
+  getPlannings, // ✅ NEW IMPORT
+  createPlanning,
+} from "../../../../API/planningService";
 
 export default function MultiStepForm() {
-  const [step, setStep] = useState(0);
-  const [selectedService, setSelectedService] = useState(""); //new
-  const { service, fields, userService, options, referenceConfig } = useServiceRole(selectedService);
-  
-  const [formData, setFormData] = useState({
-    Reference: '',
-    Segments: '',
-    Ouvrages: '',
-    Poste: '',
-    Departs: '',
-    Unite_demanderesse: '',
-    Exploitations: '',
-    Type_de_travaux: '',
-    Types_de_reseau: '',
-    service: service
-  });
+  const [plannings, setPlannings] = useState([]); // ✅ FIXED FEATURE
+
+  const [step, setStep] =
+    useState(0);
+
+  const [loading, setLoading] =
+    useState(false);
+
+  /* ---------------- STATES ---------------- */
+
+  const [references, setReferences] =
+    useState([]);
+
+  const [typesActivite, setTypesActivite] =
+    useState([]);
+
+  const [ouvrages, setOuvrages] =
+    useState([]);
+
+  const [postes, setPostes] =
+    useState([]);
+
+  const [departs, setDeparts] =
+    useState([]);
+
+  const [troncons, setTroncons] =
+    useState([]);
+
+
+  // const [ setPlannings] = useState([]); // ✅ NEW STATE
+  /* ---------------- SERVICE ROLE ---------------- */
+
+  const {
+    service,
+    setService,
+    fields,
+    options,
+    referenceConfig,
+  } = useServiceRole();
+
+  /* ---------------- FORM DATA ---------------- */
+
+  const [formData, setFormData] =
+    useState({
+      Reference: "",
+      reference_id: null,
+      planning_id: null, // ✅ NEW FIELD ADDED (IMPORTANT)
+      ouvrage_id: null,
+      poste_id: null,
+      depart_id: null,
+      troncon_id: null,
+
+      Segments: "",
+      Ouvrages: "",
+      Poste: "",
+      Departs: "",
+
+      Unite_demanderesse: "",
+      Exploitations: "",
+
+      Type_de_travaux: "",
+      Types_de_reseau: "",
+
+      type_travaux_id: null,
+
+      service: service,
+
+      /* ETAPE 2 */
+
+      Troncons: "",
+      Consistances_Des_Travaux: "",
+      Localites_impactees: "",
+      Moyens_mis_en_oeuvre: "",
+
+      /* ETAPE 3 */
+
+      Debut_planifiee: "",
+      Duree: "",
+      Fin_planifiee: "",
+      Date_programmee: "",
+
+      Prevision_puissance_sollicite: "",
+      Prevision_puissance_interrompue: "",
+      Prevision_ENF: "",
+
+      Centrale_thermique: "",
+      Qte_de_fuel: "",
+
+      Observations: "",
+    });
+
+  /* ---------------- LOAD REFERENTIEL ---------------- */
 
   useEffect(() => {
-    setFormData(prev => ({ ...prev, service }));
+
+    const fetchReferentielData =
+      async () => {
+
+        try {
+
+          const [
+            ouvragesData,
+            postesData,
+            departsData,
+            tronconsData,
+            referencesData,
+            typesData,
+            planningsData,
+          ] = await Promise.all([
+            getOuvrages(),
+            getPostes(),
+            getDeparts(),
+            getTroncons(),
+            getReferences(),
+            getTypesActivite(),
+            getPlannings(), // ✅ IMPORTANT
+          ]);
+
+         setOuvrages(ouvragesData);
+        setPostes(postesData);
+        setDeparts(departsData);
+        setTroncons(tronconsData);
+        setReferences(referencesData);
+        setTypesActivite(typesData);
+        setPlannings(planningsData);
+
+        } catch (error) {
+
+          console.error(
+            "Erreur chargement référentiel :",
+            error
+          );
+        }
+      };
+
+    fetchReferentielData();
+
+  }, []);
+
+  /* ---------------- LOAD REFERENCES ---------------- */
+
+  useEffect(() => {
+
+    const fetchNetworkReferences =
+      async () => {
+
+        try {
+
+          const data =
+            await getReferences();
+
+          setReferences(data);
+
+        } catch (error) {
+
+          console.error(
+            "Erreur chargement références :",
+            error
+          );
+        }
+      };
+
+    fetchNetworkReferences();
+
+  }, []);
+
+  /* ---------------- LOAD TYPES ACTIVITE ---------------- */
+
+  useEffect(() => {
+
+    const fetchTypes =
+      async () => {
+
+        try {
+
+          const data =
+            await getTypesActivite();
+
+          setTypesActivite(data);
+
+        } catch (error) {
+
+          console.error(
+            "Erreur chargement types activité :",
+            error
+          );
+        }
+      };
+
+    fetchTypes();
+
+  }, []);
+
+  /* ---------------- UPDATE SERVICE ---------------- */
+
+  useEffect(() => {
+
+    setFormData((prev) => ({
+      ...prev,
+      service,
+    }));
+
   }, [service]);
 
+  /* ---------------- AUTO GENERATE REFERENCE ---------------- */
+
   useEffect(() => {
-    if (referenceConfig && referenceConfig.length > 0) {
-      const values = referenceConfig.map(field => formData[field] || '').filter(v => v !== '');
-      const newRef = values.join('-');
-      if (newRef !== formData.Reference) {
-        setFormData(prev => ({ ...prev, Reference: newRef }));
-      }
+
+    if (!referenceConfig?.length)
+      return;
+
+    const fieldValues = {
+
+      ouvrage_id:
+        ouvrages.find(
+          (o) =>
+            o.id === Number(
+              formData.ouvrage_id
+            )
+        )?.nom || "",
+
+      poste_id:
+        postes.find(
+          (p) =>
+            p.id === Number(
+              formData.poste_id
+            )
+        )?.nom || "",
+
+      troncon_id:
+        troncons.find(
+          (t) =>
+            t.id === Number(
+              formData.troncon_id
+            )
+        )?.nom || "",
+
+      depart_id:
+        departs.find(
+          (d) =>
+            d.id === Number(
+              formData.depart_id
+            )
+        )?.nom || "",
+
+      Segments:
+        formData.Segments || "",
+
+      Ouvrages:
+        formData.Ouvrages || "",
+
+      Poste:
+        formData.Poste || "",
+
+      Departs:
+        formData.Departs || "",
+    };
+
+    const values =
+      referenceConfig
+        .map((field) =>
+          fieldValues[field]
+        )
+        .filter(Boolean);
+
+    const newRef =
+      values.join("-");
+
+    if (
+      newRef !==
+      formData.Reference
+    ) {
+
+      setFormData((prev) => ({
+        ...prev,
+        Reference: newRef,
+      }));
     }
-  }, [formData, referenceConfig]);
 
-  const handleInputChange = (field, value) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
-  };
+  }, [
+    referenceConfig,
 
-  const steps = [
+    formData.ouvrage_id,
+    formData.poste_id,
+    formData.troncon_id,
+    formData.depart_id,
+
+    formData.Segments,
+    formData.Ouvrages,
+    formData.Poste,
+    formData.Departs,
+    formData.Reference,
+
+    ouvrages,
+    postes,
+    departs,
+    troncons,
+  ]);
+
+  /* ---------------- HANDLE CHANGE ---------------- */
+
+  const handleInputChange =
+    (field, value) => {
+
+      setFormData((prev) => ({
+        ...prev,
+        [field]: value,
+      }));
+    };
+
+  /* ---------------- HANDLE REFERENCE ---------------- */
+
+
+
+  /* ---------------- SUBMIT ---------------- */
+
+  const handleSubmitPlanning =
+    async () => {
+
+      try {
+
+        setLoading(true);
+
+        const payload =
+          mapPlanningPayload(
+            formData
+          );
+
+        console.log(
+          "PAYLOAD =>",
+          payload
+        );
+
+        await createPlanning(
+          payload
+        );
+
+        alert(
+          "Planning créé avec succès"
+        );
+
+      } catch (error) {
+
+        console.error(error);
+
+        console.log(
+          "BACKEND ERROR =>",
+          error.response?.data
+        );
+
+        alert(
+          "Erreur lors de la création du planning"
+        );
+
+      } finally {
+
+        setLoading(false);
+      }
+    };
+
+  /* ---------------- STEPS ---------------- */
+
+/* ---------------- STEPS ---------------- */
+
+ const steps = [
     {
       title: "Identification & Organisation",
-      content: <StepOne formData={formData} onChange={handleInputChange} fields={fields} options={options} />,
+      content: (
+        <>
+          {/* ✅ NEW PLANNING SELECT FIELD */}
+          <div style={{ marginBottom: 20 }}>
+            <label>Associer à un planning existant</label>
+
+            <select
+              value={formData.planning_id || ""}
+              onChange={(e) =>
+                handleInputChange("planning_id", e.target.value)
+              }
+              style={{
+                width: "100%",
+                padding: "10px",
+                marginTop: 8,
+              }}
+            >
+              <option value="">-- Aucun planning --</option>
+
+              {plannings.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.reference || p.nom || `Planning #${p.id}`}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <PlanningForm
+            formData={formData}
+            onChange={handleInputChange}
+            references={references}
+            onReferenceChange={(val) =>
+              handleInputChange("reference_id", val)
+            }
+            typesActivite={typesActivite}
+            service={service}
+            fields={fields}
+            options={options}
+          />
+        </>
+      ),
     },
+
     {
       title: "Localisation & Consistance",
-      content: <Etape2 formData={formData} onChange={handleInputChange} fields={fields} options={options} />,
+      content:
+        service === "distribution" ? (
+          <Etape2
+            formData={formData}
+            onChange={handleInputChange}
+            // fields={fields}
+            // options={options}
+          />
+        ) : (
+          <div style={{ padding: 40, textAlign: "center" }}>
+            Étape non nécessaire pour {service}
+          </div>
+        ),
     },
+
     {
       title: "Programmation & Impact",
-      content: <Etape3 formData={formData} onChange={handleInputChange} fields={fields} options={options} />,
+      content: (
+        <Etape3
+          formData={formData}
+          onChange={handleInputChange}
+          // fields={fields}
+          // options={options}
+        />
+      ),
     },
+
     {
-      title: "Recapitulatif",
+      title: "Récapitulatif",
       content: <Recap formData={formData} />,
     },
   ];
 
-  const total = steps.length;
-  const percent = ((step + 1) / total) * 100;
 
-  const next = () => step < total - 1 && setStep(step + 1);
-  const prev = () => step > 0 && setStep(step - 1);
+  /* ---------------- NAVIGATION ---------------- */
+
+  const total =
+    steps.length;
+
+  const percent =
+    ((step + 1) / total) *
+    100;
+
+  const next = () => {
+    setStep((prev) => Math.min(prev + 1, total - 1));
+  }
+
+  const prev = () => {
+    setStep((prev) => Math.max(prev - 1, 0));
+  };
 
   return (
     <div className="wrapper">
 
-            {/* Selectionner un service de soit  */}
-            <div className="service-selector-container">
+      {/* SERVICE SWITCHER */}
 
-              <div className="field-row">
-                <span className="field-label">Service de travail</span>
+      <div
+        style={{
+          padding: "10px",
+          background: "#f8d7da",
+          color: "#721c24",
+          marginBottom: "15px",
+          borderRadius: "5px",
+          display: "flex",
+          justifyContent:
+            "space-between",
+          alignItems: "center",
+          border:
+            "1px solid #f5c6cb",
+        }}
+      >
 
-                {/* <div className="badge-auto">
-                  <ClipboardCheck size={12} />
-                  <span>{userService.toUpperCase()}</span>
-                </div> */}
-              </div>
+        <strong>
+          🛠️ Outil de Test :
+          Changer le Service
+        </strong>
 
-              <div className="service-select-wrapper">
+        <select
+          value={service}
+          onChange={(e) =>
+            setService(
+              e.target.value
+            )
+          }
+          style={{
+            padding: "6px 12px",
+            borderRadius: "4px",
+            border:
+              "1px solid #ccc",
+            cursor: "pointer",
+          }}
+        >
 
-                <div className={`service-icon ${service.toLowerCase()}`}>
-                  {service.toLowerCase() === "transport" && <Zap size={18} />}
-                  {service.toLowerCase() === "production" && <Building2 size={18} />}
-                  {service.toLowerCase() === "distribution" && <MapPin size={18} />}
-                </div>
+          <option value="transport">
+            Transport
+          </option>
 
-                <select
-                  value={service}
-                  onChange={(e) => setSelectedService(e.target.value)}
-                >
-                  <option value="transport">Transport</option>
-                  <option value="production">Production</option>
-                  <option value="distribution">Distribution</option>
-                </select>
+          <option value="distribution">
+            Distribution
+          </option>
 
-                <ChevronDown className="chevron" size={18} />
-              </div>
+          <option value="production">
+            Production
+          </option>
 
-            </div>
+        </select>
 
-      {/* Progress Header */}
+      </div>
+
+      {/* HEADER */}
+
       <div className="progress-header">
+
         <div className="header-top">
+
           <div className="step-info">
-            <span className="step-count">ÉTAPE {step + 1} SUR {total}</span>
-            <h2 className="step-title">{steps[step].title}</h2>
+
+            <span className="step-count">
+              ÉTAPE {step + 1} SUR{" "}
+              {total}
+            </span>
+
+            <h2 className="step-title">
+              {steps[step]?.title}
+            </h2>
+
           </div>
-          <span className="step-percent">{Math.round(percent)}%</span>
+
+          <span className="step-percent">
+            {Math.round(percent)}%
+          </span>
+
         </div>
+
         <div className="progress-bar-container">
-          <div className="progress-bar-fill" style={{ width: `${percent}%` }}></div>
+
+          <div
+            className="progress-bar-fill"
+            style={{
+              width: `${percent}%`,
+            }}
+          />
+
         </div>
+
       </div>
 
-      {/* Dynamic Content */}
+      {/* CONTENT */}
+
       <div className="main-content">
-        {steps[step].content}
+        {steps[step]?.content}
       </div>
 
-      {/* Footer Actions */}
+      {/* FOOTER */}
+
       <div className="footer-actions">
+
         {step > 0 && (
-          <button className="btn-prev" onClick={prev}>
+          <button
+            className="btn-prev"
+            onClick={prev}
+          >
             Précédent
           </button>
         )}
-        <button className="btn-next" onClick={next}>
-          {step === total - 1 ? "Terminer" : "Suivant"}
+
+        <button
+          className="btn-next"
+          onClick={
+            step === total - 1
+              ? handleSubmitPlanning
+              : next
+          }
+          disabled={loading}
+        >
+
+          {loading
+            ? "Création..."
+            : step === total - 1
+            ? "Créer Planning"
+            : "Suivant"}
+
           <ArrowRight size={18} />
+
         </button>
-      </div>
-    </div>
-  );
-}
 
-/* STEP 1 COMPONENT */
-function StepOne({ formData, onChange, fields, options }) {
-  const isFieldVisible = (field) => fields.includes(field);
-
-  return (
-    <div className="step-one-container">
-      {/* Référence Section */}
-      <div className="ref-section">
-        <label className="label-main">Référence</label>
-        <div className="ref-input-wrapper">
-          <Search className="search-icon" size={20} />
-          <input 
-            type="text" 
-            value={formData.Reference} 
-            readOnly 
-            placeholder="Ex: MAINT-2023-089..."
-          />
-        </div>
       </div>
 
-      {/* Main Content Card */}
-      <div className="form-card">
-        {/* Auto-filled Fields */}
-        <div className="auto-fields-section">
-          {isFieldVisible("Segments") && (
-            <DisplayField 
-              label="Segment" 
-              value={formData.Segments} 
-              icon={<FileText size={20} />} 
-              isAuto 
-            />
-          )}
-          
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
-            {isFieldVisible("Ouvrages") && (
-              <DisplayField 
-                label="Ouvrages" 
-                value={formData.Ouvrages} 
-                icon={<MapPin size={20} />} 
-                isAuto 
-              />
-            )}
-            {isFieldVisible("Poste") && (
-              <DisplayField 
-                label="Poste" 
-                value={formData.Poste} 
-                icon={<Building2 size={20} />} 
-                isAuto 
-              />
-            )}
-          </div>
-
-          {isFieldVisible("Departs") && (
-             <DisplayField 
-             label="Départ" 
-             value={formData.Departs} 
-             icon={<Zap size={20} />} 
-             isAuto 
-           />
-          )}
-        </div>
-
-        {/* Grid for Selects */}
-        <div className="fields-grid">
-          {isFieldVisible("Unite_demanderesse") && (
-            <SelectField 
-              label="Unité demanderesse" 
-              value={formData.Unite_demanderesse} 
-              options={options.Unite_demanderesse}
-              placeholder="Sélectionner une unité"
-              onChange={(val) => onChange("Unite_demanderesse", val)}
-            />
-          )}
-          {isFieldVisible("Exploitations") && (
-            <SelectField 
-              label="Exploitations" 
-              value={formData.Exploitations} 
-              options={options.Exploitations}
-              placeholder="Choisir l'exploitation"
-              onChange={(val) => onChange("Exploitations", val)}
-            />
-          )}
-          {isFieldVisible("Type_de_travaux") && (
-            <SelectField 
-              label="Types de travaux" 
-              value={formData.Type_de_travaux} 
-              options={options.Type_de_travaux}
-              placeholder="Nature des travaux"
-              onChange={(val) => onChange("Type_de_travaux", val)}
-            />
-          )}
-          {isFieldVisible("Types_de_reseau") && (
-            <SelectField 
-              label="Types de réseau" 
-              value={formData.Types_de_reseau} 
-              options={options.Types_de_reseau}
-              placeholder="Sélectionner le réseau"
-              onChange={(val) => onChange("Types_de_reseau", val)}
-            />
-          )}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-/* REUSABLE COMPONENTS */
-function DisplayField({ label, value, icon, isAuto }) {
-  return (
-    <div className="field-group" style={{ marginBottom: '16px' }}>
-      <div className="field-row">
-        <span className="field-label">{label}</span>
-        {isAuto && (
-          <div className="badge-auto">
-            <ClipboardCheck size={12} />
-            <span>AUTO-REMPLI</span>
-          </div>
-        )}
-      </div>
-      <div className="display-box">
-        <div className="icon-wrap">{icon}</div>
-        <span className="value">{value || "Non spécifié"}</span>
-      </div>
-    </div>
-  );
-}
-
-function SelectField({ label, value, options, placeholder, onChange }) {
-  return (
-    <div className="select-group">
-      <label className="field-label">{label}</label>
-      <div className="select-wrapper">
-        <select value={value} onChange={(e) => onChange(e.target.value)}>
-          <option value="">{placeholder}</option>
-          {options && options.map(opt => (
-            <option key={opt} value={opt}>{opt}</option>
-          ))}
-        </select>
-        <ChevronDown className="chevron" size={18} />
-      </div>
     </div>
   );
 }

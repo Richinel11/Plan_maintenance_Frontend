@@ -8,3 +8,70 @@
     
 }
 
+.table-wrapper {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.actions {
+  display: flex;
+  gap: 10px;
+}
+
+.btn-view,
+.btn-edit,
+.btn-delete {
+  border: none;
+  padding: 8px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.btn-view {
+  background: #dbeafe;
+}
+
+.btn-edit {
+  background: #fef3c7;
+}
+
+.btn-delete {
+  background: #fee2e2;
+}
+
+.segment-filter {
+  margin: 20px 0;
+}
+
+.segment-filter select {
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: 1px solid #ddd;
+  min-width: 220px;
+}
+
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 20px;
+  margin-top: 20px;
+}
+
+.pagination button {
+  padding: 10px 16px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.pagination button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.pagination-count {
+  text-align: center;
+  margin-top: 12px;
+  color: #64748b;
+}

@@ -1,8 +1,9 @@
-// RecapPlanning.jsx
+// src/pages/op_saisie/Recap/recap.jsx
+
 import React from "react";
 import "./recap.css";
 
-const RecapPlanning = () => {
+const RecapPlanning = ({ formData }) => {
   return (
     <div className="recap-container">
 
@@ -10,72 +11,118 @@ const RecapPlanning = () => {
       <div className="top-header">
         <div>
           <h1>Récapitulatif de votre proposition de planning</h1>
+
           <p>
-            Veuillez vérifier l'exactitude des informations avant la soumission
-            finale au service d'approbation.
+            Veuillez vérifier l'exactitude des informations
+            avant la soumission finale.
           </p>
         </div>
 
-        <button className="download-btn">Télécharger</button>
+        <button className="download-btn">
+          Télécharger
+        </button>
       </div>
 
       {/* SECTION 1 */}
       <div className="card-section">
-        <h2>ⓘ Section 1 : Identification & Organisation</h2>
+
+        <h2>
+          ⓘ Section 1 : Identification & Organisation
+        </h2>
 
         <div className="info-grid">
 
           <div className="info-item">
             <label>Référence</label>
-            <span>MAINT-2023-089</span>
+            <span>
+              {formData.Reference || "-"}
+            </span>
           </div>
 
           <div className="info-item">
-            <label>Titre</label>
-            <span>Remplacement Isolateurs</span>
-            <small className="badge green">AUTO-REMPLI</small>
+            <label>Ouvrage</label>
+
+            <span>
+              {formData.Ouvrages || "-"}
+            </span>
+
+            <small className="badge green">
+              AUTO-REMPLI
+            </small>
           </div>
 
           <div className="info-item">
             <label>Poste concerné</label>
-            <span>Poste Delta</span>
-            <small className="badge green">AUTO-REMPLI</small>
+
+            <span>
+              {formData.Poste || "-"}
+            </span>
+
+            <small className="badge green">
+              AUTO-REMPLI
+            </small>
           </div>
 
           <div className="info-item">
             <label>Départ</label>
-            <span>Ligne 225kV Nord</span>
-            <small className="badge green">AUTO-REMPLI</small>
+
+            <span>
+              {formData.Departs || "-"}
+            </span>
+
+            <small className="badge green">
+              AUTO-REMPLI
+            </small>
           </div>
 
           <div className="info-item">
             <label>Unité demanderesse</label>
-            <span>Direction Techniques</span>
+
+            <span>
+              {formData.Unite_demanderesse || "-"}
+            </span>
           </div>
 
           <div className="info-item">
             <label>Exploitations</label>
-            <span>Exploitation Est</span>
+
+            <span>
+              {formData.Exploitations || "-"}
+            </span>
           </div>
 
           <div className="info-item">
             <label>Type de travaux</label>
-            <span className="blue-link">MAINTENANCE CURATIVE</span>
+
+            <span className="blue-link">
+              {formData.Type_de_travaux ||
+                formData.type_travaux_id ||
+                "-"}
+            </span>
           </div>
 
           <div className="info-item">
             <label>Type de réseau</label>
-            <span>Réseau Transport</span>
+
+            <span>
+              {formData.Types_de_reseau || "-"}
+            </span>
           </div>
 
           <div className="info-item">
             <label>Centrale thermique</label>
-            <span>Centrale Gaz Ouest</span>
+
+            <span>
+              {formData.Centrale_thermique || "-"}
+            </span>
           </div>
 
           <div className="info-item">
             <label>Quantité de fuel</label>
-            <span>1,250 Litres / jour</span>
+
+            <span>
+              {formData.Qte_de_fuel || "-"}
+            </span>
           </div>
 
         </div>
@@ -83,56 +130,82 @@ const RecapPlanning = () => {
 
       {/* SECTION 2 */}
       <div className="card-section">
-        <h2>📍 Section 2 : Localisation & Consistance</h2>
+
+        <h2>
+          📍 Section 2 : Localisation & Consistance
+        </h2>
 
         <div className="two-column">
 
           <div className="block">
-            <label>TRONÇONS / CONSIGNES</label>
+            <label>
+              TRONÇONS / CONSIGNES
+            </label>
+
             <p>
-              Section A12 à B45, Circuit principal uniquement.
-              Mise hors tension requise pour toute la durée des opérations.
+              {formData.Troncons || "-"}
             </p>
           </div>
 
           <div className="block">
-            <label>LOCALITÉS IMPACTÉES</label>
+
+            <label>
+              LOCALITÉS IMPACTÉES
+            </label>
 
             <div className="tags">
-              <span>Quartier Nord</span>
-              <span>Zone Industrielle Delta</span>
-              <span>Banlieue Est</span>
+
+              {formData.Localites_impactees
+                ? formData.Localites_impactees
+                    .split(",")
+                    .map((item, index) => (
+                      <span key={index}>
+                        {item.trim()}
+                      </span>
+                    ))
+                : <span>-</span>}
+
             </div>
           </div>
 
         </div>
 
         <div className="block full-block">
-          <label>CONSISTANCE DES TRAVAUX</label>
+
+          <label>
+            CONSISTANCE DES TRAVAUX
+          </label>
+
           <p>
-            Remplacement complet des isolateurs en verre par des modèles
-            composites sur 4 pylônes. Nettoyage des têtes de câbles et
-            vérification des ancrages au sol. Tests de continuité après
-            intervention.
+            {formData.Consistances_Des_Travaux || "-"}
           </p>
+
         </div>
 
         <div className="two-column">
 
           <div className="block">
-            <label>MOYENS MIS EN ŒUVRE</label>
+
+            <label>
+              MOYENS MIS EN ŒUVRE
+            </label>
+
             <p>
-              Camion nacelle 24m <br />
-              Équipe technique (4 agents) <br />
-              Lot outillage HTB
+              {formData.Moyens_mis_en_oeuvre || "-"}
             </p>
+
           </div>
 
           <div className="block">
-            <label>CHARGES DE CONSIGNATION</label>
+
+            <label>
+              CHARGES DE CONSIGNATION
+            </label>
+
             <p>
-              Responsable : M. Jean Dupont (Unité Exploitation)
+              {formData.charge_consignation_id || "-"}
             </p>
+
           </div>
 
         </div>
@@ -141,24 +214,51 @@ const RecapPlanning = () => {
 
       {/* SECTION 3 */}
       <div className="card-section">
-        <h2>📅 Section 3 : Programmation & Impact</h2>
+
+        <h2>
+          📅 Section 3 : Programmation & Impact
+        </h2>
 
         <div className="schedule-boxes">
 
           <div className="time-box">
-            <label>DATE & HEURE DÉBUT</label>
-            <strong>25 Oct. 2023 - 08:00</strong>
+
+            <label>
+              DATE & HEURE DÉBUT
+            </label>
+
+            <strong>
+              {formData.Debut_planifiee || "-"}
+            </strong>
+
           </div>
 
           <div className="time-box">
-            <label>DURÉE PRÉVUE</label>
-            <strong>06 Heures</strong>
+
+            <label>
+              DURÉE PRÉVUE
+            </label>
+
+            <strong>
+              {formData.Duree || "-"} Heures
+            </strong>
+
           </div>
 
           <div className="time-box">
-            <label>HEURE DE FIN</label>
-            <strong>14:00</strong>
-            <small className="badge green">CALCULÉ AUTO</small>
+
+            <label>
+              HEURE DE FIN
+            </label>
+
+            <strong>
+              {formData.Fin_planifiee || "-"}
+            </strong>
+
+            <small className="badge green">
+              CALCULÉ AUTO
+            </small>
+
           </div>
 
         </div>
@@ -166,41 +266,65 @@ const RecapPlanning = () => {
         <div className="info-grid second-grid">
 
           <div className="info-item">
-            <label>Date programmée</label>
-            <span>Mardi 25 Octobre 2023</span>
+
+            <label>
+              Date programmée
+            </label>
+
+            <span>
+              {formData.Date_programmee || "-"}
+            </span>
+
           </div>
 
           <div className="info-item">
-            <label>Nombre de jours avant travaux</label>
-            <span>12 Jours</span>
-            <small className="badge green">CALCULÉ AUTO</small>
+
+            <label>
+              Puissance sollicitée
+            </label>
+
+            <span>
+              {formData.Prevision_puissance_sollicite || "-"} MW
+            </span>
+
           </div>
 
           <div className="info-item">
-            <label>Clients coupés</label>
-            <span>1,450 Clients (MT/BT)</span>
+
+            <label>
+              Puissance interrompue
+            </label>
+
+            <span>
+              {formData.Prevision_puissance_interrompue || "-"} MW
+            </span>
+
           </div>
 
           <div className="info-item">
-            <label>Puissance interrompue</label>
-            <span>3.2 MW</span>
-          </div>
 
-          <div className="info-item">
-            <label>END (Énergie Non Distribuée)</label>
-            <span>19.2 MWh</span>
-            <small className="badge green">CALCULÉ AUTO</small>
+            <label>
+              END / ENF
+            </label>
+
+            <span>
+              {formData.Prevision_ENF || "-"}
+            </span>
+
           </div>
 
         </div>
 
         <div className="observation-box">
-          <label>OBSERVATIONS</label>
+
+          <label>
+            OBSERVATIONS
+          </label>
+
           <p>
-            Nécessite une coordination étroite avec le dispatching régional.
-            En cas d'intempéries, les travaux seront reportés au lendemain à la
-            même heure.
+            {formData.Obervations || "-"}
           </p>
+
         </div>
 
       </div>

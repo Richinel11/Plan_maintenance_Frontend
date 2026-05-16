@@ -1,7 +1,7 @@
-import { useMemo } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { MOCK_OPTIONS } from "../../config/mockData";
 
-const ServiceSwitcher = (overrideService = null) => {
+const useServiceRole = () => {
 
     const getCookie = (name) => {
         const value = `; ${document.cookie}`;
@@ -11,10 +11,13 @@ const ServiceSwitcher = (overrideService = null) => {
             : "";
         };
 
-    const userService = getCookie("service") || "transport"; // "transport" par défaut pour les tests
+    const [service, setService] = useState(getCookie("service") || "transport");
 
-    // Service réellement utilisé dans le formulaire
-    const service = overrideService || userService;
+    useEffect(() => {
+        document.cookie = `service=${service}; path=/`;
+    }, [service]);
+
+  
 
   const fields = useMemo(() => {
     switch (service.toLowerCase()) {
@@ -71,14 +74,14 @@ const ServiceSwitcher = (overrideService = null) => {
           "Poste",
           "Departs",
           "Unite_demanderesse",
-          "Types_de_travaux",
+          "Type_de_travaux",
           "Types_de_reseau",
 
           "Troncons",
           "Consistances_Des_Travaux",
           "Localites_impactees",
           "Moyens_mis_en_oeuvre",
-          "Charges_de_consignations",
+          "Charges_de_consignation",
           
           "Debut_planifiee",
           "Duree",
@@ -106,7 +109,7 @@ const ServiceSwitcher = (overrideService = null) => {
     }
   }, [service]);
 
-    return { service, fields, userService, referenceConfig, options: MOCK_OPTIONS };
+    return { service, setService, fields, referenceConfig, options: MOCK_OPTIONS };
 };
 
-export default ServiceSwitcher;
+export default useServiceRole;

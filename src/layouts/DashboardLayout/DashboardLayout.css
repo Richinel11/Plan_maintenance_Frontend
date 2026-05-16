@@ -13,6 +13,7 @@
     flex: 1;
     display: flex;
     flex-direction: column;
+    width: 70%;
 }
 
 /* La zone de contenu où s'injecteront tous les différents modules (Outlet) */

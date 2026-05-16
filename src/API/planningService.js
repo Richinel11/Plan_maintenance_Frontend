@@ -1,45 +1,46 @@
-import api from "./axiosInstance";
+// src/services/planningService.js
 
-/* GET ALL (dashboard) */
-export const getPlannings = () =>
-  api.get("/plannings/");
+import axios from "axios";
 
-/* GET ONE */
-export const getPlanningById = (id) =>
-  api.get(`/plannings/${id}/`);
+const API = axios.create({
+  baseURL: "http://localhost:8000",
+  withCredentials: false,
+});
 
-/* CREATE */
-export const createPlanning = (data) =>
-  api.post("/plannings/", data);
+export const getPlannings = async (
+  page = 1
+) => {
 
-/* UPDATE */
-export const updatePlanning = (id, data) =>
-  api.put(`/plannings/${id}/`, data);
+  const response = await API.get(
+    `/plannings/?page=${page}`
+  );
 
-/* DELETE */
-export const deletePlanning = (id) =>
-  api.delete(`/plannings/${id}/`);
+  return response.data;
+};
 
-/* WORKFLOW */
-export const submitPlanning = (id) =>
-  api.post(`/plannings/${id}/soumettre/`);
+export const getPlanningsBySegment =
+  async (
+    segment,
+    page = 1
+  ) => {
 
-export const validatePlanning = (id) =>
-  api.post(`/plannings/${id}/valider/`);
+    const response = await API.get(
+      `/plannings/par_segment/?segment=${segment}&page=${page}`
+    );
 
-export const startPlanning = (id) =>
-  api.post(`/plannings/${id}/demarrer/`);
+    return response.data;
+};
 
-export const finishPlanning = (id) =>
-  api.post(`/plannings/${id}/terminer/`);
+export const createPlanning = (data) => {
+  return API.post("/plannings/", data);
+};
 
-export const postponePlanning = (id) =>
-  api.post(`/plannings/${id}/reporter/`);
+export const createPlanningBatch =
+  async (payloads) => {
 
-/* CONFLICTS */
-export const getConflicts = () =>
-  api.get("/plannings/conflits/");
-
-/* FILTER */
-export const getBySegment = (segment) =>
-  api.get(`/plannings/par_segment/?segment=${segment}`);
+    return Promise.all(
+      payloads.map((payload) =>
+        createPlanning(payload)
+      )
+    );
+};

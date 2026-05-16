@@ -7,3 +7,16 @@ export default defineConfig({
     react(),
   ],
 })
+
+
+// export default {
+//   server: {
+//     proxy: {
+//       "/plannings": {
+//         target: "http://localhost:8000",
+//         changeOrigin: true,
+//         secure: false,
+//       },
+//     },
+//   },
+// };

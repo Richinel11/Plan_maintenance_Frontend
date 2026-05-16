@@ -55,17 +55,17 @@ const Etape = ({ formData, onChange, fields, options }) => {
                 </div>
             )}
             
-            {isFieldVisible("Charges_de_consignations") && (
-                <div className="part-child">
-                    <h2>Charges de consignations</h2>
-                    <input 
-                        type="text" 
-                        placeholder="Nom du chargé de consignation..." 
-                        value={formData.Charges_de_consignations || ""}
-                        onChange={(e) => onChange("Charges_de_consignations", e.target.value)}
-                    />
-                </div>
-            )}
+                {isFieldVisible("Charges_de_consignation") && (
+                <SelectField
+                    label="Charge de consignation"
+                    value={formData.charge_consignation_id}
+                    options={options.Charges_de_consignation}
+                    placeholder="Sélectionner un charge"
+                    onChange={(val) =>
+                    onChange("charge_consignation_id", val)
+                    }
+                />
+                )}
         </div>
     </>
     );
