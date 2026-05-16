@@ -27,24 +27,6 @@ export default function PlanningForm({
 
   const isFieldVisible = (field) =>
     fields.includes(field);
-const PlanningForm = ({ fields,  step, formData, onChange }) => {
-  const filteredFields = fields.filter((f) => f.step === step);
-
-  return (
-    <div>
-      {filteredFields.map((field) => (
-        <div key={field.name}>
-          <label>{field.label}</label>
-
-          <input
-            value={formData[field.name] || ""}
-            onChange={(e) => onChange(field.name, e.target.value)}
-          />
-        </div>
-      ))}
-    </div>
-  );
-};
 
   return (
     <div className="step-one-container">

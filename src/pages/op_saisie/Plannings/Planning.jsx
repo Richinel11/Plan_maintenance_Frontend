@@ -9,34 +9,51 @@ import PlanningForm from "../Creer_Travail/components/PlanningForm";
 import SearchBar from "../components/Filter_search/search";
 import Filter from "./filterCards/filter";
 import useServiceRole from "../../../pages/ComponentsRole/ServiceRole";
-import { createPlanningBatch } from "../../../API/planningService";
+import { createPlanning, createTravail } from "../../../API/planningService";
 import { mapPlanningPayload } from "../../../utils/planningMapper";
 import Etape2 from "../Creer_Travail/Etape2/etape2";
-import Etape3 from "../Creer_Travail/components/Etape3";
-import Recap from "../Creer_Travail/components/Recap";
+import Etape3 from "../Creer_Travail/etape3/etape3";
+import Recap from "../Creer_Travail/Recap/recap";
+import {
+  getReferences,
+  getTypesActivite,
+  getOuvrages,
+  getPostes,
+  getDeparts,
+  getTroncons,
+} from "../../../services/referencetielService";
+
 const ExcelDisplay = () => {
   const navigate = useNavigate();
-  const step = addStep;
-  const filteredFields = fields.filter(f => f.step === step);
+  const { service, fields, options, referenceConfig } = useServiceRole();
+  const [addStep, setAddStep] = useState(0);
 
   const [fileName, setFileName] = useState("");
   const [excelData, setExcelData] = useState([]);
-  // const [planningName, setPlanningName] = useState(""); // ✅ NEW FIELD
   const [showImport, setShowImport] = useState(true);
   const [fade, setFade] = useState("fade-in");
-
   const [searchTerm, setSearchTerm] = useState("");
-
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedRowIndex, setSelectedRowIndex] =
-    useState(null);
-const { fields, options } = useServiceRole();
+  const [selectedRowIndex, setSelectedRowIndex] = useState(null);
   const [editData, setEditData] = useState([]);
-
   const [loading, setLoading] = useState(false);
-
   const [isPlanningModalOpen, setIsPlanningModalOpen] = useState(false);
-const [addStep, setAddStep] = useState(0);
+
+  /* REFERENTIEL DATA */
+  const [references, setReferences] = useState([]);
+  const [typesActivite, setTypesActivite] = useState([]);
+  const [ouvrages, setOuvrages] = useState([]);
+  const [postes, setPostes] = useState([]);
+  const [departs, setDeparts] = useState([]);
+  const [troncons, setTroncons] = useState([]);
+
+  /* SUBMISSION PROGRESS */
+  const [isSubmissionModalOpen, setIsSubmissionModalOpen] = useState(false);
+  const [submissionProgress, setSubmissionProgress] = useState(0);
+  const [submissionStatus, setSubmissionStatus] = useState("");
+
+  const step = addStep;
+  const filteredFields = fields ? fields.filter(f => f.step === step) : [];
 const [planningFormData, setPlanningFormData] = useState({
   Reference: "",
   reference_id: null,
@@ -58,6 +75,49 @@ const [planningFormData, setPlanningFormData] = useState({
   service: "",
 });
 
+  /* LOAD REFERENTIEL */
+  React.useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [ovs, pst, dpt, trc, refs, tps] = await Promise.all([
+          getOuvrages(), getPostes(), getDeparts(), getTroncons(),
+          getReferences(), getTypesActivite()
+        ]);
+        setOuvrages(ovs || []); setPostes(pst || []); setDeparts(dpt || []); setTroncons(trc || []);
+        setReferences(refs || []); setTypesActivite(tps || []);
+      } catch (err) { console.error("Referentiel load error", err); }
+    };
+    fetchData();
+  }, []);
+
+  /* AUTO GENERATE REFERENCE */
+  React.useEffect(() => {
+    if (!referenceConfig?.length) return;
+    const fieldValues = {
+      ouvrage_id: ouvrages.find(o => o.id === Number(planningFormData.ouvrage_id))?.nom || "",
+      poste_id: postes.find(p => p.id === Number(planningFormData.poste_id))?.nom || "",
+      troncon_id: troncons.find(t => t.id === Number(planningFormData.troncon_id))?.nom || "",
+      depart_id: departs.find(d => d.id === Number(planningFormData.depart_id))?.nom || "",
+      Segments: service.toUpperCase(),
+      Ouvrages: ouvrages.find(o => o.id === Number(planningFormData.ouvrage_id))?.nom || "",
+      Poste: postes.find(p => p.id === Number(planningFormData.poste_id))?.nom || "",
+      Departs: departs.find(d => d.id === Number(planningFormData.depart_id))?.nom || "",
+    };
+
+    const values = referenceConfig.map(f => fieldValues[f]).filter(Boolean);
+    const newRef = values.join("-");
+
+    if (newRef !== planningFormData.Reference) {
+      setPlanningFormData(prev => ({
+        ...prev,
+        Reference: newRef,
+        Ouvrages: fieldValues.Ouvrages,
+        Poste: fieldValues.Poste,
+        Departs: fieldValues.Departs,
+        Segments: fieldValues.Segments,
+      }));
+    }
+  }, [referenceConfig, planningFormData.ouvrage_id, planningFormData.poste_id, planningFormData.troncon_id, planningFormData.depart_id, service, ouvrages, postes, departs, troncons]);
 
 const handleOpenAddModal = () => {
   setPlanningFormData({
@@ -67,7 +127,7 @@ const handleOpenAddModal = () => {
     poste_id: null,
     depart_id: null,
     troncon_id: null,
-    Segments: "",
+    Segments: service.toUpperCase(),
     Ouvrages: "",
     Poste: "",
     Departs: "",
@@ -75,11 +135,18 @@ const handleOpenAddModal = () => {
     Exploitations: "",
     Type_de_travaux: "",
     Types_de_reseau: "",
-    service: "",
+    service: service,
   });
 
   setAddStep(0); // ✅ IMPORTANT
   setIsPlanningModalOpen(true);
+};
+
+const handlePlanningChange = (field, value) => {
+  setPlanningFormData((prev) => ({
+    ...prev,
+    [field]: value,
+  }));
 };
 
 const addSteps = [
@@ -89,10 +156,21 @@ const addSteps = [
       <PlanningForm
         formData={planningFormData}
         onChange={handlePlanningChange}
-        service={planningFormData.service}
+        service={service}
         fields={fields}
         options={options}
-        step={addStep}
+        references={references}
+        onReferenceChange={(val) => {
+          const selectedRef = references.find(r => r.id === Number(val));
+          if (selectedRef) {
+            handlePlanningChange("reference_id", val);
+            handlePlanningChange("ouvrage_id", selectedRef.ouvrage_id);
+            handlePlanningChange("poste_id", selectedRef.poste_id);
+            handlePlanningChange("depart_id", selectedRef.depart_id);
+            handlePlanningChange("troncon_id", selectedRef.troncon_id);
+          }
+        }}
+        typesActivite={typesActivite}
       />
     ),
   },
@@ -126,36 +204,13 @@ const addSteps = [
     content: <Recap formData={planningFormData} />,
   },
 ];
+
 const nextStep = () => {
   setAddStep((prev) => Math.min(prev + 1, addSteps.length - 1));
 };
 
 const prevStep = () => {
   setAddStep((prev) => Math.max(prev - 1, 0));
-};
-
-{addStep < addSteps.length - 1 ? (
-  <button onClick={nextStep}>Suivant</button>
-) : (
-  <button onClick={handleAddPlanningRow}>Ajouter</button>
-)};
-
-const handlePlanningChange = (field, value) => {
-  setPlanningFormData((prev) => ({
-    ...prev,
-    [field]: value,
-  }));
-};
-
-const handleAddPlanningRow = () => {
-  const rowObject = { ...planningFormData };
-
-  const row = headers.map((header) => {
-    return rowObject[header] ?? "";
-  });
-
-  setExcelData((prev) => [...prev, row]);
-  setIsPlanningModalOpen(false);
 };
   /* ---------------- IMPORT ---------------- */
 
@@ -185,16 +240,17 @@ const handleAddPlanningRow = () => {
   /* ---------------- HEADERS / ROWS ---------------- */
 
   const headers = useMemo(() => {
-    return excelData.length > 0
-      ? excelData[0]
-      : [];
-  }, [excelData]);
+    if (excelData.length > 0) {
+      return excelData[0];
+    }
+    return fields || [];
+  }, [excelData, fields]);
 
   const rows = useMemo(() => {
     return excelData.length > 1
       ? excelData.slice(1)
-      : [];
-  }, [excelData]);
+      : (excelData.length === 1 && !showImport ? excelData : []);
+  }, [excelData, showImport]);
 
   /* ---------------- SEARCH ---------------- */
 
@@ -204,7 +260,7 @@ const handleAddPlanningRow = () => {
     }
 
     return rows.filter((row) =>
-      row.some((cell) =>
+      Array.isArray(row) && row.some((cell) =>
         String(cell)
           .toLowerCase()
           .includes(searchTerm.toLowerCase())
@@ -216,9 +272,7 @@ const handleAddPlanningRow = () => {
 
   const handleEditRow = (rowIndex) => {
     setSelectedRowIndex(rowIndex);
-
     setEditData([...rows[rowIndex]]);
-
     setIsModalOpen(true);
   };
 
@@ -227,20 +281,16 @@ const handleAddPlanningRow = () => {
     value
   ) => {
     const updated = [...editData];
-
     updated[cellIndex] = value;
-
     setEditData(updated);
   };
 
   const handleSaveEdit = () => {
     const updatedExcelData = [...excelData];
-
-    updatedExcelData[selectedRowIndex + 1] =
-      editData;
-
+    // Si on a des headers en index 0
+    const targetIndex = excelData.length > rows.length ? selectedRowIndex + 1 : selectedRowIndex;
+    updatedExcelData[targetIndex] = editData;
     setExcelData(updatedExcelData);
-
     setIsModalOpen(false);
   };
 
@@ -250,22 +300,33 @@ const handleAddPlanningRow = () => {
     const confirmed = window.confirm(
       "Voulez-vous supprimer cette ligne ?"
     );
+    if (!confirmed) return;
 
-    if (!confirmed) {
-      return;
-    }
-
+    const targetIndex = excelData.length > rows.length ? rowIndex + 1 : rowIndex;
     const updated = excelData.filter(
-      (_, index) => index !== rowIndex + 1
+      (_, index) => index !== targetIndex
     );
-
     setExcelData(updated);
   };
 
   /* ---------------- ADD ROW ---------------- */
 
-
-
+const handleAddPlanningRow = () => {
+  const row = headers.map((header) => {
+    return planningFormData[header] ?? "";
+  });
+  
+  // On attache l'objet complet comme "métadonnée" à la fin de la ligne
+  const rowWithMetadata = [...row];
+  rowWithMetadata.__metadata = { ...planningFormData };
+  
+  if (excelData.length === 0 && !showImport) {
+     setExcelData([headers, rowWithMetadata]);
+  } else {
+     setExcelData((prev) => [...prev, rowWithMetadata]);
+  }
+  setIsPlanningModalOpen(false);
+};
 
   /* ---------------- CONVERT EXCEL ROW ---------------- */
 
@@ -274,69 +335,80 @@ const handleAddPlanningRow = () => {
     rowArray
   ) => {
     const obj = {};
-
     headersArray.forEach((header, index) => {
       obj[header] = rowArray[index];
     });
-
+    
+    // Si la ligne a des métadonnées (saisie manuelle), on les fusionne
+    if (rowArray.__metadata) {
+      return { ...rowArray.__metadata, ...obj };
+    }
+    
     return obj;
   };
-
-
-
 
   /* ---------------- SUBMIT ---------------- */
 
   const handleSubmit = async () => {
     if (!rows.length) {
       alert("Aucune donnée");
-
       return;
     }
+
+    setIsSubmissionModalOpen(true);
+    setSubmissionProgress(0);
+    setSubmissionStatus("Création du planning...");
 
     try {
       setLoading(true);
 
-      const payloads = rows.map((row) => {
-        const rowObject =
-          convertRowToObject(headers, row);
-
-        return mapPlanningPayload(
-          rowObject
-        );
+      // 1. Créer le planning
+      const planningResponse = await createPlanning({
+        nom: fileName || "Nouveau Planning",
+        code: `PLAN-${Date.now()}`
       });
+      
+      const planningId = planningResponse.data.id;
+      setSubmissionProgress(10);
+      setSubmissionStatus("Planning créé. Envoi des travaux...");
 
-      console.log(
-        "BATCH PAYLOAD =>",
-        payloads
-      );
+      // 2. Envoyer les travaux un à un
+      for (let i = 0; i < rows.length; i++) {
+        const row = rows[i];
+        // S'assurer qu'on ne prend pas l'entête par erreur
+        if (i === 0 && excelData.length > 0 && row === excelData[0]) continue;
 
-      await createPlanningBatch({
-        file_name: fileName,
-        // planning_name: planningName, // ✅ IMPORTANT ADDITION
-        data: payloads,
-      });
+        const rowObject = {
+          ...convertRowToObject(headers, row),
+          service: service
+        };
 
-      alert(
-        "Planning importé avec succès"
-      );
+        // Fusionner avec les IDs si on est en mode saisie manuelle (optionnel mais recommandé)
+        // Note: rowObject contient déjà les valeurs indexées par headers
+        
+        const payload = mapPlanningPayload(rowObject);
+        payload.planning_id = planningId;
 
-      navigate(
-        "/dashboard/Tableaux_De_Bord"
-      );
+        console.log(`ENVOI TRAVAIL ${i + 1} =>`, payload);
+        setSubmissionStatus(`Envoi du travail ${i + 1} / ${rows.length}...`);
+        await createTravail(payload);
+
+        const progress = 10 + Math.round(((i + 1) / rows.length) * 90);
+        setSubmissionProgress(progress);
+      }
+
+      setSubmissionStatus("Terminé !");
+      setTimeout(() => {
+        setIsSubmissionModalOpen(false);
+        alert("Planning et travaux importés avec succès");
+        navigate("/dashboard/Tableaux_De_Bord");
+      }, 1000);
 
     } catch (error) {
       console.error(error);
-
-      console.log(
-        "BACKEND ERROR =>",
-        error.response?.data
-      );
-
-      alert(
-        "Erreur lors de l'importation"
-      );
-
+      setSubmissionStatus("Erreur lors de l'importation");
+      alert("Erreur lors de l'importation : " + (error.response?.data?.error || "Erreur inconnue"));
+      setIsSubmissionModalOpen(false);
     } finally {
       setLoading(false);
     }
@@ -446,11 +518,10 @@ const handleAddPlanningRow = () => {
 
               <thead>
                 <tr>
-
-                
-
+                  {headers.map((h, i) => (
+                    <th key={i}>{h.replace(/_/g, " ")}</th>
+                  ))}
                   <th>Actions</th>
-
                 </tr>
               </thead>
 
@@ -460,7 +531,7 @@ const handleAddPlanningRow = () => {
                   (row, rowIndex) => (
                     <tr key={rowIndex}>
 
-                      {row.map(
+                      {Array.isArray(row) && row.map(
                         (
                           cell,
                           cellIndex
@@ -676,6 +747,33 @@ const handleAddPlanningRow = () => {
     </div>
   </div>
 )}
+
+      {/* SUBMISSION PROGRESS MODAL */}
+      {isSubmissionModalOpen && (
+        <div className="modal-overlay" style={{ zIndex: 10000 }}>
+          <div className="modal-grid" style={{ width: "400px", textAlign: "center", padding: "30px" }}>
+            <h2>Soumission en cours</h2>
+            <p style={{ marginBottom: "20px", fontSize: "14px", color: "#666" }}>{submissionStatus}</p>
+            
+            <div style={{ 
+              width: "100%", 
+              height: "20px", 
+              background: "#eee", 
+              borderRadius: "10px", 
+              overflow: "hidden",
+              marginBottom: "10px"
+            }}>
+              <div style={{ 
+                width: `${submissionProgress}%`, 
+                height: "100%", 
+                background: "#4caf50", 
+                transition: "width 0.3s ease" 
+              }} />
+            </div>
+            <span style={{ fontWeight: "bold" }}>{submissionProgress}%</span>
+          </div>
+        </div>
+      )}
 
     </div>
   );

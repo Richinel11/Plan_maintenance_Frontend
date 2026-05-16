@@ -1,20 +1,12 @@
-// src/services/planningService.js
-
-import axios from "axios";
-
-const API = axios.create({
-  baseURL: "http://localhost:8000",
-  withCredentials: false,
-});
+// src/API/planningService.js
+import api from "./axiosInstance";
 
 export const getPlannings = async (
   page = 1
 ) => {
-
-  const response = await API.get(
+  const response = await api.get(
     `/plannings/?page=${page}`
   );
-
   return response.data;
 };
 
@@ -23,21 +15,22 @@ export const getPlanningsBySegment =
     segment,
     page = 1
   ) => {
-
-    const response = await API.get(
+    const response = await api.get(
       `/plannings/par_segment/?segment=${segment}&page=${page}`
     );
-
     return response.data;
 };
 
 export const createPlanning = (data) => {
-  return API.post("/plannings/", data);
+  return api.post("/plannings/", data);
+};
+
+export const createTravail = (data) => {
+  return api.post("/travaux/", data);
 };
 
 export const createPlanningBatch =
   async (payloads) => {
-
     return Promise.all(
       payloads.map((payload) =>
         createPlanning(payload)
