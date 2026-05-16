@@ -1,0 +1,479 @@
+/* ─── WorkflowDetail – Page Principale et Modales ─── */
+
+.wfd-page {
+  padding: 30px 36px;
+  font-family: 'Poppins', 'Inter', sans-serif;
+  background: #F5F7FA;
+  min-height: 100%;
+  color: #1C1C1B;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+/* Page loader & error cards */
+.wfd-page-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  gap: 16px;
+  color: #939597;
+  font-family: 'Poppins', sans-serif;
+}
+
+.wfd-spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid rgba(27, 117, 187, 0.1);
+  border-top-color: #1B75BB;
+  border-radius: 50%;
+  animation: wfd-spin 1s linear infinite;
+}
+
+@keyframes wfd-spin {
+  to { transform: rotate(360deg); }
+}
+
+.wfd-page-error {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  padding: 24px;
+}
+
+.wfd-error-card {
+  background: #FFFFFF;
+  padding: 32px;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+  text-align: center;
+  max-width: 440px;
+  width: 100%;
+}
+
+.wfd-error-card .error-icon {
+  font-size: 48px;
+  color: #E53935;
+  margin-bottom: 16px;
+}
+
+.wfd-error-card h3 {
+  margin: 0 0 10px;
+  color: #1C1C1B;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.wfd-error-card p {
+  margin: 0 0 24px;
+  color: #939597;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+/* ─── BREADCRUMB / BACK ─── */
+.wfd-breadcrumb {
+  display: flex;
+  align-items: center;
+  margin-bottom: -10px;
+}
+
+.wfd-back-btn {
+  background: none;
+  border: none;
+  color: #1B75BB;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 0;
+  transition: transform 0.2s, color 0.2s;
+}
+
+.wfd-back-btn:hover {
+  color: #14689E;
+  transform: translateX(-4px);
+}
+
+/* ─── HEADER ─── */
+.wfd-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  background: #FFFFFF;
+  padding: 24px 30px;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+.wfd-header-left {
+  flex: 1;
+  min-width: 280px;
+}
+
+.wfd-title-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+}
+
+.wfd-title {
+  font-size: 24px;
+  font-weight: 700;
+  color: #1B75BB;
+  margin: 0;
+  line-height: 1.2;
+}
+
+.wfd-meta-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+
+.wfd-code-pill {
+  background: #EEF5FF;
+  color: #1B75BB;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 10px;
+  border-radius: 4px;
+  letter-spacing: 0.5px;
+}
+
+.wfd-code-tag {
+  background: #f1f5f9;
+  color: #1B75BB;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 4px;
+  border: 1px solid #e2e8f0;
+}
+
+.wfd-date-text {
+  font-size: 12px;
+  color: #939597;
+}
+
+.wfd-description {
+  margin: 0;
+  color: #5A5C5E;
+  font-size: 13px;
+  line-height: 1.6;
+  max-width: 750px;
+}
+
+/* KPI Cards in Header */
+.wfd-kpis {
+  display: flex;
+  gap: 14px;
+  flex-shrink: 0;
+}
+
+.wfd-kpi-card {
+  background: #F8FBFF;
+  border-radius: 10px;
+  padding: 14px 20px;
+  min-width: 130px;
+  box-shadow: inset 0 0 0 1px rgba(27,117,187,0.05);
+  border-left: 4px solid transparent;
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+
+.wfd-kpi-card:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+}
+
+.wfd-kpi-value {
+  font-size: 26px;
+  font-weight: 700;
+  line-height: 1.1;
+  margin-bottom: 4px;
+}
+
+.wfd-kpi-label {
+  font-size: 11px;
+  color: #939597;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+/* ─── SECTIONS ─── */
+.wfd-section {
+  background: #FFFFFF;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  padding: 24px 30px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.wfd-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid #F0F2F5;
+  padding-bottom: 14px;
+}
+
+.wfd-section-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.wfd-section-title h2 {
+  font-size: 16px;
+  font-weight: 700;
+  color: #1C1C1B;
+  margin: 0;
+}
+
+.wfd-section-title .material-symbols-outlined {
+  font-size: 20px;
+}
+
+.wfd-section-title .icon-orange { color: #F59E0B; }
+.wfd-section-title .icon-green { color: #8DC640; }
+.wfd-section-title .icon-blue { color: #1B75BB; }
+
+.wfd-badge-count {
+  background: rgba(147, 149, 151, 0.12);
+  color: #5A5C5E;
+  padding: 2px 8px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+/* ─── BUTTONS ─── */
+.wfd-btn-primary {
+  background: #1B75BB;
+  color: #FFFFFF;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 13px;
+  font-family: inherit;
+  transition: background 0.2s, transform 0.1s;
+}
+
+.wfd-btn-primary:hover  { background: #14689E; }
+.wfd-btn-primary:active { transform: scale(0.98); }
+
+.wfd-btn-secondary {
+  background: #FFFFFF;
+  color: #1B75BB;
+  padding: 10px 20px;
+  border: 1.5px solid #1B75BB;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 13px;
+  font-family: inherit;
+  transition: background 0.2s, color 0.2s;
+}
+
+.wfd-btn-secondary:hover { background: #EEF5FF; }
+
+.wfd-btn-sm {
+  padding: 7px 14px;
+  font-size: 12px;
+  border-radius: 6px;
+}
+
+/* ─── TABLES ─── */
+.wfd-table-wrapper {
+  background: #FFFFFF;
+  border: 1px solid #E4E6EA;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.wfd-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.wfd-table thead {
+  background: #F8FBFF;
+}
+
+.wfd-table th {
+  padding: 12px 16px;
+  text-align: left;
+  font-size: 11px;
+  font-weight: 700;
+  color: #939597;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-bottom: 1px solid #E4E6EA;
+}
+
+.wfd-table td {
+  padding: 12px 16px;
+  border-bottom: 1px solid #F0F2F5;
+  color: #1C1C1B;
+  vertical-align: middle;
+}
+
+.wfd-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.wfd-table tbody tr:hover {
+  background: #FAFCFF;
+}
+
+.wfd-name-cell {
+  font-weight: 600;
+  color: #1B75BB;
+}
+
+.wfd-desc-text {
+  margin: 0;
+  color: #5A5C5E;
+  max-width: 320px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 12.5px;
+}
+
+.wfd-center {
+  text-align: center;
+  font-weight: 600;
+}
+
+.wfd-no-data {
+  text-align: center;
+  color: #939597;
+  padding: 40px !important;
+  font-size: 13px;
+}
+
+/* Pills & Tags */
+.wfd-step-pill {
+  padding: 5px 12px;
+  border-radius: 6px;
+  font-size: 11.5px;
+  font-weight: 600;
+  display: inline-block;
+  letter-spacing: 0.2px;
+  background: #f1f5f9;
+  color: #475569;
+  border: 1px solid #e2e8f0;
+}
+
+.wfd-num-badge {
+  background: #f1f5f9;
+  color: #475569;
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  font-weight: 800;
+  font-size: 13px;
+  border: 1px solid #e2e8f0;
+}
+
+.wfd-badge-terminal {
+  background: #fef2f2;
+  color: #dc2626;
+  font-size: 10px;
+  font-weight: 800;
+  padding: 2px 8px;
+  border-radius: 6px;
+  border: 1px solid #fecaca;
+}
+
+.wfd-badge-normal {
+  background: #f0fdf4;
+  color: #16a34a;
+  font-size: 10px;
+  font-weight: 800;
+  padding: 2px 8px;
+  border-radius: 6px;
+  border: 1px solid #bbf7d0;
+}
+
+.wfd-check-sober { color: #16a34a; font-size: 20px !important; }
+.wfd-cross-sober { color: #94a3b8; font-size: 20px !important; }
+
+.wfd-font-medium {
+  font-weight: 700;
+  color: #1B75BB;
+}
+
+/* Actions Style RoleManagement */
+.wfd-td-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.wfd-action-btn {
+  width: 34px;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  background: white;
+  color: #64748b;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.wfd-action-btn .material-symbols-outlined {
+  font-size: 18px;
+}
+
+.wfd-action-btn:hover {
+  background: #f1f5f9;
+  color: #1B75BB;
+  border-color: #1B75BB;
+}
+
+.wfd-action-btn.delete:hover {
+  background: #fee2e2;
+  color: #ef4444;
+  border-color: #ef4444;
+}
+
+/* Simulation Demonstration Banner */
+.wfd-alert-simulation-banner {
+  background: #EFF6FF;
+  border: 1px solid #BFDBFE;
+  color: #1E40AF;
+  padding: 12px 20px;
+  border-radius: 8px;
+  font-size: 13px;
+  line-height: 1.5;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: inherit;
+  box-shadow: 0 1px 3px rgba(30, 64, 175, 0.05);
+}

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { patchUser } from '../../../../services/userService';
+import { deactivateUser, activateUser } from '../../../../services/userService';
 import './Modals.css';
 
 const ConfirmModal = ({ isOpen, onClose, user, onSuccess }) => {
@@ -12,11 +12,12 @@ const ConfirmModal = ({ isOpen, onClose, user, onSuccess }) => {
         setLoading(true);
         setError(null);
         try {
-            // Si actif → désactiver (is_active: false), si inactif → activer (is_active: true)
             if (isActive) {
-                await patchUser(user.id, { is_active: false });
+                // Désactiver → statut passe à "Inactif" via DELETE /delete-user/<uuid>/
+                await deactivateUser(user.id);
             } else {
-                await patchUser(user.id, { is_active: true });
+                // Réactiver → statut passe à "Actif" via POST /restore-user/<uuid>/
+                await activateUser(user.id);
             }
             onSuccess();
             onClose();
@@ -43,15 +44,21 @@ const ConfirmModal = ({ isOpen, onClose, user, onSuccess }) => {
                     {error && <div className="modal-error">{error}</div>}
                     <div className="confirm-icon-wrapper">
                         <span className="material-symbols-outlined confirm-icon">
-                            {isActive ? 'warning' : 'check_circle'}
+                            {isActive ? 'person_off' : 'how_to_reg'}
                         </span>
                     </div>
                     <p className="confirm-text">
-                        Voulez-vous vraiment <strong>{isActive ? 'désactiver' : 'activer'}</strong> l'utilisateur <br/>
-                        <span className="highlight-user">{user.nom} {user.prenom} ({user.username})</span> ?
+                        Voulez-vous vraiment <strong>{isActive ? 'désactiver' : 'réactiver'}</strong> l'utilisateur <br/>
+                        <span className="highlight-user">{user.last_name} {user.first_name} ({user.username})</span> ?
                     </p>
-                    {isActive && (
-                        <p className="confirm-warning">Cet utilisateur ne pourra plus se connecter à l'application.</p>
+                    {isActive ? (
+                        <p className="confirm-warning">
+                            Son statut passera à <strong>Inactif</strong>. Il ne pourra plus se connecter à l'application.
+                        </p>
+                    ) : (
+                        <p className="confirm-success-info">
+                            Son statut passera à <strong>Actif</strong>. Il pourra à nouveau se connecter.
+                        </p>
                     )}
                 </div>
 
@@ -65,7 +72,7 @@ const ConfirmModal = ({ isOpen, onClose, user, onSuccess }) => {
                         onClick={handleConfirm}
                         disabled={loading}
                     >
-                        {loading ? "Patientez..." : "Oui, confirmer"}
+                        {loading ? "Patientez..." : (isActive ? "Désactiver" : "Réactiver")}
                     </button>
                 </div>
             </div>

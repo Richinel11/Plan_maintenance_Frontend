@@ -32,7 +32,7 @@ const RolesTable = ({ roles, permissions, onEdit, onDelete }) => {
                 <tbody>
                     {roles && roles.length > 0 ? (
                         roles.map((role) => (
-                            <tr key={role.id}>
+                            <tr key={role.id || role.code_role}>
                                 <td className="font-medium text-dark">{role.nom}</td>
                                 <td className="text-gray-code">{role.code_role || '-'}</td>
                                 <td className="text-gray" style={{maxWidth: '250px'}}>{role.description || '-'}</td>

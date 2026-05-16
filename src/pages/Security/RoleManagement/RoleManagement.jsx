@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { getRoles, getPermissions, deleteRole, getRolePermissions } from '../../../services/userService';
+import { getRoles, getPermissions, deleteRole, patchRole, getRolePermissions } from '../../../services/userService';
 import RolesTable from './components/RolesTable';
 import RoleModal from './components/RoleModal';
 import './RoleManagement.css';
@@ -84,13 +84,14 @@ const RoleManagement = () => {
     };
 
     const handleDeleteRoleClick = async (role) => {
-        if (window.confirm(`Êtes-vous sûr de vouloir supprimer le rôle "${role.nom}" ?`)) {
+        if (window.confirm(`Êtes-vous sûr de vouloir supprimer définitivement le rôle "${role.nom}" ? Cette action est irréversible.`)) {
             try {
-                await deleteRole(role.id);
+                // Appel à la route de suppression avec le code_role (clé métier)
+                await deleteRole(role.code_role);
                 refreshData(); 
             } catch (error) {
-                console.error("Erreur lors de la suppression:", error);
-                alert(error.response?.data?.detail || error.message || "Impossible de supprimer ce rôle.");
+                console.error(`Erreur lors de la tentative de suppression:`, error);
+                alert(error.response?.data?.detail || error.message || `Impossible de supprimer ce rôle. Il est peut-être déjà utilisé.`);
             }
         }
     };

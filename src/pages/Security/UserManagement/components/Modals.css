@@ -583,6 +583,20 @@ textarea.form-input {
     font-size: 0.875rem;
     color: #ef4444;
     margin: 0;
+    background: #fef2f2;
+    padding: 10px 14px;
+    border-radius: 8px;
+    border-left: 3px solid #ef4444;
+}
+
+.confirm-success-info {
+    font-size: 0.875rem;
+    color: #166534;
+    margin: 0;
+    background: #f0fdf4;
+    padding: 10px 14px;
+    border-radius: 8px;
+    border-left: 3px solid #8DC640;
 }
 
 .danger-btn {

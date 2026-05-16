@@ -1,44 +1,36 @@
-/* ─── WorkflowHistory – Page Principale ─── */
+/* ─── WorkflowHistory – Design harmonisé avec le module Sécurité ─── */
 
 .wfh-page {
-  padding: 30px 36px;
+  padding: 30px 40px;
   font-family: 'Poppins', 'Inter', sans-serif;
-  background: #F5F7FA;
-  min-height: 100%;
-  color: #1C1C1B;
+  background: #F8FAFC;
+  min-height: 100vh;
+  color: #1e293b;
 }
 
 /* ─── HEADER ─── */
 .wfh-header {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
-  margin-bottom: 28px;
-  flex-wrap: wrap;
-  gap: 16px;
+  margin-bottom: 30px;
 }
 
 .wfh-title {
-  font-size: 24px;
-  font-weight: 700;
-  color: #1B75BB;
-  margin: 0 0 6px;
+  font-size: 26px;
+  font-weight: 800;
+  color: #1e293b;
+  margin: 0;
+  letter-spacing: -0.5px;
 }
 
 .wfh-subtitle {
-  font-size: 13px;
-  color: #939597;
-  margin: 0;
-  max-width: 500px;
-  line-height: 1.5;
+  font-size: 14px;
+  color: #64748b;
+  margin: 5px 0 0 0;
 }
 
-.wfh-header-actions {
-  display: flex;
-  gap: 12px;
-  flex-shrink: 0;
-}
-
+/* Boutons style RoleManagement */
 .wfh-btn-primary {
   background: #1B75BB;
   color: #FFFFFF;
@@ -46,194 +38,369 @@
   border: none;
   border-radius: 8px;
   cursor: pointer;
-  font-weight: 600;
-  font-size: 13px;
-  font-family: inherit;
-  transition: background 0.2s, transform 0.1s;
+  font-weight: 700;
+  font-size: 13.5px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s;
+  box-shadow: 0 4px 12px rgba(27, 117, 187, 0.2);
 }
-.wfh-btn-primary:hover  { background: #14689E; }
-.wfh-btn-primary:active { transform: scale(0.98); }
+
+.wfh-btn-primary:hover {
+  background: #14689E;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 15px rgba(27, 117, 187, 0.3);
+}
 
 .wfh-btn-secondary {
   background: #FFFFFF;
   color: #1B75BB;
-  padding: 10px 20px;
+  padding: 9px 18px;
   border: 1.5px solid #1B75BB;
   border-radius: 8px;
   cursor: pointer;
-  font-weight: 600;
+  font-weight: 700;
   font-size: 13px;
-  font-family: inherit;
-  transition: background 0.2s, color 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s;
 }
-.wfh-btn-secondary:hover { background: #EEF5FF; }
+
+.wfh-btn-secondary:hover {
+  background: rgba(27, 117, 187, 0.05);
+}
+
+.wfh-btn-primary .material-symbols-outlined,
+.wfh-btn-secondary .material-symbols-outlined {
+  font-size: 20px;
+}
 
 /* ─── KPI CARDS ─── */
 .wfh-kpis {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 16px;
-  margin-bottom: 28px;
+  gap: 20px;
+  margin-bottom: 30px;
 }
 
 .wfh-kpi-card {
   background: #FFFFFF;
   border-radius: 12px;
-  padding: 20px 24px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-  border-left: 4px solid transparent;
-  transition: transform 0.15s, box-shadow 0.15s;
+  padding: 24px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  border-left: 4px solid #1B75BB;
+  transition: transform 0.2s;
 }
-.wfh-kpi-card:hover { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(0,0,0,0.10); }
+
+.wfh-kpi-card:hover {
+  transform: translateY(-3px);
+}
 
 .wfh-kpi-value {
   font-size: 32px;
-  font-weight: 700;
+  font-weight: 800;
+  color: #1e293b;
   line-height: 1;
-  margin-bottom: 6px;
+  margin-bottom: 8px;
 }
 
 .wfh-kpi-label {
-  font-size: 12px;
-  color: #939597;
-  font-weight: 500;
+  font-size: 11px;
+  color: #64748b;
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.4px;
+  letter-spacing: 0.8px;
 }
 
 /* ─── TABS ─── */
 .wfh-tabs {
   display: flex;
-  gap: 4px;
-  border-bottom: 2px solid #E4E6EA;
-  margin-bottom: 20px;
+  gap: 30px;
+  border-bottom: 1px solid #e2e8f0;
+  margin-bottom: 25px;
 }
 
 .wfh-tab {
-  padding: 10px 24px;
+  padding: 12px 5px;
   border: none;
   background: none;
-  font-size: 13px;
-  font-weight: 600;
-  font-family: inherit;
-  color: #939597;
+  font-size: 14px;
+  font-weight: 700;
+  color: #64748b;
   cursor: pointer;
-  border-bottom: 2px solid transparent;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border-bottom: 3px solid transparent;
   margin-bottom: -2px;
-  transition: color 0.2s, border-color 0.2s;
+  transition: all 0.2s;
 }
 
-.wfh-tab:hover { color: #1B75BB; }
+.wfh-tab .material-symbols-outlined {
+  font-size: 20px;
+}
+
+.wfh-tab:hover {
+  color: #1B75BB;
+}
 
 .wfh-tab.active {
   color: #1B75BB;
   border-bottom-color: #1B75BB;
 }
 
-/* ─── SEARCH ─── */
-.wfh-search-bar { margin-bottom: 14px; }
+/* ─── FILTERS BAR ─── */
+.wfh-filters-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  gap: 15px;
+}
+
+.wfh-search-wrapper {
+  position: relative;
+  flex: 1;
+  max-width: 450px;
+}
+
+.wfh-search-wrapper .material-symbols-outlined {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #94a3b8;
+  font-size: 20px;
+}
 
 .wfh-search {
   width: 100%;
-  max-width: 360px;
-  padding: 9px 14px;
-  border: 1px solid #CDD0D5;
-  border-radius: 8px;
-  font-size: 13px;
-  font-family: inherit;
-  outline: none;
-  background: #FAFBFC;
-  transition: border-color 0.2s, box-shadow 0.2s;
+  padding: 10px 15px 10px 40px;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 10px;
+  font-size: 14px;
+  background: white;
+  transition: all 0.2s;
 }
 
 .wfh-search:focus {
   border-color: #1B75BB;
-  box-shadow: 0 0 0 3px rgba(27,117,187,0.12);
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(27, 117, 187, 0.1);
+}
+
+.wfh-filters-actions {
+  display: flex;
+  gap: 10px;
 }
 
 /* ─── TABLE ─── */
 .wfh-table-wrapper {
   background: #FFFFFF;
   border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e2e8f0;
   overflow: hidden;
 }
 
 .wfh-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 13px;
-}
-
-.wfh-table thead {
-  background: #F0F4FA;
+  font-size: 14px;
 }
 
 .wfh-table th {
-  padding: 12px 16px;
+  background: #f8fafc;
+  padding: 14px 20px;
   text-align: left;
   font-size: 11px;
   font-weight: 700;
-  color: #939597;
+  color: #64748b;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
-  border-bottom: 1px solid #E4E6EA;
+  letter-spacing: 0.8px;
+  border-bottom: 1.5px solid #e2e8f0;
 }
 
 .wfh-table td {
-  padding: 13px 16px;
-  border-bottom: 1px solid #F0F2F5;
-  color: #1C1C1B;
-  vertical-align: middle;
+  padding: 16px 20px;
+  border-bottom: 1px solid #f1f5f9;
+  color: #334155;
 }
 
-.wfh-table tbody tr:last-child td { border-bottom: none; }
-
-.wfh-table tbody tr:hover { background: #F8FBFF; }
+.wfh-table tr:hover {
+  background: #f1f5f9;
+}
 
 .wfh-name-cell {
-  font-weight: 600;
+  font-weight: 700;
   color: #1B75BB;
+  cursor: pointer;
 }
 
-.wfh-center { text-align: center; font-weight: 600; }
+.wfh-name-cell:hover {
+  text-decoration: underline;
+}
 
-.wfh-app-tag {
-  background: rgba(27,117,187,0.10);
-  color: #1B75BB;
-  padding: 2px 10px;
-  border-radius: 20px;
-  font-size: 11px;
+.wfh-text-gray-code {
+  color: #64748b;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.wfh-text-gray {
+  color: #64748b;
+}
+
+.wfh-count-pill {
+  background: #e0f2fe;
+  color: #0369a1;
+  padding: 4px 12px;
+  border-radius: 99px;
+  font-size: 12px;
   font-weight: 700;
+}
+
+.wfh-center { text-align: center; }
+
+/* ─── ACTIONS ─── */
+.wfh-td-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.wfh-action-btn {
+  width: 34px;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  background: white;
+  color: #64748b;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.wfh-action-btn .material-symbols-outlined {
+  font-size: 18px;
+}
+
+.wfh-action-btn:hover {
+  background: #f1f5f9;
+  color: #1B75BB;
+  border-color: #1B75BB;
+}
+
+.wfh-action-btn.delete:hover {
+  background: #fee2e2;
+  color: #ef4444;
+  border-color: #ef4444;
+}
+
+/* ─── TAGS ─── */
+.wfh-app-tag {
+  background: #f1f5f9;
+  color: #475569;
+  padding: 4px 12px;
+  border-radius: 99px;
+  font-size: 12px;
+  font-weight: 700;
+  border: 1px solid #e2e8f0;
+}
+
+.wfh-role-tag {
+  background: #f5f3ff;
+  color: #7c3aed;
+  padding: 4px 12px;
+  border-radius: 99px;
+  font-size: 12px;
+  font-weight: 700;
+  border: 1px solid #ddd6fe;
+}
+
+.wfh-badge-terminal {
+  background: #fef2f2;
+  color: #dc2626;
+  font-size: 10px;
+  font-weight: 800;
+  padding: 2px 8px;
+  border-radius: 6px;
+  border: 1px solid #fecaca;
+}
+
+.wfh-badge-normal {
+  background: #f0fdf4;
+  color: #16a34a;
+  font-size: 10px;
+  font-weight: 800;
+  padding: 2px 8px;
+  border-radius: 6px;
+  border: 1px solid #bbf7d0;
+}
+
+.wfh-step-pill {
+  padding: 5px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  background: #f1f5f9;
+  color: #475569;
+  border: 1px solid #e2e8f0;
+  display: inline-block;
+}
+
+.wfh-check-sober { color: #16a34a; font-size: 20px !important; }
+.wfh-cross-sober { color: #94a3b8; font-size: 20px !important; }
+
+.wfh-num-badge {
+  background: #f8fafc;
+  color: #475569;
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  font-weight: 800;
+  font-size: 13px;
+  border: 1px solid #e2e8f0;
+}
+
+.wfh-font-medium {
+  font-weight: 600;
 }
 
 .wfh-no-data {
   text-align: center;
-  color: #939597;
-  padding: 40px !important;
-  font-size: 13px;
+  padding: 60px !important;
+  color: #94a3b8;
+  font-style: italic;
 }
 
-/* ─── ROW ACTIONS ─── */
-.wfh-row-actions {
+/* ─── LOADING ─── */
+.wfh-loading {
   display: flex;
-  gap: 6px;
+  flex-direction: column;
   align-items: center;
+  justify-content: center;
+  padding: 80px;
 }
 
-.wfh-action-btn {
-  background: none;
-  border: 1px solid #E4E6EA;
-  border-radius: 6px;
-  padding: 4px 8px;
-  cursor: pointer;
-  font-size: 14px;
-  transition: background 0.2s, border-color 0.2s;
+.wfh-spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid #f1f5f9;
+  border-top-color: #1B75BB;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 15px;
 }
 
-.wfh-action-btn:hover { background: #F0F2F5; border-color: #CDD0D5; }
-.wfh-action-btn.delete:hover { background: rgba(229,57,53,0.08); border-color: #E53935; }
-
-@media (max-width: 1200px) {
-  .wfh-kpis { grid-template-columns: repeat(2, 1fr); }
+@keyframes spin {
+  to { transform: rotate(360deg); }
 }

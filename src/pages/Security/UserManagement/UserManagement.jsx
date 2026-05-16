@@ -38,7 +38,7 @@ const UserManagement = () => {
             ]);
             setUsers(Array.isArray(usersData) ? usersData : []);
             setRoles(Array.isArray(rolesData) ? rolesData : []);
-            setEntites(Array.isArray(entitesData) ? entitesData : []);
+            setEntites(Array.isArray(entitesData) ? entitesData : (entitesData?.results || []));
         } catch (error) {
             console.error("Erreur lors du chargement des données", error);
             setUsers([]);
@@ -79,8 +79,12 @@ const UserManagement = () => {
         // 5. Filtrage par Entité
         let matchEntite = true;
         if (searchEntite !== '') {
-            const userEntiteId = user.entite_metier?.id || user.entite_metier;
-            if (String(userEntiteId) !== searchEntite) matchEntite = false;
+            if (Array.isArray(user.entite_metier)) {
+                matchEntite = user.entite_metier.some(e => String(e.id || e) === searchEntite);
+            } else {
+                const userEntiteId = user.entite_metier?.id || user.entite_metier;
+                if (String(userEntiteId) !== searchEntite) matchEntite = false;
+            }
         }
         
         return matchName && matchEmail && matchRole && matchStatus && matchEntite;
@@ -163,7 +167,7 @@ const UserManagement = () => {
                         <option value="inactive">Inactif</option>
                     </select>
                 </div>
-                <div className="filter-dropdown-group">
+                <div className="filter-dropdown-group" style={{maxWidth: '300px'}}>
                     <span className="material-symbols-outlined filter-icon">domain</span>
                     <select 
                         className="filter-select"
@@ -172,7 +176,7 @@ const UserManagement = () => {
                     >
                         <option value="">Toutes les entités</option>
                         {entites.map(e => (
-                            <option key={e.id} value={e.id}>{e.name || e.nom}</option>
+                            <option key={e.id} value={e.id}>{e.name} ({e.type})</option>
                         ))}
                     </select>
                 </div>

@@ -1,5 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { getCurrentUser } from '../../../../services/Authservice';
+import { createWorkflow, getWorkflows } from '../../../../services/workflowService';
 import { 
     DndContext, 
     useDraggable, 
@@ -120,7 +122,9 @@ const CreateGlobalWorkflow = () => {
     const navigate = useNavigate();
 
     const [workflowName, setWorkflowName] = useState('');
+    const [workflowCode, setWorkflowCode] = useState('');
     const [workflowDesc, setWorkflowDesc] = useState('');
+    const [isActive, setIsActive] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
     const [isOverDropZone, setIsOverDropZone] = useState(false);
 
@@ -130,12 +134,26 @@ const CreateGlobalWorkflow = () => {
         })
     );
 
-    const availableProcesses = [
-        { id: 1, name: 'Diagnostic Initial', desc: 'Analyse technique des pannes', icon: '📊' },
-        { id: 2, name: 'Commande Pièces', desc: 'Gestion logistique des composants', icon: '🛒' },
-        { id: 3, name: 'Intervention Terrain', desc: "Main-d'œuvre et réparation", icon: '👷' },
-        { id: 4, name: 'Validation Qualité', desc: 'Contrôle final et signature', icon: '✅' },
-    ];
+    const [availableProcesses, setAvailableProcesses] = useState([]);
+
+    useEffect(() => {
+        const fetchProcesses = async () => {
+            try {
+                const data = await getWorkflows();
+                // On transforme les workflows en format "process" pour le drag & drop
+                const processes = Array.isArray(data) ? data.map(wf => ({
+                    id: wf.id,
+                    name: wf.name || wf.nom,
+                    desc: wf.description || "Pas de description",
+                    icon: "account_tree" // Icône par défaut
+                })) : [];
+                setAvailableProcesses(processes);
+            } catch (error) {
+                console.error("Erreur lors du chargement des processus :", error);
+            }
+        };
+        fetchProcesses();
+    }, []);
 
     const [sequence, setSequence] = useState([]);
 
@@ -179,8 +197,26 @@ const CreateGlobalWorkflow = () => {
         setSequence(sequence.filter(step => step.instanceId !== instanceId));
     };
 
-    const handleSave = () => {
-        console.log("Workflow prêt :", { workflowName, workflowDesc, sequence });
+    const handleSave = async () => {
+        const currentUser = getCurrentUser();
+        const payload = {
+            nom: workflowName,
+            code: workflowCode,
+            description: workflowDesc,
+            is_active: isActive,
+            created_by: currentUser ? currentUser.id : null,
+            sequence: sequence
+        };
+        console.log("Données envoyées à l'API :", payload);
+
+        try {
+            await createWorkflow(payload);
+            alert("Workflow créé avec succès (Mock)");
+            navigate('/dashboard/workflow/historique');
+        } catch (error) {
+            console.error("Erreur lors de la création du workflow :", error);
+            alert("Erreur lors de la création : la route backend n'est probablement pas prête.");
+        }
     };
 
     return (
@@ -197,29 +233,54 @@ const CreateGlobalWorkflow = () => {
                 </header>
 
                 <main className="wf-content">
-                    <section className="wf-card info-card">
+                    <section className="wf-card">
                         <div className="card-header">
                             <span className="material-symbols-outlined icon-blue">info</span>
-                            <h3>Informations Générales</h3>
+                            <div className="card-titles">
+                                <h4 style={{ margin: 0 }}>Informations Générales</h4>
+                                <p style={{ margin: '4px 0 0 0', fontSize: '13px', color: '#939597' }}>Nommez et décrivez l'usage de ce workflow.</p>
+                            </div>
                         </div>
+
                         <div className="wf-form">
                             <div className="input-group">
-                                <label>NOM DU WORKFLOW</label>
+                                <label>NOM DU WORKFLOW <span className="required-star">*</span></label>
                                 <input 
                                     type="text" 
-                                    placeholder="ex: Maintenance Préventive Transformateur"
-                                    value={workflowName}
+                                    placeholder="Ex: Maintenance Préventive"
+                                    value={workflowName} 
                                     onChange={(e) => setWorkflowName(e.target.value)}
                                 />
                             </div>
                             <div className="input-group">
-                                <label>DESCRIPTION</label>
+                                <label>CODE DU WORKFLOW <span className="required-star">*</span></label>
                                 <input 
                                     type="text" 
-                                    placeholder="Décrivez l'objectif de ce workflow..."
-                                    value={workflowDesc}
-                                    onChange={(e) => setWorkflowDesc(e.target.value)}
+                                    placeholder="Ex: WF_MAINT_PREV"
+                                    value={workflowCode} 
+                                    onChange={(e) => setWorkflowCode(e.target.value.toUpperCase().replace(/\s/g, '_'))}
                                 />
+                            </div>
+                            <div className="input-group" style={{ gridColumn: 'span 2' }}>
+                                <label>DESCRIPTION DÉTAILLÉE</label>
+                                <textarea 
+                                    className="wf-textarea"
+                                    rows="3" 
+                                    placeholder="Décrivez les objectifs..."
+                                    value={workflowDesc} 
+                                    onChange={(e) => setWorkflowDesc(e.target.value)}
+                                ></textarea>
+                            </div>
+                            <div className="input-group" style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: '10px', gridColumn: 'span 2' }}>
+                                <input 
+                                    type="checkbox" 
+                                    checked={isActive} 
+                                    onChange={(e) => setIsActive(e.target.checked)} 
+                                    style={{ width: '18px', height: '18px', cursor: 'pointer' }}
+                                />
+                                <label style={{ marginBottom: 0, cursor: 'pointer', fontSize: '14px', color: '#1C1C1B' }}>
+                                    <strong>Activer ce workflow dès la création</strong>
+                                </label>
                             </div>
                         </div>
                     </section>

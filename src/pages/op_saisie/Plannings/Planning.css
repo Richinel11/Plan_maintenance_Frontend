@@ -82,7 +82,12 @@ main,
 
 .excel-table {
   min-width: 1800px;
-  width: max-content;
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.08);
 }
 
 /* HEADER */
@@ -270,6 +275,13 @@ button {
 
 .fade-out {
   animation: fadeOut 0.3s ease-out;
+  justify-content: space-between;
+  margin-top: 20px;
+}
+
+/* Animations */
+.fade-in {
+  animation: fadeIn 0.3s ease-in-out;
 }
 
 @keyframes fadeIn {

@@ -39,14 +39,14 @@
   border-radius: 9999px;
   font-weight: 600;
   font-size: 16px;
-  /* display: flex; */
+  display: flex;
   align-items: center;
+  justify-content: center;
   gap: 10px;
   cursor: pointer;
   box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
   transition: all 0.2s;
   height: 50px;
-  /* margin-top: 29px;  */
 }
 
 .btn-create:hover {
@@ -64,6 +64,7 @@
   font-size: 16px;
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 10px;
   cursor: pointer;
   transition: all 0.2s;
@@ -137,15 +138,19 @@
 .search-container {
   position: relative;
   width: 380px;
+  display: flex;
+  align-items: center;
 }
 
 .search-input {
   width: 100%;
-  padding: 14px 20px 14px 52px;
+  height: 48px;
+  padding: 0 20px 0 52px;
   border: none;
   background-color: #f3f4f6;
   border-radius: 9999px;
-  font-size: 16px;
+  font-size: 15px;
+  box-sizing: border-box;
 }
 
 .search-input:focus {
@@ -156,9 +161,12 @@
 .search-icon {
   position: absolute;
   left: 20px;
-  top: 50%;
-  transform: translateY(-50%);
+  top: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
   color: #9ca3af;
+  pointer-events: none;
 }
 
 .table {
@@ -184,6 +192,56 @@
 
 .table tr:hover {
   background-color: #f8fafc;
+}
+
+.planning-name-cell {
+  cursor: pointer;
+}
+
+.planning-name {
+  color: #0f172a;
+  font-weight: 600;
+  transition: color 0.2s;
+}
+
+.planning-name-cell:hover .planning-name {
+  color: #2563eb;
+}
+
+.td-actions {
+  display: flex;
+  gap: 12px;
+}
+
+.action-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s;
+  background: transparent;
+}
+
+.action-btn .material-symbols-outlined {
+  font-size: 18px;
+}
+
+.edit-btn {
+  color: #0284c7;
+}
+.edit-btn:hover {
+  background-color: #e0f2fe;
+}
+
+.delete-btn {
+  color: #e11d48;
+}
+.delete-btn:hover {
+  background-color: #ffe4e6;
 }
 
 .ref {
