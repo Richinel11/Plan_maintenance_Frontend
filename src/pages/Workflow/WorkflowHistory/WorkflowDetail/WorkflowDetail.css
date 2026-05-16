@@ -152,6 +152,16 @@
   letter-spacing: 0.5px;
 }
 
+.wfd-code-tag {
+  background: #f1f5f9;
+  color: #1B75BB;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 4px;
+  border: 1px solid #e2e8f0;
+}
+
 .wfd-date-text {
   font-size: 12px;
   color: #939597;
@@ -240,6 +250,7 @@
 
 .wfd-section-title .icon-orange { color: #F59E0B; }
 .wfd-section-title .icon-green { color: #8DC640; }
+.wfd-section-title .icon-blue { color: #1B75BB; }
 
 .wfd-badge-count {
   background: rgba(147, 149, 151, 0.12);

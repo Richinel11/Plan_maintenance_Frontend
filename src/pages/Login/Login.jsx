@@ -76,8 +76,7 @@ const Login = () => {
                     }
                 }
             } else if (err.request) {
-                const apiUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api/';
-                setError(`Impossible de joindre le serveur. Vérifiez que le backend tourne rellement sur ${apiUrl}.`);
+                setError(err.message);
             } else {
                 setError('Erreur inattendue : ' + err.message);
             }

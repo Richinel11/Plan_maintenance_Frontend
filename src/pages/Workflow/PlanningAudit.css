@@ -1,0 +1,126 @@
+.planning-audit-container {
+    padding: 30px;
+    background-color: #f4f7f9;
+    min-height: 100vh;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.audit-header {
+    margin-bottom: 30px;
+}
+
+.audit-header h1 {
+    color: #2c3e50;
+    margin-bottom: 5px;
+    font-size: 24px;
+}
+
+.audit-header p {
+    color: #7f8c8d;
+    font-size: 14px;
+}
+
+.audit-controls {
+    margin-bottom: 20px;
+}
+
+.audit-search {
+    width: 100%;
+    max-width: 400px;
+    padding: 12px 15px;
+    border: 1px solid #dcdfe6;
+    border-radius: 8px;
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+.audit-search:focus {
+    border-color: #409eff;
+}
+
+.audit-table-container {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    overflow: hidden;
+}
+
+.audit-table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+}
+
+.audit-table th {
+    background-color: #f8f9fb;
+    color: #909399;
+    font-weight: 600;
+    padding: 15px 20px;
+    font-size: 13px;
+    text-transform: uppercase;
+    border-bottom: 1px solid #ebeef5;
+}
+
+.audit-table td {
+    padding: 15px 20px;
+    border-bottom: 1px solid #ebeef5;
+    color: #606266;
+    font-size: 14px;
+}
+
+.audit-table tr:last-child td {
+    border-bottom: none;
+}
+
+.audit-table tr:hover {
+    background-color: #fcfdfe;
+}
+
+.code-cell {
+    font-weight: 700;
+    color: #409eff;
+}
+
+.status-badge {
+    background-color: #ecf5ff;
+    color: #409eff;
+    padding: 5px 12px;
+    border-radius: 15px;
+    font-size: 12px;
+    font-weight: 600;
+    border: 1px solid #d9ecff;
+}
+
+.btn-view-path {
+    background-color: #409eff;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 600;
+    transition: background-color 0.2s;
+}
+
+.btn-view-path:hover {
+    background-color: #66b1ff;
+}
+
+.no-data {
+    text-align: center;
+    padding: 40px !important;
+    color: #909399;
+    font-style: italic;
+}
+
+.audit-loading {
+    display: flex;
+    justify-content: center;
+    alignItems: center;
+    height: 100vh;
+    font-size: 18px;
+    color: #409eff;
+    font-weight: bold;
+}

@@ -43,6 +43,7 @@ export const menuConfig = {
         { path: '/dashboard/roles', name: 'Rôles', icon: 'security' },
         { path: '/dashboard/permissions', name: 'Permissions', icon: 'shield_locked' },
         { path: '/dashboard/workflow/historique', name: 'Workflows', icon: 'account_tree' },
+        { path: '/dashboard/planning-audit', name: 'Audit Plannings', icon: 'fact_check' },
     ]
 };
 

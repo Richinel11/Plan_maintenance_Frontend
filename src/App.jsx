@@ -11,6 +11,8 @@ import PermissionManagement from './pages/Security/PermissionManagement/Permissi
 import WorkflowHistory from './pages/Workflow/WorkflowHistory/WorkflowHistory';
 import CreateGlobalWorkflow from './pages/Workflow/WorkflowHistory/createworkflo/createworkflo';
 import WorkflowDetail from './pages/Workflow/WorkflowHistory/WorkflowDetail/WorkflowDetail';
+import PlanningAudit from './pages/Workflow/PlanningAudit';
+import PlanningWorkflowDetail from './pages/Workflow/PlanningWorkflowDetail';
 
 import OP_home from './pages/op_saisie/Accuiel/Dashboard';
 import Planning from './pages/op_saisie/Plannings/Planning';
@@ -37,6 +39,8 @@ function App() {
                         <Route path="workflow/historique" element={<WorkflowHistory />} />
                         <Route path="workflow/:id" element={<WorkflowDetail />} />
                         <Route path="workflow/Workflow/creer" element={<CreateGlobalWorkflow />} />
+                        <Route path="planning-audit" element={<PlanningAudit />} />
+                        <Route path="planning-audit/:planningId" element={<PlanningWorkflowDetail />} />
                         <Route path="OP-home" element={<OP_home />} />
                         <Route path="Planning" element={<Planning />} />
                         <Route path="Tableaux_De_Bord" element={<Tableaux_De_Bord />} />
