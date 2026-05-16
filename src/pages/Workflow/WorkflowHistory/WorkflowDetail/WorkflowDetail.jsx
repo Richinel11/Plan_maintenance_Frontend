@@ -8,7 +8,7 @@ import {
   deleteStep,
   createTransition,
   deleteTransition,
-  getPlanningsByWorkflow,
+  getAllPlannings,
   associatePlanningToWorkflow,
   dissociatePlanningFromWorkflow
 } from '../../../../services/workflowService';
@@ -42,17 +42,23 @@ const WorkflowDetail = () => {
     setLoading(true);
     setError(null);
     try {
-      const [wf, sts, trs, pls, rls] = await Promise.all([
+      const [wf, sts, trs, allPls, rls] = await Promise.all([
         getWorkflowById(id),
         getStepsByWorkflow(id).catch(() => []),
         getTransitions(id).catch(() => []),
-        getPlanningsByWorkflow(id).catch(() => []),
+        getAllPlannings().catch(() => []),
         getRoles().catch(() => []),
       ]);
       setWorkflow(wf);
       setSteps(Array.isArray(sts) ? sts : []);
       setTransitions(Array.isArray(trs) ? trs : []);
-      setPlannings(Array.isArray(pls) ? pls : []);
+      
+      // Filtrer les plannings associés à ce workflow (par UUID)
+      const associatedPlannings = Array.isArray(allPls) 
+        ? allPls.filter(p => p.workflow?.id === id || p.workflow === id)
+        : [];
+      setPlannings(associatedPlannings);
+      
       setRoles(Array.isArray(rls) ? rls : []);
     } catch (err) {
       setError("Impossible de charger les détails du workflow.");

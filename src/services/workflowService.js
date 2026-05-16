@@ -113,13 +113,14 @@ export const getPlanningsByWorkflow = async (workflowId) => {
 
 /** Associer un planning à un workflow */
 export const associatePlanningToWorkflow = async (workflowId, planningId) => {
-    const { data } = await api.post(`workflows/${workflowId}/add-planning`, { planning_id: planningId });
+    const { data } = await api.post(`/plannings/${planningId}/assigner-workflow/`, { workflow_id: workflowId });
     return data;
 };
 
 /** Dissocier un planning d'un workflow */
 export const dissociatePlanningFromWorkflow = async (workflowId, planningId) => {
-    const { data } = await api.post(`workflows/${workflowId}/remove-planning`, { planning_id: planningId });
+    // Pour dissocier, on peut simplement mettre le workflow à null via un PATCH sur le planning
+    const { data } = await api.patch(`/plannings/${planningId}/`, { workflow_id: null, current_step_id: null });
     return data;
 };
 
