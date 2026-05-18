@@ -128,27 +128,27 @@
     font-weight: 500;
 }
 
-.input-group {
+.login-card .input-group {
     margin-bottom: 20px;
     display: flex;
     flex-direction: column;
     gap: 8px;
 }
 
-.input-label {
+.login-card .input-label {
     font-size: 0.75rem;
     font-weight: 700;
     color: #475569;
 }
 
-.input-wrapper {
+.login-card .input-wrapper {
     position: relative;
     display: flex;
     align-items: center;
     width: 100%;
 }
 
-.input-icon {
+.login-card .input-icon {
     position: absolute;
     left: 14px;
     top: 50%;
@@ -163,9 +163,9 @@
     z-index: 2;
 }
 
-.input-field {
+.login-card .input-field {
     width: 100%;
-    padding: 12px 14px 12px 44px; /* Réduction du padding pour un look plus compact */
+    padding: 12px 14px 12px 52px !important; /* Force l'alignement pour contrer les styles globaux */
     border: 1px solid #cbd5e1;
     border-radius: 8px;
     font-size: 0.95rem;
@@ -174,7 +174,7 @@
     background: #ffffff;
 }
 
-.input-icon-right {
+.login-card .input-icon-right {
     position: absolute;
     right: 14px;
     top: 50%;

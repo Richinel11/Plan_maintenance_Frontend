@@ -91,28 +91,6 @@ export default function PlanningForm({
 
       <div className="form-card">
 
-        {/* NETWORK REFERENCE */}
-
-        <div
-          style={{
-            marginBottom: "20px",
-          }}
-        >
-
-          <SelectField
-            label="Référence réseau"
-            value={
-              formData.reference_id || ""
-            }
-            options={references}
-            placeholder="Sélectionner une référence"
-            onChange={
-              onReferenceChange
-            }
-          />
-
-        </div>
-
         {/* GRID SELECTS */}
 
         <div className="fields-grid">
@@ -120,62 +98,84 @@ export default function PlanningForm({
           {isFieldVisible(
             "Segments"
           ) && (
-            <DisplayField
+            <SelectField
               label="Segment"
               value={
-                formData.Segments
+                formData.segment_id || ""
               }
-              icon={
-                <FileText size={20} />
+              options={
+                options.Segments
               }
-              isAuto
+              placeholder="Sélectionner un segment"
+              onChange={(val) =>
+                onChange(
+                  "segment_id",
+                  val
+                )
+              }
             />
           )}
 
           {isFieldVisible(
             "Ouvrages"
           ) && (
-            <DisplayField
+            <SelectField
               label="Ouvrage"
               value={
-                formData.Ouvrages
+                formData.ouvrage_id || ""
               }
-              icon={
-                <MapPin size={20} />
+              options={
+                options.Ouvrages
               }
-              isAuto
+              placeholder="Sélectionner un ouvrage"
+              onChange={(val) =>
+                onChange(
+                  "ouvrage_id",
+                  val
+                )
+              }
             />
           )}
 
           {isFieldVisible(
             "Poste"
           ) && (
-            <DisplayField
+            <SelectField
               label="Poste"
               value={
-                formData.Poste
+                formData.poste_id || ""
               }
-              icon={
-                <Building2
-                  size={20}
-                />
+              options={
+                options.Poste
               }
-              isAuto
+              placeholder="Sélectionner un poste"
+              onChange={(val) =>
+                onChange(
+                  "poste_id",
+                  val
+                )
+              }
             />
           )}
 
           {isFieldVisible(
             "Departs"
           ) && (
-            <DisplayField
+            <SelectField
               label="Départ"
               value={
-                formData.Departs
+                formData.depart_id || ""
               }
-              icon={
-                <Zap size={20} />
+              options={
+                options.Departs
               }
-              isAuto
+              placeholder="Sélectionner un départ"
+              onChange={(val) =>
+                onChange(
+                  "depart_id",
+                  val
+                )
+              }
             />
           )}
 
@@ -265,50 +265,38 @@ export default function PlanningForm({
 
         </div>
 
-        {/* TEXTAREA */}
-
-        {isFieldVisible(
-          "Consistances_Des_Travaux"
-        ) &&
-          service !==
-            "distribution" && (
-          <div
-            style={{
-              marginTop: "20px",
-            }}
-          >
-
-            <label className="field-label">
-              Consistances des travaux
-            </label>
-
+        {/* MERGED ETAPE 2 FIELDS FOR TRANSPORT/PRODUCTION */}
+        {isFieldVisible("Consistances_Des_Travaux") && (
+          <div style={{ marginTop: "20px" }}>
+            <label className="field-label">Consistances des travaux</label>
             <textarea
               placeholder="Décrivez en détail la nature technique de l'intervention..."
-              value={
-                formData.Consistances_Des_Travaux ||
-                ""
-              }
-              onChange={(e) =>
-                onChange(
-                  "Consistances_Des_Travaux",
-                  e.target.value
-                )
-              }
+              value={formData.Consistances_Des_Travaux || ""}
+              onChange={(e) => onChange("Consistances_Des_Travaux", e.target.value)}
               className="form-textarea"
               style={{
                 width: "100%",
                 padding: "12px",
                 marginTop: "8px",
-                border:
-                  "1px solid #e2e8f0",
+                border: "1px solid #e2e8f0",
                 borderRadius: "6px",
                 minHeight: "100px",
                 resize: "vertical",
-                fontFamily:
-                  "inherit",
+                fontFamily: "inherit",
               }}
             />
+          </div>
+        )}
 
+        {isFieldVisible("Charges_de_consignation") && (
+          <div style={{ marginTop: "20px" }}>
+            <SelectField
+              label="Charge de consignation"
+              value={formData.charge_consignation_id || ""}
+              options={options.Charges_de_consignation}
+              placeholder="Sélectionner un charge"
+              onChange={(val) => onChange("charge_consignation_id", val)}
+            />
           </div>
         )}
 

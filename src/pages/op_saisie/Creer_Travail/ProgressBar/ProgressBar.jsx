@@ -1,9 +1,5 @@
 import { useState, useEffect } from "react";
-
-import {
-  ArrowRight,
-} from "lucide-react";
-
+import { ArrowRight } from "lucide-react";
 import "./Progress.css";
 
 import Etape2 from "../Etape2/etape2";
@@ -20,406 +16,248 @@ import {
   getPostes,
   getDeparts,
   getTroncons,
+  getLocalisations,
+  getChargesConsignation,
 } from "../../../../services/referencetielService";
 
-
-
-import {
-  mapPlanningPayload,
-} from "../../../../utils/planningMapper";
+import { mapPlanningPayload } from "../../../../utils/planningMapper";
 
 import {
-  getPlannings, // ✅ NEW IMPORT
+  getPlannings,
   createPlanning,
 } from "../../../../API/planningService";
 
 export default function MultiStepForm() {
-  const [plannings, setPlannings] = useState([]); // ✅ FIXED FEATURE
-
-  const [step, setStep] =
-    useState(0);
-
-  const [loading, setLoading] =
-    useState(false);
+  const [plannings, setPlannings] = useState([]);
+  const [step, setStep] = useState(0);
+  const [loading, setLoading] = useState(false);
 
   /* ---------------- STATES ---------------- */
-
-  const [references, setReferences] =
-    useState([]);
-
-  const [typesActivite, setTypesActivite] =
-    useState([]);
-
-  const [ouvrages, setOuvrages] =
-    useState([]);
-
-  const [postes, setPostes] =
-    useState([]);
-
-  const [departs, setDeparts] =
-    useState([]);
-
-  const [troncons, setTroncons] =
-    useState([]);
-
-
-  // const [ setPlannings] = useState([]); // ✅ NEW STATE
-  /* ---------------- SERVICE ROLE ---------------- */
+  const [references, setReferences] = useState([]);
+  const [typesActivite, setTypesActivite] = useState([]);
+  const [ouvrages, setOuvrages] = useState([]);
+  const [postes, setPostes] = useState([]);
+  const [departs, setDeparts] = useState([]);
+  const [troncons, setTroncons] = useState([]);
+  const [segments, setSegments] = useState([]);
+  const [chargesConsignation, setChargesConsignation] = useState([]);
 
   const {
     service,
     setService,
     fields,
-    options,
-    referenceConfig,
+    options: initialOptions,
   } = useServiceRole();
 
+  const options = {
+    ...initialOptions,
+    Segments: segments,
+    Ouvrages: ouvrages,
+    Poste: postes,
+    Departs: departs,
+    Charges_de_consignation: chargesConsignation,
+  };
+
   /* ---------------- FORM DATA ---------------- */
+  const [formData, setFormData] = useState({
+    Reference: "",
+    reference_id: null,
+    planning_id: null,
+    segment_id: null,
+    ouvrage_id: null,
+    poste_id: null,
+    depart_id: null,
+    troncon_id: null,
 
-  const [formData, setFormData] =
-    useState({
-      Reference: "",
-      reference_id: null,
-      planning_id: null, // ✅ NEW FIELD ADDED (IMPORTANT)
-      ouvrage_id: null,
-      poste_id: null,
-      depart_id: null,
-      troncon_id: null,
+    Unite_demanderesse: "",
+    Exploitations: "",
+    Type_de_travaux: "",
+    Types_de_reseau: "",
+    type_travaux_id: null,
+    service: service,
 
-      Segments: "",
-      Ouvrages: "",
-      Poste: "",
-      Departs: "",
+    /* ETAPE 2 */
+    Troncons: "",
+    Consistances_Des_Travaux: "",
+    Localites_impactees: "",
+    Moyens_mis_en_oeuvre: "",
+    charge_consignation_id: null,
 
-      Unite_demanderesse: "",
-      Exploitations: "",
-
-      Type_de_travaux: "",
-      Types_de_reseau: "",
-
-      type_travaux_id: null,
-
-      service: service,
-
-      /* ETAPE 2 */
-
-      Troncons: "",
-      Consistances_Des_Travaux: "",
-      Localites_impactees: "",
-      Moyens_mis_en_oeuvre: "",
-
-      /* ETAPE 3 */
-
-      Debut_planifiee: "",
-      Duree: "",
-      Fin_planifiee: "",
-      Date_programmee: "",
-
-      Prevision_puissance_sollicite: "",
-      Prevision_puissance_interrompue: "",
-      Prevision_ENF: "",
-
-      Centrale_thermique: "",
-      Qte_de_fuel: "",
-
-      Observations: "",
-    });
+    /* ETAPE 3 */
+    Debut_planifiee: "",
+    Duree: "",
+    Fin_planifiee: "",
+    Date_programmee: "",
+    Prevision_puissance_sollicite: "",
+    Prevision_puissance_interrompue: "",
+    Prevision_ENF: "",
+    Centrale_thermique: "",
+    Qte_de_fuel: "",
+    Observations: "",
+    Jour_avant_travaux: null,
+  });
 
   /* ---------------- LOAD REFERENTIEL ---------------- */
-
   useEffect(() => {
+    const fetchReferentielData = async () => {
+      try {
+        const [
+          ouvragesData,
+          postesData,
+          departsData,
+          tronconsData,
+          referencesData,
+          typesData,
+          planningsData,
+          segmentsData,
+          chargesData,
+        ] = await Promise.all([
+          getOuvrages(),
+          getPostes(),
+          getDeparts(),
+          getTroncons(),
+          getReferences(),
+          getTypesActivite(),
+          getPlannings(),
+          getLocalisations(),
+          getChargesConsignation(),
+        ]);
 
-    const fetchReferentielData =
-      async () => {
-
-        try {
-
-          const [
-            ouvragesData,
-            postesData,
-            departsData,
-            tronconsData,
-            referencesData,
-            typesData,
-            planningsData,
-          ] = await Promise.all([
-            getOuvrages(),
-            getPostes(),
-            getDeparts(),
-            getTroncons(),
-            getReferences(),
-            getTypesActivite(),
-            getPlannings(), // ✅ IMPORTANT
-          ]);
-
-         setOuvrages(ouvragesData);
+        setOuvrages(ouvragesData);
         setPostes(postesData);
         setDeparts(departsData);
         setTroncons(tronconsData);
         setReferences(referencesData);
         setTypesActivite(typesData);
         setPlannings(planningsData);
-
-        } catch (error) {
-
-          console.error(
-            "Erreur chargement référentiel :",
-            error
-          );
-        }
-      };
-
+        setSegments(segmentsData);
+        setChargesConsignation(chargesData);
+      } catch (error) {
+        console.error("Erreur chargement référentiel :", error);
+      }
+    };
     fetchReferentielData();
-
-  }, []);
-
-  /* ---------------- LOAD REFERENCES ---------------- */
-
-  useEffect(() => {
-
-    const fetchNetworkReferences =
-      async () => {
-
-        try {
-
-          const data =
-            await getReferences();
-
-          setReferences(data);
-
-        } catch (error) {
-
-          console.error(
-            "Erreur chargement références :",
-            error
-          );
-        }
-      };
-
-    fetchNetworkReferences();
-
-  }, []);
-
-  /* ---------------- LOAD TYPES ACTIVITE ---------------- */
-
-  useEffect(() => {
-
-    const fetchTypes =
-      async () => {
-
-        try {
-
-          const data =
-            await getTypesActivite();
-
-          setTypesActivite(data);
-
-        } catch (error) {
-
-          console.error(
-            "Erreur chargement types activité :",
-            error
-          );
-        }
-      };
-
-    fetchTypes();
-
   }, []);
 
   /* ---------------- UPDATE SERVICE ---------------- */
-
   useEffect(() => {
-
-    setFormData((prev) => ({
-      ...prev,
-      service,
-    }));
-
+    setFormData((prev) => ({ ...prev, service }));
   }, [service]);
 
   /* ---------------- AUTO GENERATE REFERENCE ---------------- */
-
   useEffect(() => {
-
-    if (!referenceConfig?.length)
-      return;
-
-    const fieldValues = {
-
-      ouvrage_id:
-        ouvrages.find(
-          (o) =>
-            o.id === Number(
-              formData.ouvrage_id
-            )
-        )?.nom || "",
-
-      poste_id:
-        postes.find(
-          (p) =>
-            p.id === Number(
-              formData.poste_id
-            )
-        )?.nom || "",
-
-      troncon_id:
-        troncons.find(
-          (t) =>
-            t.id === Number(
-              formData.troncon_id
-            )
-        )?.nom || "",
-
-      depart_id:
-        departs.find(
-          (d) =>
-            d.id === Number(
-              formData.depart_id
-            )
-        )?.nom || "",
-
-      Segments:
-        formData.Segments || "",
-
-      Ouvrages:
-        formData.Ouvrages || "",
-
-      Poste:
-        formData.Poste || "",
-
-      Departs:
-        formData.Departs || "",
+    const getLabel = (list, id) => {
+      if (!id) return "";
+      const item = list.find((i) => String(i.id) === String(id));
+      return item ? (item.nom || item.libelle || item.ville || "") : "";
     };
 
-    const values =
-      referenceConfig
-        .map((field) =>
-          fieldValues[field]
-        )
-        .filter(Boolean);
+    let parts = [];
+    const segmentLabel = getLabel(segments, formData.segment_id);
+    const ouvrageLabel = getLabel(ouvrages, formData.ouvrage_id);
+    const posteLabel = getLabel(postes, formData.poste_id);
+    const departLabel = getLabel(departs, formData.depart_id);
 
-    const newRef =
-      values.join("-");
-
-    if (
-      newRef !==
-      formData.Reference
-    ) {
-
-      setFormData((prev) => ({
-        ...prev,
-        Reference: newRef,
-      }));
+    if (service === "distribution") {
+      parts = [segmentLabel, ouvrageLabel, posteLabel, departLabel];
+    } else {
+      parts = [segmentLabel, ouvrageLabel, posteLabel];
     }
 
+    const newRef = parts.filter(Boolean).join("-");
+    if (newRef !== formData.Reference) {
+      setFormData((prev) => ({ ...prev, Reference: newRef }));
+    }
   }, [
-    referenceConfig,
-
+    service,
+    formData.segment_id,
     formData.ouvrage_id,
     formData.poste_id,
-    formData.troncon_id,
     formData.depart_id,
-
-    formData.Segments,
-    formData.Ouvrages,
-    formData.Poste,
-    formData.Departs,
-    formData.Reference,
-
+    segments,
     ouvrages,
     postes,
     departs,
-    troncons,
   ]);
 
-  /* ---------------- HANDLE CHANGE ---------------- */
+  /* ---------------- AUTO CALCULATE DATES ---------------- */
 
-  const handleInputChange =
-    (field, value) => {
+  useEffect(() => {
+    const calculateDates = () => {
+      let updates = {};
 
-      setFormData((prev) => ({
-        ...prev,
-        [field]: value,
-      }));
-    };
+      // 1. Calculate Fin_planifiee
+      if (formData.Debut_planifiee && formData.Duree) {
+        const start = new Date(formData.Debut_planifiee);
+        const end = new Date(start.getTime() + formData.Duree * 60 * 60 * 1000);
+        const endStr = end.toLocaleString('fr-FR', {
+          day: '2-digit',
+          month: '2-digit',
+          year: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit'
+        });
+        if (formData.Fin_planifiee !== endStr) {
+          updates.Fin_planifiee = endStr;
+        }
+      }
 
-  /* ---------------- HANDLE REFERENCE ---------------- */
+      // 2. Calculate Jour_avant_travaux
+      if (formData.Debut_planifiee && formData.Date_programmee) {
+        const start = new Date(formData.Debut_planifiee);
+        const programmed = new Date(formData.Date_programmee);
+        
+        // Reset hours for date comparison
+        start.setHours(0, 0, 0, 0);
+        programmed.setHours(0, 0, 0, 0);
 
+        const diffTime = start.getTime() - programmed.getTime();
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        
+        if (formData.Jour_avant_travaux !== diffDays) {
+          updates.Jour_avant_travaux = diffDays;
+        }
+      }
 
-
-  /* ---------------- SUBMIT ---------------- */
-
-  const handleSubmitPlanning =
-    async () => {
-
-      try {
-
-        setLoading(true);
-
-        const payload =
-          mapPlanningPayload(
-            formData
-          );
-
-        console.log(
-          "PAYLOAD =>",
-          payload
-        );
-
-        await createPlanning(
-          payload
-        );
-
-        alert(
-          "Planning créé avec succès"
-        );
-
-      } catch (error) {
-
-        console.error(error);
-
-        console.log(
-          "BACKEND ERROR =>",
-          error.response?.data
-        );
-
-        alert(
-          "Erreur lors de la création du planning"
-        );
-
-      } finally {
-
-        setLoading(false);
+      if (Object.keys(updates).length > 0) {
+        setFormData(prev => ({ ...prev, ...updates }));
       }
     };
 
-  /* ---------------- STEPS ---------------- */
+    calculateDates();
+  }, [formData.Debut_planifiee, formData.Duree, formData.Date_programmee, formData.Fin_planifiee, formData.Jour_avant_travaux]);
 
-/* ---------------- STEPS ---------------- */
+  const handleInputChange = (field, value) => {
+    setFormData((prev) => ({ ...prev, [field]: value }));
+  };
 
- const steps = [
+  const handleSubmitPlanning = async () => {
+    try {
+      setLoading(true);
+      const payload = mapPlanningPayload(formData);
+      await createPlanning(payload);
+      alert("Planning créé avec succès");
+    } catch (error) {
+      console.error(error);
+      alert("Erreur lors de la création du planning");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const steps = [
     {
       title: "Identification & Organisation",
       content: (
         <>
-          {/* ✅ NEW PLANNING SELECT FIELD */}
           <div style={{ marginBottom: 20 }}>
             <label>Associer à un planning existant</label>
-
             <select
               value={formData.planning_id || ""}
-              onChange={(e) =>
-                handleInputChange("planning_id", e.target.value)
-              }
-              style={{
-                width: "100%",
-                padding: "10px",
-                marginTop: 8,
-              }}
+              onChange={(e) => handleInputChange("planning_id", e.target.value)}
+              style={{ width: "100%", padding: "10px", marginTop: 8 }}
             >
               <option value="">-- Aucun planning --</option>
-
               {plannings.map((p) => (
                 <option key={p.id} value={p.id}>
                   {p.reference || p.nom || `Planning #${p.id}`}
@@ -427,14 +265,11 @@ export default function MultiStepForm() {
               ))}
             </select>
           </div>
-
           <PlanningForm
             formData={formData}
             onChange={handleInputChange}
             references={references}
-            onReferenceChange={(val) =>
-              handleInputChange("reference_id", val)
-            }
+            onReferenceChange={(val) => handleInputChange("reference_id", val)}
             typesActivite={typesActivite}
             service={service}
             fields={fields}
@@ -443,197 +278,91 @@ export default function MultiStepForm() {
         </>
       ),
     },
-
-    {
+    // Only show Etape 2 for Distribution
+    ...(service === "distribution" ? [{
       title: "Localisation & Consistance",
-      content:
-        service === "distribution" ? (
-          <Etape2
-            formData={formData}
-            onChange={handleInputChange}
-            // fields={fields}
-            // options={options}
-          />
-        ) : (
-          <div style={{ padding: 40, textAlign: "center" }}>
-            Étape non nécessaire pour {service}
-          </div>
-        ),
-    },
-
+      content: (
+        <Etape2
+          formData={formData}
+          onChange={handleInputChange}
+          fields={fields}
+          options={options}
+        />
+      ),
+    }] : []),
     {
       title: "Programmation & Impact",
       content: (
         <Etape3
           formData={formData}
           onChange={handleInputChange}
-          // fields={fields}
-          // options={options}
+          fields={fields}
+          options={options}
         />
       ),
     },
-
     {
       title: "Récapitulatif",
       content: <Recap formData={formData} />,
     },
   ];
 
-
-  /* ---------------- NAVIGATION ---------------- */
-
-  const total =
-    steps.length;
-
-  const percent =
-    ((step + 1) / total) *
-    100;
-
-  const next = () => {
-    setStep((prev) => Math.min(prev + 1, total - 1));
-  }
-
-  const prev = () => {
-    setStep((prev) => Math.max(prev - 1, 0));
-  };
+  const total = steps.length;
+  const percent = ((step + 1) / total) * 100;
+  const next = () => setStep((prev) => Math.min(prev + 1, total - 1));
+  const prev = () => setStep((prev) => Math.max(prev - 1, 0));
 
   return (
     <div className="wrapper">
-
-      {/* SERVICE SWITCHER */}
-
-      <div
-        style={{
-          padding: "10px",
-          background: "#f8d7da",
-          color: "#721c24",
-          marginBottom: "15px",
-          borderRadius: "5px",
-          display: "flex",
-          justifyContent:
-            "space-between",
-          alignItems: "center",
-          border:
-            "1px solid #f5c6cb",
-        }}
-      >
-
-        <strong>
-          🛠️ Outil de Test :
-          Changer le Service
-        </strong>
-
+      <div style={{
+        padding: "10px",
+        background: "#f8d7da",
+        color: "#721c24",
+        marginBottom: "15px",
+        borderRadius: "5px",
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "center",
+        border: "1px solid #f5c6cb",
+      }}>
+        <strong>🛠️ Outil de Test : Changer le Service</strong>
         <select
           value={service}
-          onChange={(e) =>
-            setService(
-              e.target.value
-            )
-          }
-          style={{
-            padding: "6px 12px",
-            borderRadius: "4px",
-            border:
-              "1px solid #ccc",
-            cursor: "pointer",
-          }}
+          onChange={(e) => setService(e.target.value)}
+          style={{ padding: "6px 12px", borderRadius: "4px", border: "1px solid #ccc", cursor: "pointer" }}
         >
-
-          <option value="transport">
-            Transport
-          </option>
-
-          <option value="distribution">
-            Distribution
-          </option>
-
-          <option value="production">
-            Production
-          </option>
-
+          <option value="transport">Transport</option>
+          <option value="distribution">Distribution</option>
+          <option value="production">Production</option>
         </select>
-
       </div>
-
-      {/* HEADER */}
 
       <div className="progress-header">
-
         <div className="header-top">
-
           <div className="step-info">
-
-            <span className="step-count">
-              ÉTAPE {step + 1} SUR{" "}
-              {total}
-            </span>
-
-            <h2 className="step-title">
-              {steps[step]?.title}
-            </h2>
-
+            <span className="step-count">ÉTAPE {step + 1} SUR {total}</span>
+            <h2 className="step-title">{steps[step]?.title}</h2>
           </div>
-
-          <span className="step-percent">
-            {Math.round(percent)}%
-          </span>
-
+          <span className="step-percent">{Math.round(percent)}%</span>
         </div>
-
         <div className="progress-bar-container">
-
-          <div
-            className="progress-bar-fill"
-            style={{
-              width: `${percent}%`,
-            }}
-          />
-
+          <div className="progress-bar-fill" style={{ width: `${percent}%` }} />
         </div>
-
       </div>
 
-      {/* CONTENT */}
-
-      <div className="main-content">
-        {steps[step]?.content}
-      </div>
-
-      {/* FOOTER */}
+      <div className="main-content">{steps[step]?.content}</div>
 
       <div className="footer-actions">
-
-        {step > 0 && (
-          <button
-            className="btn-prev"
-            onClick={prev}
-          >
-            Précédent
-          </button>
-        )}
-
+        {step > 0 && <button className="btn-prev" onClick={prev}>Précédent</button>}
         <button
           className="btn-next"
-          onClick={
-            step === total - 1
-              ? handleSubmitPlanning
-              : next
-          }
+          onClick={step === total - 1 ? handleSubmitPlanning : next}
           disabled={loading}
         >
-
-          {loading
-            ? "Création..."
-            : step === total - 1
-            ? "Créer Planning"
-            : "Suivant"}
-
+          {loading ? "Création..." : step === total - 1 ? "Créer Planning" : "Suivant"}
           <ArrowRight size={18} />
-
         </button>
-
       </div>
-
     </div>
   );
 }

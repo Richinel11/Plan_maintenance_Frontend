@@ -1,9 +1,82 @@
-// PlanningSection.jsx
 import React from "react";
 import "./etape3.css";
+import { ChevronDown } from "lucide-react";
+
+/* ---------------- SELECT FIELD ---------------- */
+function SelectField({
+  label,
+  value,
+  options,
+  placeholder,
+  onChange,
+}) {
+  const isObjectArray =
+    options &&
+    options.length > 0 &&
+    typeof options[0] ===
+      "object";
+
+  return (
+    <div className="form-group">
+      <label>{label}</label>
+      <div style={{ position: 'relative' }}>
+        <select
+          value={value || ""}
+          onChange={(e) => onChange(e.target.value)}
+          style={{
+            width: '100%',
+            padding: '14px 15px',
+            borderRadius: '9px',
+            border: '1px solid #cfd8e3',
+            appearance: 'none',
+            background: 'white',
+            fontSize: '16px',
+            outline: 'none',
+            cursor: 'pointer'
+          }}
+        >
+          <option value="">{placeholder}</option>
+          {options &&
+            options.map((opt) => {
+              if (isObjectArray) {
+                return (
+                  <option key={opt.id} value={opt.id}>
+                    {opt.libelle || opt.nom || opt.name || 
+                     `${opt.first_name || ""} ${opt.last_name || ""}`.trim()}
+                  </option>
+                );
+              }
+              return (
+                <option key={opt} value={opt}>{opt}</option>
+              );
+            })}
+        </select>
+        <ChevronDown
+          className="chevron"
+          size={20}
+          style={{ 
+            position: 'absolute', 
+            right: '15px', 
+            top: '50%', 
+            transform: 'translateY(-50%)', 
+            pointerEvents: 'none',
+            color: '#44556c'
+          }}
+        />
+      </div>
+    </div>
+  );
+}
 
 const PlanningSection = ({ formData, onChange, fields, options }) => {
   const isFieldVisible = (field) => fields.includes(field);
+
+  const hasImpacts = 
+    isFieldVisible("Prevision_puissance_sollicite") || 
+    isFieldVisible("Prevision_puissance_interrompue") || 
+    isFieldVisible("Prevision_ENF") || 
+    isFieldVisible("Centrale_thermique") || 
+    isFieldVisible("Qte_de_fuel");
 
   return (
     <div className="planning-wrapper">
@@ -62,10 +135,21 @@ const PlanningSection = ({ formData, onChange, fields, options }) => {
             />
           </div>
         )}
+
+        {isFieldVisible("Jour_avant_travaux") && (
+          <div className="form-group full">
+            <label>Nombre de jours avant travaux</label>
+            <div className="auto-box">
+              {formData.Jour_avant_travaux !== undefined && formData.Jour_avant_travaux !== null 
+                ? `${formData.Jour_avant_travaux} jour(s)` 
+                : "🔄 Calculé Auto"}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* IMPACTS & PUISSANCES (Surtout pour Transport) */}
-      {(isFieldVisible("Prevision_puissance_sollicite") || isFieldVisible("Prevision_ENF")) && (
+      {hasImpacts && (
         <div className="section-block">
           <div className="section-title">
             <span className="icon">⚡</span>
@@ -107,16 +191,13 @@ const PlanningSection = ({ formData, onChange, fields, options }) => {
 
           <div className="grid-2" style={{marginTop: "15px"}}>
             {isFieldVisible("Centrale_thermique") && (
-              <div className="form-group">
-                <label>Centrale thermique</label>
-                <select 
-                  value={formData.Centrale_thermique || ""}
-                  onChange={(e) => onChange("Centrale_thermique", e.target.value)}
-                >
-                  <option value="">Sélectionner la centrale</option>
-                  {options.Centrale_thermique.map(opt => <option key={opt} value={opt}>{opt}</option>)}
-                </select>
-              </div>
+              <SelectField
+                label="Centrale thermique"
+                value={formData.Centrale_thermique || ""}
+                options={options.Centrale_thermique}
+                placeholder="Sélectionner la centrale"
+                onChange={(val) => onChange("Centrale_thermique", val)}
+              />
             )}
             {isFieldVisible("Qte_de_fuel") && (
               <div className="form-group">
@@ -134,23 +215,23 @@ const PlanningSection = ({ formData, onChange, fields, options }) => {
       )}
 
       {/* OBSERVATIONS */}
-      <div className="section-block">
-        <div className="section-title">
-          <span className="icon">☰</span>
-          <h2>Observations</h2>
-        </div>
+      {isFieldVisible("Observations") && (
+        <div className="section-block">
+          <div className="section-title">
+            <span className="icon">☰</span>
+            <h2>Observations</h2>
+          </div>
 
-        {isFieldVisible("Obervations") && (
           <div className="form-group full">
             <textarea
               rows="4"
               placeholder="Saisir des observations complémentaires ou des contraintes spécifiques..."
-              value={formData.Obervations || ""}
-              onChange={(e) => onChange("Obervations", e.target.value)}
+              value={formData.Observations || ""}
+              onChange={(e) => onChange("Observations", e.target.value)}
             />
           </div>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 };

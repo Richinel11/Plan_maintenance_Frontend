@@ -1,33 +1,54 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import './Dashboard.css';
 import Footer from '../Plannings/footer/footer';
+import { getPlannings } from "../../../API/planningService";
 
 const Dashboard = () => {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
+  const [plannings, setPlannings] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState({ total: 0, encours: 0, cloture: 0 });
 
-  // Mocks pour les Plannings (Contenants)
-  const mockPlannings = [
-    { id: 1, nom: "Plan de Maintenance Est", code: "PLN-EST-2026", service: "Distribution", statut: "En cours" },
-    { id: 2, nom: "Révision Générale Transport", code: "PLN-TR-Q2", service: "Transport", statut: "Brouillon" },
-    { id: 3, nom: "Maintenance Préventive Hydro", code: "PLN-PROD-H1", service: "Production", statut: "Clôturé" }
-  ];
+  useEffect(() => {
+    const fetchPlannings = async () => {
+      try {
+        setLoading(true);
+        const data = await getPlannings(1);
+        const results = data.results || data;
+        const planningsData = Array.isArray(results) ? results : [];
+        setPlannings(planningsData);
 
-  const filteredPlannings = mockPlannings.filter(p => 
-    p.nom.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    p.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    p.service.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    p.statut.toLowerCase().includes(searchTerm.toLowerCase())
+        // Mise à jour basique des stats
+        const encours = planningsData.filter(p => (p.statut || "").toLowerCase().includes("cours")).length;
+        const cloture = planningsData.filter(p => (p.statut || "").toLowerCase().includes("clôturé")).length;
+        setStats({ total: data.count || planningsData.length, encours, cloture });
+
+      } catch (error) {
+        console.error("Erreur lors de la récupération des plannings:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchPlannings();
+  }, []);
+
+  const filteredPlannings = plannings.filter(p => 
+    (p.nom || p.name || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (p.code || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (p.service || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (p.statut || "").toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const getStatusClass = (status) => {
+    if (!status) return 'status-brouillon';
     switch(status.toLowerCase()) {
       case 'brouillon': return 'status-brouillon';
       case 'soumis': return 'status-soumis';
       case 'en cours': return 'status-encours';
       case 'clôturé': return 'status-cloture';
-      default: return '';
+      default: return 'status-brouillon';
     }
   };
 
@@ -75,22 +96,22 @@ const Dashboard = () => {
         <div className="stats-grid">
           <div className="stat-card">
             <div className="stat-label">Total Plannings</div>
-            <div className="stat-value">12</div>
+            <div className="stat-value">{loading ? "..." : stats.total}</div>
             <div className="stat-sub">Plannings enregistrés</div>
           </div>
           <div className="stat-card">
             <div className="stat-label">Travaux Importés</div>
-            <div className="stat-value">340</div>
-            <div className="hausse">+45 ce mois-ci</div>
+            <div className="stat-value">--</div>
+            <div className="hausse">Non disponible</div>
           </div>
           <div className="stat-card">
             <div className="stat-label">En cours</div>
-            <div className="stat-value">5</div>
+            <div className="stat-value">{loading ? "..." : stats.encours}</div>
             <div className="stat-sub">Plannings actifs</div>
           </div>
           <div className="stat-card">
             <div className="stat-label">Clôturés</div>
-            <div className="stat-value">7</div>
+            <div className="stat-value">{loading ? "..." : stats.cloture}</div>
             <div className="stat-sub">Historique archivé</div>
           </div>
         </div>
@@ -131,13 +152,13 @@ const Dashboard = () => {
                       onClick={() => handlePlanningClick(planning)}
                       title="Cliquez pour voir les travaux de ce planning"
                     >
-                      <span className="planning-name">{planning.nom}</span>
+                      <span className="planning-name">{planning.nom || planning.name || '—'}</span>
                     </td>
-                    <td><span className="ref">{planning.code}</span></td>
-                    <td>{planning.service}</td>
-                    <td><span className={`status ${getStatusClass(planning.statut)}`}>{planning.statut}</span></td>
+                    <td><span className="ref">{planning.code || '—'}</span></td>
+                    <td>{planning.service || '—'}</td>
+                    <td><span className={`status ${getStatusClass(planning.statut)}`}>{planning.statut || 'Brouillon'}</span></td>
                     <td>
-                      {planning.statut.toLowerCase() !== 'clôturé' ? (
+                      {(planning.statut || '').toLowerCase() !== 'clôturé' ? (
                         <div className="td-actions" style={{ justifyContent: 'flex-end' }}>
                           <button 
                             className="action-btn edit-btn" 

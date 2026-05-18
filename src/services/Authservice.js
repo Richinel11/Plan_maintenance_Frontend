@@ -24,11 +24,28 @@ export const login = async (username, password) => {
   console.log('user id', userId);
 
   const userResponse = await api.get(`users/find-user/${userId}/`);
-  Cookies.set('user', JSON.stringify(userResponse.data), { expires: 1 });
+  const userData = userResponse.data;
+  Cookies.set('user', JSON.stringify(userData), { expires: 1 });
+
+  // Lier le "service" (entité métier) pour les formulaires Plannings / Travaux
+  if (userData && userData.entite_metier) {
+      let serviceName = '';
+      if (Array.isArray(userData.entite_metier) && userData.entite_metier.length > 0) {
+          serviceName = userData.entite_metier[0].name || userData.entite_metier[0].nom || userData.entite_metier[0];
+      } else if (typeof userData.entite_metier === 'object') {
+          serviceName = userData.entite_metier.name || userData.entite_metier.nom;
+      } else {
+          serviceName = userData.entite_metier;
+      }
+      
+      if (serviceName && typeof serviceName === 'string') {
+          Cookies.set('service', serviceName.toLowerCase(), { expires: 1 });
+      }
+  }
 
   return {
     ...data,
-    user: userResponse.data
+    user: userData
   }
 };
 

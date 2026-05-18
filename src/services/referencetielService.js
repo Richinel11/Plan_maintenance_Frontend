@@ -24,6 +24,12 @@ export const getDeparts = async () => {
   return response.data;
 };
 
+/* LOCALISATIONS (Segments) */
+export const getLocalisations = async () => {
+  const response = await api.get("/Localisation/");
+  return response.data;
+};
+
 /* TRONCONS */
 export const getTroncons = async () => {
   const response = await api.get("/troncons/");

@@ -44,7 +44,7 @@ const useServiceRole = () => {
           "Prevision_ENF",
           "Centrale_thermique",
           "Qte_de_fuel",
-          "Obervations",
+          "Observations",
         ];
 
       case "production":
@@ -64,6 +64,7 @@ const useServiceRole = () => {
           "Fin_planifiee",
           "Date_programmee",
           "Jour_avant_travaux",
+          "Observations",
         ];
 
       case "distribution":
@@ -88,6 +89,7 @@ const useServiceRole = () => {
           "Fin_planifiee",
           "Date_programmee",
           "Jour_avant_travaux",
+          "Observations",
           
         ];
 
