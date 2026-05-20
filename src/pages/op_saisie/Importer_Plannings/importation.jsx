@@ -1,6 +1,14 @@
 import { useState, useMemo } from "react";
 import * as XLSX from "xlsx";
-import { Upload, X, ChevronDown, ChevronUp, Download } from "lucide-react";
+import {
+  Upload,
+  X,
+  ChevronDown,
+  ChevronUp,
+  Download,
+  AlertTriangle,
+} from "lucide-react";
+
 import "./importation.css";
 import useServiceRole from "../../ComponentsRole/ServiceRole";
 
@@ -17,134 +25,246 @@ const FileInput = ({ onFileSelect, onContinue }) => {
   const [isDragging, setIsDragging] = useState(false);
   const [showColumns, setShowColumns] = useState(false);
 
-   /* =========================================================
+  /* =========================
+      ERREURS / MODAL
+  ========================= */
+
+  const [errors, setErrors] = useState([]);
+  const [showErrors, setShowErrors] = useState(false);
+
+  /* =========================================================
       CONFIGURATION PAR SERVICE
   ========================================================= */
 
   const serviceColumns = useMemo(() => {
 
     const common = {
-      Reference: { label: "Référence", type: "Texte" },
-      Segments: { label: "Segments", type: "Texte" },
-      Ouvrages: { label: "Ouvrages", type: "Texte" },
-      Poste: { label: "Poste", type: "Texte" },
-      Departs: { label: "Départs", type: "Texe" },
+
+      Reference: {
+        label: "Référence",
+        type: "Texte",
+        pattern: /^[A-Za-z0-9À-ÿ\s\-_/().]+$/u,
+        example: "REF-01",
+        maxLength: 50,
+      },
+
+      Segments: {
+        label: "Segments",
+        type: "Texte",
+        pattern: /^[\wÀ-ÿ\s\-_/().]+$/u,
+        example: "Segment A",
+        maxLength: 100,
+      },
+
+      Ouvrages: {
+        label: "Ouvrages",
+        type: "Texte",
+        pattern: /^[\wÀ-ÿ\s\-_/().]+$/u,
+        example: "déployer",
+        maxLength: 100,
+      },
+
+      Poste: {
+        label: "Poste",
+        type: "Texte",
+        pattern: /^[\wÀ-ÿ\s\-_/().]+$/u,
+        example: "Poste Central",
+        maxLength: 100,
+      },
+
+      Departs: {
+        label: "Départs",
+        type: "Texte",
+        pattern: /^[\wÀ-ÿ\s\-_/().]+$/u,
+        example: "Départ Nord",
+        maxLength: 100,
+      },
 
       Unite_demanderesse: {
         label: "Unité demanderesse",
         type: "Texte",
+        pattern: /^[\wÀ-ÿ\s\-_/().]+$/u,
+        example: "Unité Douala",
+        maxLength: 100,
       },
 
       Type_de_travaux: {
         label: "Type de travaux",
         type: "Texte",
+        pattern: /^[\wÀ-ÿ\s\-_/().]+$/u,
+        example: "Maintenance",
+        maxLength: 100,
       },
 
       Types_de_travaux: {
         label: "Types de travaux",
         type: "Texte",
+        pattern: /^[\wÀ-ÿ\s\-_/().]+$/u,
+        example: "Inspection",
+        maxLength: 100,
       },
 
       Types_de_reseau: {
         label: "Types de réseau",
         type: "Texte",
+        pattern: /^[\wÀ-ÿ\s\-_/().]+$/u,
+        example: "HTA",
+        maxLength: 100,
       },
 
       Troncons: {
         label: "Tronçons",
         type: "Texte",
+        pattern: /^[\wÀ-ÿ\s\-_/().]+$/u,
+        example: "Tronçon 01",
+        maxLength: 100,
       },
 
       Consistances_Des_Travaux: {
         label: "Consistance des travaux",
         type: "Texte",
+        pattern: /^[\wÀ-ÿ\s\-_/().]+$/u,
+        example: "Travaux prévus",
+        maxLength: 255,
       },
 
       Charges_de_consignation: {
         label: "Charges de consignation",
         type: "Texte",
+        pattern: /^[\wÀ-ÿ\s\-_/().]+$/u,
+        example: "Charge A",
+        maxLength: 100,
       },
 
       Charges_de_consignations: {
         label: "Charges de consignations",
         type: "Texte",
+        pattern: /^[\wÀ-ÿ\s\-_/().]+$/u,
+        example: "Charge B",
+        maxLength: 100,
       },
 
       Disponibilite_mecanique: {
         label: "Disponibilité mécanique",
         type: "Texte",
+        pattern: /^[\wÀ-ÿ\s\-_/().]+$/u,
+        example: "Disponible",
+        maxLength: 100,
       },
 
       Debut_planifiee: {
         label: "Début planifiée",
         type: "Date",
+        format: /^\d{4}-\d{2}-\d{2}$/,
+        example: "2026-05-01",
       },
 
       Duree: {
         label: "Durée",
         type: "Nombre",
+        format: /^\d{2}$/,
+        example: "01",
+        min: 1,
+        max: 99,
       },
 
       Fin_planifiee: {
         label: "Fin planifiée",
         type: "Date",
+        format: /^\d{4}-\d{2}-\d{2}$/,
+        example: "2026-05-30",
       },
 
       Date_programmee: {
         label: "Date programmée",
         type: "Date",
+        format: /^\d{4}-\d{2}-\d{2}$/,
+        example: "2026-06-01",
       },
 
       Jour_avant_travaux: {
         label: "Jour avant travaux",
         type: "Nombre",
+        format: /^\d{2}$/,
+        example: "05",
+        min: 1,
+        max: 31,
       },
 
       Prevision_puissance_sollicite: {
         label: "Prévision puissance sollicitée",
         type: "Nombre",
+        format: /^\d+$/,
+        example: "150",
+        min: 1,
+        max: 999999,
       },
 
       Prevision_puissance_interrompue: {
         label: "Prévision puissance interrompue",
         type: "Nombre",
+        format: /^\d+$/,
+        example: "200",
+        min: 1,
+        max: 999999,
       },
 
       Prevision_ENF: {
         label: "Prévision ENF",
         type: "Nombre",
+        format: /^\d+$/,
+        example: "300",
+        min: 1,
+        max: 999999,
       },
 
       Centrale_thermique: {
         label: "Centrale thermique",
         type: "Texte",
+        pattern: /^[\wÀ-ÿ\s\-_/().]+$/u,
+        example: "Centrale A",
+        maxLength: 100,
       },
 
       Qte_de_fuel: {
         label: "Quantité fuel",
         type: "Nombre",
+        format: /^\d+$/,
+        example: "500",
+        min: 1,
+        max: 999999,
       },
 
       Obervations: {
         label: "Observations",
         type: "Texte",
+        pattern: /^[\wÀ-ÿ\s\-_/().,]+$/u,
+        example: "RAS",
+        maxLength: 255,
       },
 
       Localites_impactees: {
         label: "Localités impactées",
         type: "Texte",
+        pattern: /^[\wÀ-ÿ\s\-_/().]+$/u,
+        example: "Douala",
+        maxLength: 100,
       },
 
       Moyens_mis_en_oeuvre: {
         label: "Moyens mis en oeuvre",
         type: "Texte",
+        pattern: /^[\wÀ-ÿ\s\-_/().]+$/u,
+        example: "Camion",
+        maxLength: 100,
       },
     };
 
-    return fields.map((field) => ({
-      field,
-      label: common[field]?.label || field,
-      type: common[field]?.type || "Texte",
+    return fields
+      .filter((field) => common[field])
+      .map((field) => ({
+        field,
+        ...common[field],
     }));
 
   }, [fields]);
@@ -153,42 +273,61 @@ const FileInput = ({ onFileSelect, onContinue }) => {
       TEMPLATE EXCEL
   ========================================================= */
 
-  const downloadTemplate = () => {
+const downloadTemplate = () => {
 
-    const sampleRow = {};
+  const sampleRow = {};
 
-    serviceColumns.forEach((col) => {
+  serviceColumns.forEach((col) => {
 
-      switch (col.type) {
+    sampleRow[col.label] = col.example;
+  });
 
-        case "Date":
-          sampleRow[col.label] = "2026-05-01";
-          break;
+  const ws = XLSX.utils.json_to_sheet(
+    [sampleRow],
+    {
+      skipHeader: false,
+    }
+  );
 
-        case "Nombre":
-          sampleRow[col.label] = 1;
-          break;
+  serviceColumns.forEach((col, index) => {
 
-        default:
-          sampleRow[col.label] = "Exemple";
+    if (col.type === "Date") {
+
+      const cellAddress =
+        XLSX.utils.encode_cell({
+          r: 1,
+          c: index,
+        });
+
+      if (ws[cellAddress]) {
+
+        ws[cellAddress].t = "s";
+
+        ws[cellAddress].z = "@";
+
+        ws[cellAddress].v =
+          String(ws[cellAddress].v);
       }
-    });
+    }
+  });
 
-    const ws = XLSX.utils.json_to_sheet([sampleRow]);
+  ws["!cols"] = serviceColumns.map(() => ({
+    wch: 30,
+  }));
 
-    const wb = XLSX.utils.book_new();
+  const wb = XLSX.utils.book_new();
 
-    XLSX.utils.book_append_sheet(
-      wb,
-      ws,
-      service.toUpperCase()
-    );
+  XLSX.utils.book_append_sheet(
+    wb,
+    ws,
+    service.toUpperCase()
+  );
 
-    XLSX.writeFile(
-      wb,
-      `modele_import_${service}.xlsx`
-    );
-  };
+  XLSX.writeFile(
+    wb,
+    `modele_import_${service}.xlsx`
+  );
+};
 
   /* =========================================================
       VALIDATION
@@ -196,115 +335,336 @@ const FileInput = ({ onFileSelect, onContinue }) => {
 
   const validateExcel = (jsonData) => {
 
+    const validationErrors = [];
+
     if (!jsonData.length) {
-      alert("❌ Le fichier est vide.");
-      return false;
+
+      validationErrors.push({
+        line: "-",
+        column: "-",
+        message: "Le fichier est vide",
+        solution: "Ajouter des données dans le fichier Excel",
+      });
+
+      return validationErrors;
     }
 
-    // const headers = Object.keys(jsonData[0]);
     const headers = Object.keys(jsonData[0]).map(
       (h) => h.trim()
     );
 
-    /* VERIFICATION COLONNES */
+    /* =========================
+        VERIFICATION COLONNES
+    ========================= */
+
     for (let col of serviceColumns) {
 
       if (!headers.includes(col.label)) {
 
-        alert(`❌ Colonne manquante : ${col.label}`);
-
-        return false;
+        validationErrors.push({
+          line: "-",
+          column: col.label,
+          message: "Colonne manquante",
+          solution: `Ajouter la colonne "${col.label}"`,
+        });
       }
     }
 
-    /* VALIDATION DES LIGNES */
+    /* =========================
+        DOUBLONS
+    ========================= */
+
+    const duplicateCheck = new Set();
+
+    /* =========================
+        VALIDATION LIGNES
+    ========================= */
+
     for (let i = 0; i < jsonData.length; i++) {
 
       const row = jsonData[i];
       const line = i + 2;
 
+      const rowSignature = JSON.stringify(row);
+
+      if (duplicateCheck.has(rowSignature)) {
+
+        validationErrors.push({
+          line,
+          column: "Toutes",
+          message: "Ligne dupliquée",
+          solution: "Supprimer le doublon",
+        });
+      }
+
+      duplicateCheck.add(rowSignature);
+
       for (let col of serviceColumns) {
 
         const value = row[col.label];
 
-        /* VALEURS VIDES */
+        /* =========================
+            VALEUR VIDE
+        ========================= */
+
         if (
           value === undefined ||
           value === null ||
           value.toString().trim() === ""
         ) {
 
-          alert(
-            `❌ Ligne ${line} : "${col.label}" est vide.`
-          );
+          validationErrors.push({
+            line,
+            column: col.label,
+            message: "Valeur vide",
+            solution: `Exemple attendu : ${col.example}`,
+          });
 
-          return false;
+          continue;
         }
 
-        /* VALIDATION PAR TYPE */
+        const cleanValue = value.toString().trim();
 
-        switch (col.type) {
+        /* =========================
+            TYPE TEXTE
+        ========================= */
 
-          case "Texte":
+        if (col.type === "Texte") {
 
-            if (
-              !/^[\wÀ-ÿ\s\-_/().]+$/u.test(
-                value.toString().trim()
-              )
-            ) {
+          if (!col.pattern.test(cleanValue)) {
 
-              alert(
-                `❌ Ligne ${line} : "${col.label}" contient une valeur invalide.`
-              );
+            validationErrors.push({
+              line,
+              column: col.label,
+              message: "Format texte invalide",
+              solution: `Exemple : ${col.example}`,
+            });
+          }
 
-              return false;
-            }
+          if (
+            col.maxLength &&
+            cleanValue.length > col.maxLength
+          ) {
 
-            break;
+            validationErrors.push({
+              line,
+              column: col.label,
+              message: `Texte trop long (${cleanValue.length})`,
+              solution: `Maximum autorisé : ${col.maxLength} caractères`,
+            });
+          }
+        }
 
-          case "Nombre":
+        /* =========================
+            TYPE NOMBRE
+        ========================= */
 
-            if (
-              !/^[1-9]\d*$/.test(
-                value.toString().trim()
-              )
-            ) {
+        if (col.type === "Nombre") {
 
-              alert(
-                `❌ Ligne ${line} : "${col.label}" doit être un nombre valide.`
-              );
+          /* REFUSE NEGATIF */
 
-              return false;
-            }
+          if (Number(cleanValue) < 0) {
 
-            break;
+            validationErrors.push({
+              line,
+              column: col.label,
+              message: "Valeur négative interdite",
+              solution: `Utiliser une valeur positive. Exemple : ${col.example}`,
+            });
 
-          case "Date":
+            continue;
+          }
 
-            if (
-              isNaN(
-                Date.parse(
-                  value.toString().trim()
-                )
-              )
-            ) {
+          /* REFUSE ZERO */
 
-              alert(
-                `❌ Ligne ${line} : "${col.label}" doit être une date valide.`
-              );
+          if (Number(cleanValue) === 0) {
 
-              return false;
-            }
+            validationErrors.push({
+              line,
+              column: col.label,
+              message: "La valeur ne peut pas être zéro",
+              solution: `Valeur minimale : ${col.min}`,
+            });
 
-            break;
+            continue;
+          }
 
-          default:
-            break;
+          /* FORMAT */
+
+          if (!col.format.test(cleanValue)) {
+
+            validationErrors.push({
+              line,
+              column: col.label,
+              message: "Format numérique invalide",
+              solution: `Format attendu : ${col.example}`,
+            });
+          }
+
+          const num = Number(cleanValue);
+
+          if (isNaN(num)) {
+
+            validationErrors.push({
+              line,
+              column: col.label,
+              message: "Nombre invalide",
+              solution: `Exemple : ${col.example}`,
+            });
+
+            continue;
+          }
+
+          /* INTERVAL */
+
+          if (
+            col.min !== undefined &&
+            num < col.min
+          ) {
+
+            validationErrors.push({
+              line,
+              column: col.label,
+              message: `Valeur inférieure à ${col.min}`,
+              solution: `Entrer une valeur >= ${col.min}`,
+            });
+          }
+
+          if (
+            col.max !== undefined &&
+            num > col.max
+          ) {
+
+            validationErrors.push({
+              line,
+              column: col.label,
+              message: `Valeur supérieure à ${col.max}`,
+              solution: `Entrer une valeur <= ${col.max}`,
+            });
+          }
+        }
+
+        /* =========================
+            TYPE DATE
+        ========================= */
+
+if (col.type === "Date") {
+
+  let dateValue = value;
+
+  /* EXCEL SERIAL DATE */
+
+  if (typeof value === "number") {
+
+    const excelDate =
+      XLSX.SSF.parse_date_code(value);
+
+    if (excelDate) {
+
+      const yyyy = excelDate.y;
+
+      const mm = String(
+        excelDate.m
+      ).padStart(2, "0");
+
+      const dd = String(
+        excelDate.d
+      ).padStart(2, "0");
+
+      dateValue =
+        `${yyyy}-${mm}-${dd}`;
+    }
+  }
+
+  dateValue =
+    dateValue.toString().trim();
+
+  /* FORMAT STRICT */
+
+  if (
+    !/^\d{4}-\d{2}-\d{2}$/.test(
+      dateValue
+    )
+  ) {
+
+    validationErrors.push({
+      line,
+      column: col.label,
+      message:
+        "Format de date invalide",
+      solution:
+        "Format attendu : YYYY-MM-DD",
+    });
+
+    continue;
+  }
+
+  /* DATE VALIDE */
+
+  const parsedDate =
+    new Date(dateValue);
+
+  if (
+    parsedDate.toString() ===
+    "Invalid Date"
+  ) {
+
+    validationErrors.push({
+      line,
+      column: col.label,
+      message: "Date invalide",
+      solution:
+        "Exemple : 2026-05-01",
+    });
+
+    continue;
+  }
+
+  /* DATE PASSEE */
+
+  const today = new Date();
+
+  today.setHours(0, 0, 0, 0);
+
+  if (parsedDate < today) {
+
+    validationErrors.push({
+      line,
+      column: col.label,
+      message:
+        "Date passée interdite",
+      solution:
+        "Utiliser une date future",
+    });
+  }
+}
+      }
+
+      /* =========================
+          BUSINESS RULES
+      ========================= */
+
+      if (
+        row["Début planifiée"] &&
+        row["Fin planifiée"]
+      ) {
+
+        const start = new Date(row["Début planifiée"]);
+        const end = new Date(row["Fin planifiée"]);
+
+        if (end < start) {
+
+          validationErrors.push({
+            line,
+            column: "Fin planifiée",
+            message: "La date de fin est avant la date de début",
+            solution: "La fin doit être après le début",
+          });
         }
       }
     }
 
-    return true;
+    return validationErrors;
   };
 
   /* =========================================================
@@ -316,17 +676,33 @@ const FileInput = ({ onFileSelect, onContinue }) => {
     setFileName(file.name);
     setFileSelected(true);
 
-    if (file.name.endsWith(".xlsx") || file.name.endsWith(".xls")) {
+    if (
+      file.name.endsWith(".xlsx") ||
+      file.name.endsWith(".xls")
+    ) {
 
       setFileType("Excel");
 
-    } else if (file.name.endsWith(".csv")) {
+    } else if (
+      file.name.endsWith(".csv")
+    ) {
 
       setFileType("CSV");
 
     } else {
 
-      setFileType("Fichier");
+      setErrors([
+        {
+          line: "-",
+          column: "-",
+          message: "Format de fichier invalide",
+          solution: "Utiliser .xlsx, .xls ou .csv",
+        },
+      ]);
+
+      setShowErrors(true);
+
+      return;
     }
 
     const data = await file.arrayBuffer();
@@ -341,9 +717,13 @@ const FileInput = ({ onFileSelect, onContinue }) => {
     const json =
       XLSX.utils.sheet_to_json(sheet);
 
-    const valid = validateExcel(json);
+    const validationErrors =
+      validateExcel(json);
 
-    if (!valid) {
+    if (validationErrors.length > 0) {
+
+      setErrors(validationErrors);
+      setShowErrors(true);
 
       setFileSelected(false);
       setFileName("");
@@ -383,6 +763,76 @@ const FileInput = ({ onFileSelect, onContinue }) => {
   return (
     <div className="import-container">
 
+      {/* =========================
+          MODAL ERREURS
+      ========================= */}
+
+      {showErrors && (
+
+        <div className="error-modal-overlay">
+
+          <div className="error-modal">
+
+            <div className="error-header">
+
+              <div className="error-title">
+
+                <AlertTriangle color="red" />
+
+                <h2>Erreurs détectées</h2>
+
+              </div>
+
+              <button
+                className="close-modal-btn"
+                onClick={() =>
+                  setShowErrors(false)
+                }
+              >
+                <X size={20} />
+              </button>
+
+            </div>
+
+            <div className="error-body">
+
+              {errors.map((err, index) => (
+
+                <div
+                  className="error-item"
+                  key={index}
+                >
+
+                  <div>
+                    <strong>Ligne :</strong>{" "}
+                    {err.line}
+                  </div>
+
+                  <div>
+                    <strong>Colonne :</strong>{" "}
+                    {err.column}
+                  </div>
+
+                  <div>
+                    <strong>Erreur :</strong>{" "}
+                    {err.message}
+                  </div>
+
+                  <div>
+                    <strong>Solution :</strong>{" "}
+                    {err.solution}
+                  </div>
+
+                </div>
+              ))}
+
+            </div>
+
+          </div>
+
+        </div>
+      )}
+
       <div className="import-header">
 
         <h1 className="import-title">
@@ -401,14 +851,18 @@ const FileInput = ({ onFileSelect, onContinue }) => {
         {!fileSelected ? (
 
           <div
-            className={`drop-zone ${isDragging ? "dragging" : ""}`}
+            className={`drop-zone ${
+              isDragging ? "dragging" : ""
+            }`}
 
             onDragOver={(e) => {
               e.preventDefault();
               setIsDragging(true);
             }}
 
-            onDragLeave={() => setIsDragging(false)}
+            onDragLeave={() =>
+              setIsDragging(false)
+            }
 
             onDrop={handleDrop}
           >
@@ -456,8 +910,11 @@ const FileInput = ({ onFileSelect, onContinue }) => {
               </div>
 
               <div className="file-details">
+
                 <h3>{fileName}</h3>
+
                 <p>Type : {fileType}</p>
+
               </div>
 
               <button
@@ -477,6 +934,7 @@ const FileInput = ({ onFileSelect, onContinue }) => {
         )}
 
         {/* ACTIONS */}
+
         <div className="point">
 
           <button
@@ -493,17 +951,20 @@ const FileInput = ({ onFileSelect, onContinue }) => {
               setShowColumns(!showColumns)
             }
           >
+
             Colonnes
 
             {showColumns
               ? <ChevronUp size={16} />
               : <ChevronDown size={16} />
             }
+
           </button>
 
         </div>
 
         {/* COLONNES */}
+
         {showColumns && (
 
           <div className="columns-list">
@@ -514,8 +975,11 @@ const FileInput = ({ onFileSelect, onContinue }) => {
                 className="column-row"
                 key={index}
               >
+
                 <span>{col.label}</span>
+
                 <small>{col.type}</small>
+
               </div>
             ))}
 
@@ -523,6 +987,7 @@ const FileInput = ({ onFileSelect, onContinue }) => {
         )}
 
         {/* FOOTER */}
+
         <div className="footer">
 
           <button className="btn btn-cancel">
@@ -540,6 +1005,7 @@ const FileInput = ({ onFileSelect, onContinue }) => {
         </div>
 
       </div>
+
     </div>
   );
 };
