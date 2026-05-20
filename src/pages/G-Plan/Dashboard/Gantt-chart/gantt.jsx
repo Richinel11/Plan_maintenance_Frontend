@@ -17,11 +17,11 @@ export default function GanttChart() {
     setData(mockData);
   }, []);
     //   Remplace par ce code en bas au moment de la connexion avec le backend 
-//   useEffect(() => {
-//   fetch("/api/gantt")
-//     .then(res => res.json())
-//     .then(data => setData(data));
-// }, []);
+  useEffect(() => {
+  fetch("/api/gantt")
+    .then(res => res.json())
+    .then(data => setData(data));
+}, []);
 
   return (
     <div className="gantt-container">

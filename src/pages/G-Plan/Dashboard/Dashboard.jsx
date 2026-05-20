@@ -1,13 +1,13 @@
-import React from "react";
-// import { useEffect, useState} from "react"; // A de-commenter aussi
+import React, { useEffect, useState } from "react";
 import "./Dashboard.css";
 import GanttChart from "./Gantt-chart/gantt";
 import Alerts from "./Alert/Alert";
 import { BsCheckCircle, BsSend } from "react-icons/bs";
-import { FaUserCog } from "react-icons/fa"; 
-import { GrLineChart } from "react-icons/gr"; 
+import { FaUserCog } from "react-icons/fa";
+import { GrLineChart } from "react-icons/gr";
 
-const statsData = [
+// Mock data for now
+const mockedStatsData = [
   {
     id: 1,
     title: "Travaux ce mois",
@@ -42,30 +42,65 @@ const statsData = [
   },
 ];
 
-
 export default function StatsCards() {
 
- // Code pour connecter au backend qu'il faudra de-commenter
-    // const [statsData, setStatsData] = useState([]);
-    
-    // useEffect(() => {
-    //   fetch("/api/dashboard/stats")
-    //     .then(res => res.json())
-    //     .then(data => setStatsData(data));
-    // }, []);
+  const [statsData, setStatsData] = useState(mockedStatsData);
 
+  useEffect(() => {
+
+    // Replace this later with the real backend URL
+    fetch("http://localhost:5000/api/dashboard/stats")
+      .then((res) => res.json())
+      .then((data) => {
+   // J'attend le id , le titre et la valeurs 
+        // Add icons manually because backend won't send React icons
+        const updatedData = data.map((item) => {
+          switch (item.id) {
+            case 1:
+              return { ...item, icon: <FaUserCog /> };
+
+            case 2:
+              return { ...item, icon: <GrLineChart /> };
+
+            case 3:
+              return { ...item, icon: <BsSend /> };
+
+            case 4:
+              return { ...item, icon: <BsCheckCircle /> };
+
+            default:
+              return item;
+          }
+        });
+
+        setStatsData(updatedData);
+      })
+      .catch((error) => {
+        console.log("Backend not connected yet:", error);
+
+        // keep mocked data if backend fails
+        setStatsData(mockedStatsData);
+      });
+
+  }, []);
 
   return (
-    <div className="Home"> 
+    <div className="Home">
       <div className="stats-container">
+
         {statsData.map((item) => (
           <div className="card" key={item.id}>
-            
+
             <div className="card-top">
-              <div className="icon-box">{item.icon}</div>
+
+              <div className="icon-box">
+                {item.icon}
+              </div>
 
               {item.change && (
-                <span className="change positive">{item.change}</span>
+                <span className="change positive">
+                  {item.change}
+                </span>
               )}
 
               {item.badge && (
@@ -73,26 +108,32 @@ export default function StatsCards() {
                   {item.badge}
                 </span>
               )}
+
             </div>
 
             <div className="card-body">
-              <p className="label">{item.title}</p>
+
+              <p className="label">
+                {item.title}
+              </p>
+
               <h2 className={`value ${item.type === "danger" ? "danger" : ""}`}>
                 {item.value}
               </h2>
+
             </div>
 
           </div>
         ))}
+
       </div>
 
       <div className="App">
-        {/* <h1>My Project Timeline</h1> */}
-        <GanttChart  />
+        <GanttChart />
       </div>
 
       <div>
-          <Alerts />
+        <Alerts />
       </div>
 
     </div>
