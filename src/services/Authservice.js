@@ -29,17 +29,26 @@ export const login = async (username, password) => {
 
   // Lier le "service" (entité métier) pour les formulaires Plannings / Travaux
   if (userData && userData.entite_metier) {
-      let serviceName = '';
-      if (Array.isArray(userData.entite_metier) && userData.entite_metier.length > 0) {
-          serviceName = userData.entite_metier[0].name || userData.entite_metier[0].nom || userData.entite_metier[0];
-      } else if (typeof userData.entite_metier === 'object') {
-          serviceName = userData.entite_metier.name || userData.entite_metier.nom;
+      let type = '';
+      const entite = userData.entite_metier;
+      
+      if (Array.isArray(entite) && entite.length > 0) {
+          type = entite[0].type || entite[0];
+      } else if (typeof entite === 'object') {
+          type = entite.type;
       } else {
-          serviceName = userData.entite_metier;
+          type = entite;
       }
       
-      if (serviceName && typeof serviceName === 'string') {
-          Cookies.set('service', serviceName.toLowerCase(), { expires: 1 });
+      if (type) {
+          let serviceName = 'transport'; // default
+          const t = type.toUpperCase();
+          if (t === 'PROD') serviceName = 'production';
+          else if (t === 'TRANS') serviceName = 'transport';
+          else if (t === 'DIST') serviceName = 'distribution';
+          else serviceName = type.toLowerCase();
+
+          Cookies.set('service', serviceName, { expires: 1 });
       }
   }
 

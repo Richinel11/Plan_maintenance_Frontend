@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { toast } from 'sonner';
 import './Modals.css';
 
 const CreateWorkflowModal = ({ onSave, onClose, loading }) => {
@@ -7,7 +8,7 @@ const CreateWorkflowModal = ({ onSave, onClose, loading }) => {
 
   const handleSubmit = () => {
     if (!form.name.trim() || !form.code.trim()) {
-      alert('Le Nom et le Code sont obligatoires.');
+      toast.warning('Le Nom et le Code sont obligatoires.');
       return;
     }
     onSave(form);

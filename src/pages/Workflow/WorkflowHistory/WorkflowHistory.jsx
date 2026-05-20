@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
 import {
   getWorkflows, deleteWorkflow, createWorkflow,
   getStepsByWorkflow, createStep, deleteStep,
@@ -94,7 +95,7 @@ const WorkflowHistory = () => {
       if (type === 'workflow') await deleteWorkflow(id);
       await loadAll();
     } catch {
-      alert('Erreur lors de la suppression.');
+      toast.error('Erreur lors de la suppression.');
     } finally {
       setConfirmDelete(null);
     }
@@ -114,7 +115,7 @@ const WorkflowHistory = () => {
       setShowWorkflowModal(false);
       await loadAll();
     } catch {
-      alert('Erreur lors de la création du workflow.');
+      toast.error('Erreur lors de la création du workflow.');
     } finally {
       setSavingModal(false);
     }

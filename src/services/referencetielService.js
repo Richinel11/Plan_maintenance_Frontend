@@ -6,6 +6,12 @@ export const getReferences = async () => {
   return response.data;
 };
 
+export const getReferenceById = async (id) => {
+  const response = await api.get(`/references/${id}/`);
+  return response.data;
+};
+
+
 /* OUVRAGES */
 export const getOuvrages = async () => {
   const response = await api.get("/ouvrage/");

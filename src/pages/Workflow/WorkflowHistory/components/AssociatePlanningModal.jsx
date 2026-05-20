@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { toast } from 'sonner';
 import { getAllPlannings } from '../../../../services/workflowService';
 import './Modals.css';
 
@@ -23,7 +24,7 @@ const AssociatePlanningModal = ({ onSave, onClose, loading, existingPlanningIds 
 
   const handleSubmit = () => {
     if (!selectedPlanningId) {
-      alert('Veuillez sélectionner un planning.');
+      toast.warning('Veuillez sélectionner un planning.');
       return;
     }
     onSave(selectedPlanningId);

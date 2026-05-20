@@ -1,21 +1,8 @@
-/* PlanningSection.css */
+/* etape3.css — styles locaux uniquement */
 
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-
-body {
-  background: #eef2f7;
-  font-family: "Segoe UI", sans-serif;
-}
 
 .planning-wrapper {
   width: 100%;
-  max-width: 900px;
-  margin: 30px auto;
-  padding: 25px;
 }
 
 /* CARD */
