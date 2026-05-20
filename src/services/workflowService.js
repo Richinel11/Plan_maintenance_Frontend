@@ -86,7 +86,7 @@ export const getTransitionById = async (workflowId, transitionId) => {
 
 // update transition 
 export const updateTransition = async (transitionData, workflowId, transitionId) => {
-    const { data } = await api.put(`/workflows/${workflowId}/update-transition/${transitionId}/`, transitionData);
+    const { data } = await api.put(`/workflows/${workflowId}/transitions/${transitionId}/`, transitionData);
     return data;
 };
 

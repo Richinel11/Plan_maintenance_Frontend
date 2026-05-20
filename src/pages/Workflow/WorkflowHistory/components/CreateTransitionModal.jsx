@@ -1,16 +1,49 @@
 import React, { useState, useEffect } from 'react';
+import { toast } from 'sonner';
 import { getStepsByWorkflow } from '../../../../services/workflowService';
 import './Modals.css';
 
-const CreateTransitionModal = ({ workflows, roles, onSave, onClose, loading, fixedWorkflowId = null }) => {
-  const [form, setForm] = useState({ 
-    workflow: fixedWorkflowId || '', 
-    name: '', 
-    from_step: '', 
-    to_step: '', 
-    can_go_back: false, 
-    go_back_step: '',
-    role: '' 
+/**
+ * Modale de création ET de modification d'une transition.
+ * - Mode création : ne pas fournir `initialData`
+ * - Mode édition  : fournir `initialData` avec les données de la transition existante
+ */
+const CreateTransitionModal = ({ workflows, roles, onSave, onClose, loading, fixedWorkflowId = null, initialData = null }) => {
+  const isEditMode = Boolean(initialData);
+
+  // Extrait proprement un ID depuis un objet imbriqué ou une valeur brute.
+  // Évite String(null) = "null" ou String(undefined) = "undefined".
+  const toId = (val) => {
+    if (val === null || val === undefined) return '';
+    if (typeof val === 'object') return val.id != null ? String(val.id) : '';
+    return String(val);
+  };
+
+  // Le backend peut retourner `role` comme un nom ("operateur de saisie"),
+  // un code_role ou directement un UUID. On cherche l'UUID dans la liste des rôles.
+  const resolveRoleId = (roleVal) => {
+    if (!roleVal) return '';
+    // Si c'est un objet, extraire l'id directement
+    if (typeof roleVal === 'object') return roleVal.id != null ? String(roleVal.id) : '';
+    const raw = String(roleVal);
+    // Chercher dans la liste des rôles par id, nom ou code_role
+    const found = (roles || []).find(r =>
+      String(r.id) === raw ||
+      r.nom === raw ||
+      r.code_role === raw
+    );
+    return found ? String(found.id) : raw;
+  };
+
+  const [form, setForm] = useState({
+    workflow: fixedWorkflowId || toId(initialData?.workflow) || '',
+    name: initialData?.name || initialData?.nom || '',
+    from_step: toId(initialData?.from_step),
+    to_step: toId(initialData?.to_step),
+    can_go_back: initialData?.can_go_back || false,
+    go_back_step: toId(initialData?.go_back_step),
+    comment_required: initialData?.comment_required || false,
+    role: resolveRoleId(initialData?.role),
   });
   const [steps, setSteps] = useState([]);
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
@@ -24,21 +57,23 @@ const CreateTransitionModal = ({ workflows, roles, onSave, onClose, loading, fix
 
   const handleSubmit = () => {
     if (!form.workflow || !form.name.trim() || !form.from_step || !form.to_step || !form.role) {
-      alert('Workflow, Nom, État initial, État final et Rôle compétent sont obligatoires.');
+      toast.warning('Workflow, Nom, État initial, État final et Rôle compétent sont obligatoires.');
       return;
     }
     if (form.can_go_back && !form.go_back_step) {
-      alert('Veuillez sélectionner l\'état vers lequel revenir.');
+      toast.warning("Veuillez sélectionner l'état vers lequel revenir.");
       return;
     }
     onSave(form);
   };
+  console.log(roles);
+  console.log(form.role);
 
   return (
     <div className="wfh-overlay" onClick={onClose}>
       <div className="wfh-modal-card" onClick={e => e.stopPropagation()}>
         <div className="wfh-modal-header">
-          <h3>🔀 Nouvelle Transition</h3>
+          <h3>{isEditMode ? '✏️ Modifier la Transition' : '🔀 Nouvelle Transition'}</h3>
           <button className="wfh-modal-close" onClick={onClose}>✕</button>
         </div>
         <div className="wfh-modal-body">
@@ -48,7 +83,7 @@ const CreateTransitionModal = ({ workflows, roles, onSave, onClose, loading, fix
                 <label>WORKFLOW <span className="wfh-req">*</span></label>
                 <select className="wfh-form-input" value={form.workflow} onChange={e => set('workflow', e.target.value)}>
                   <option value="">-- Sélectionner un workflow --</option>
-                  {workflows.map(w => <option key={w.id} value={w.id}>{w.name || w.nom}</option>)}
+                  {(workflows || []).map(w => <option key={w.id} value={w.id}>{w.name || w.nom}</option>)}
                 </select>
               </div>
             </div>
@@ -67,6 +102,7 @@ const CreateTransitionModal = ({ workflows, roles, onSave, onClose, loading, fix
                 {roles.map(r => <option key={r.id || r.code_role} value={r.id}>{r.nom}</option>)}
               </select>
             </div>
+            
           </div>
           <div className="wfh-form-row">
             <div className="wfh-form-field">
@@ -86,11 +122,16 @@ const CreateTransitionModal = ({ workflows, roles, onSave, onClose, loading, fix
           </div>
           <div className="wfh-form-row wfh-form-checks">
             <label className="wfh-checkbox-label">
+              <input type="checkbox" checked={form.comment_required} onChange={e => set('comment_required', e.target.checked)} />
+              <span>Commentaire obligatoire</span>
+            </label>
+          </div>
+          <div className="wfh-form-row wfh-form-checks">
+            <label className="wfh-checkbox-label">
               <input type="checkbox" checked={form.can_go_back} onChange={e => set('can_go_back', e.target.checked)} />
               <span>Retour arrière autorisé</span>
             </label>
           </div>
-
           {form.can_go_back && (
             <div className="wfh-form-row" style={{ marginTop: '4px' }}>
               <div className="wfh-form-field wfh-field-full">
@@ -117,7 +158,7 @@ const CreateTransitionModal = ({ workflows, roles, onSave, onClose, loading, fix
         <div className="wfh-modal-footer">
           <button className="wfh-btn-secondary" onClick={onClose} disabled={loading}>Annuler</button>
           <button className="wfh-btn-primary" onClick={handleSubmit} disabled={loading}>
-            {loading ? '⏳ Enregistrement...' : '✔ Créer la transition'}
+            {loading ? '⏳ Enregistrement...' : isEditMode ? '✔ Sauvegarder' : '✔ Créer la transition'}
           </button>
         </div>
       </div>

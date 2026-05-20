@@ -1,12 +1,15 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
 import {
   getWorkflowById,
   getStepsByWorkflow,
   getTransitions,
   createStep,
+  updateStep,
   deleteStep,
   createTransition,
+  updateTransition,
   deleteTransition,
   getAllPlannings,
   associatePlanningToWorkflow,
@@ -32,9 +35,10 @@ const WorkflowDetail = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Modales
-  const [showStepModal, setShowStepModal] = useState(false);
-  const [showTransitionModal, setShowTransitionModal] = useState(false);
+  // état actuel du step en cours d'édition (null = fermé ; {} vide = création ; objet = édition)
+  const [selectedStep, setSelectedStep] = useState(null);  
+  // état actuel de la transition en cours d'édition
+  const [selectedTransition, setSelectedTransition] = useState(null);
   const [showAssociateModal, setShowAssociateModal] = useState(false);
   const [savingModal, setSavingModal] = useState(false);
 
@@ -52,13 +56,13 @@ const WorkflowDetail = () => {
       setWorkflow(wf);
       setSteps(Array.isArray(sts) ? sts : []);
       setTransitions(Array.isArray(trs) ? trs : []);
-      
+
       // Filtrer les plannings associés à ce workflow (par UUID)
-      const associatedPlannings = Array.isArray(allPls) 
+      const associatedPlannings = Array.isArray(allPls)
         ? allPls.filter(p => p.workflow?.id === id || p.workflow === id)
         : [];
       setPlannings(associatedPlannings);
-      
+
       setRoles(Array.isArray(rls) ? rls : []);
     } catch (err) {
       setError("Impossible de charger les détails du workflow.");
@@ -72,21 +76,30 @@ const WorkflowDetail = () => {
     loadWorkflowData();
   }, [loadWorkflowData]);
 
+  // ─ Handler unifié pour créer OU modifier un step ───────────────────────────────
   const handleSaveStep = async (form) => {
     setSavingModal(true);
+    const payload = {
+      workflow: id,
+      name: form.name,
+      code: form.code,
+      number: parseInt(form.number) || 1,
+      description: form.description,
+      is_terminal: form.is_terminal,
+    };
     try {
-      await createStep({
-        workflow: id,
-        name: form.name,
-        code: form.code,
-        number: parseInt(form.number) || 1,
-        description: form.description,
-        is_terminal: form.is_terminal,
-      }, id);
-      setShowStepModal(false);
+      if (selectedStep?.id) {
+        // Mode édition
+        await updateStep(payload, id, selectedStep.id);
+      } else {
+        // Mode création
+        await createStep(payload, id);
+      }
+      setSelectedStep(null);
       await loadWorkflowData();
+      toast.success(selectedStep?.id ? "État modifié avec succès." : "État créé avec succès.");
     } catch (err) {
-      alert("Erreur lors de la création de l'état.");
+      toast.error(selectedStep?.id ? "Erreur lors de la modification de l'état." : "Erreur lors de la création de l'état.");
     } finally {
       setSavingModal(false);
     }
@@ -97,28 +110,39 @@ const WorkflowDetail = () => {
     try {
       await deleteStep(id, stepId);
       await loadWorkflowData();
+      toast.success("État supprimé avec succès.");
     } catch (err) {
-      alert("Erreur lors de la suppression de l'état.");
+      toast.error("Erreur lors de la suppression de l'état.");
     }
   };
 
+  // ─ Handler unifié pour créer OU modifier une transition ─────────────────────
   const handleSaveTransition = async (form) => {
     setSavingModal(true);
+    const payload = {
+      workflow: id,
+      name: form.name,
+      from_step: form.from_step,
+      to_step: form.to_step,
+      can_go_back: form.can_go_back,
+      // n'envoyer go_back_step que si le retour arrière est activé
+      go_back_step: form.can_go_back ? (form.go_back_step || null) : null,
+      comment_required: form.comment_required,
+      role: form.role,
+    };
     try {
-      await createTransition({
-        workflow: id,
-        name: form.name,
-        from_step: form.from_step,
-        to_step: form.to_step,
-        can_go_back: form.can_go_back,
-        go_back_step: form.go_back_step,
-        comment_required: form.comment_required,
-        role: form.role,
-      }, id);
-      setShowTransitionModal(false);
+      if (selectedTransition?.id) {
+        // Mode édition
+        await updateTransition(payload, id, selectedTransition.id);
+      } else {
+        // Mode création
+        await createTransition(payload, id);
+      }
+      setSelectedTransition(null);
       await loadWorkflowData();
+      toast.success(selectedTransition?.id ? "Transition modifiée avec succès." : "Transition créée avec succès.");
     } catch (err) {
-      alert("Erreur lors de la création de la transition.");
+      toast.error(selectedTransition?.id ? "Erreur lors de la modification de la transition." : "Erreur lors de la création de la transition.");
     } finally {
       setSavingModal(false);
     }
@@ -129,8 +153,9 @@ const WorkflowDetail = () => {
     try {
       await deleteTransition(id, transitionId);
       await loadWorkflowData();
+      toast.success("Transition supprimée avec succès.");
     } catch (err) {
-      alert("Erreur lors de la suppression de la transition.");
+      toast.error("Erreur lors de la suppression de la transition.");
     }
   };
 
@@ -140,8 +165,9 @@ const WorkflowDetail = () => {
       await associatePlanningToWorkflow(id, planningId);
       setShowAssociateModal(false);
       await loadWorkflowData();
+      toast.success("Planning associé avec succès.");
     } catch (err) {
-      alert("Erreur lors de l'association du planning.");
+      toast.error("Erreur lors de l'association du planning.");
     } finally {
       setSavingModal(false);
     }
@@ -152,8 +178,9 @@ const WorkflowDetail = () => {
     try {
       await dissociatePlanningFromWorkflow(id, planningId);
       await loadWorkflowData();
+      toast.success("Planning dissocié avec succès.");
     } catch (err) {
-      alert("Erreur lors de la dissociation du planning.");
+      toast.error("Erreur lors de la dissociation du planning.");
     }
   };
 
@@ -167,22 +194,25 @@ const WorkflowDetail = () => {
 
   return (
     <div className="wfd-page">
-      {/* Modales */}
-      {showStepModal && (
+      {/* Modale Step : sélectionné = création ({}) OU édition (objet avec .id) */}
+      {selectedStep !== null && (
         <CreateStepModal
           onSave={handleSaveStep}
-          onClose={() => setShowStepModal(false)}
+          onClose={() => setSelectedStep(null)}
           loading={savingModal}
           fixedWorkflowId={id}
+          initialData={selectedStep?.id ? selectedStep : null}
         />
       )}
-      {showTransitionModal && (
+      {/* Modale Transition : sélectionnée = création ({}) OU édition (objet avec .id) */}
+      {selectedTransition !== null && (
         <CreateTransitionModal
           roles={roles}
           onSave={handleSaveTransition}
-          onClose={() => setShowTransitionModal(false)}
+          onClose={() => setSelectedTransition(null)}
           loading={savingModal}
           fixedWorkflowId={id}
+          initialData={selectedTransition?.id ? selectedTransition : null}
         />
       )}
       {showAssociateModal && (
@@ -283,7 +313,7 @@ const WorkflowDetail = () => {
             <h2>Transitions configurées</h2>
             <span className="wfd-badge-count">{transitions.length}</span>
           </div>
-          <button className="wfd-btn-primary wfd-btn-sm" onClick={() => setShowTransitionModal(true)}>
+          <button className="wfd-btn-primary wfd-btn-sm" onClick={() => setSelectedTransition({})}>
             + Nouvelle Transition
           </button>
         </div>
@@ -329,7 +359,7 @@ const WorkflowDetail = () => {
                         </div>
                       </td>
                       <td className="wfd-center">
-                        {t.can_go_back 
+                        {t.can_go_back
                           ? (
                             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
                               <span className="material-symbols-outlined wfd-check-sober">check</span>
@@ -352,7 +382,7 @@ const WorkflowDetail = () => {
                       <td className="wfd-td-actions">
                         <button
                           className="wfd-action-btn edit"
-                          onClick={() => handleEditTransition(t.id)}
+                          onClick={() => setSelectedTransition(t)}
                           title="Modifier la transition"
                         >
                           <span className="material-symbols-outlined">edit</span>
@@ -382,7 +412,7 @@ const WorkflowDetail = () => {
             <h2>États (Steps) du Workflow</h2>
             <span className="wfd-badge-count">{steps.length}</span>
           </div>
-          <button className="wfd-btn-secondary wfd-btn-sm" onClick={() => setShowStepModal(true)}>
+          <button className="wfd-btn-secondary wfd-btn-sm" onClick={() => setSelectedStep({})}>
             <span className="material-symbols-outlined">add</span>
             Nouvel État
           </button>
@@ -430,7 +460,7 @@ const WorkflowDetail = () => {
                     <td className="wfd-td-actions wfd-center">
                       <button
                         className="wfd-action-btn edit"
-                        onClick={() => {/* TODO: handleEditStep */}}
+                        onClick={() => setSelectedStep(s)}
                         title="Modifier l'état"
                       >
                         <span className="material-symbols-outlined">edit</span>

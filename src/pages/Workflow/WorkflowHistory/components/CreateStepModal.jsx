@@ -1,20 +1,29 @@
 import React, { useState } from 'react';
+import { toast } from 'sonner';
 import './Modals.css';
 
-const CreateStepModal = ({ workflows, onSave, onClose, loading, fixedWorkflowId = null }) => {
-  const [form, setForm] = useState({ 
-    workflow: fixedWorkflowId || '', 
-    name: '', 
-    code: '', 
-    number: '1', 
-    description: '', 
-    is_terminal: false 
+/**
+ * Modale de création ET de modification d'un état (step).
+ * - Mode création : ne pas fournir `initialData`
+ * - Mode édition  : fournir `initialData` avec les données du step existant
+ */
+const CreateStepModal = ({ workflows, onSave, onClose, loading, fixedWorkflowId = null, initialData = null }) => {
+  const isEditMode = Boolean(initialData);
+
+  const [form, setForm] = useState({
+    workflow: fixedWorkflowId || initialData?.workflow || '',
+    name: initialData?.name || initialData?.nom || '',
+    code: initialData?.code || '',
+    number: String(initialData?.number ?? '1'),
+    description: initialData?.description || '',
+    is_terminal: initialData?.is_terminal || false,
   });
+
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
 
   const handleSubmit = () => {
     if (!form.workflow || !form.name.trim() || !form.code.trim()) {
-      alert('Workflow, Nom et Code sont obligatoires.');
+      toast.warning('Workflow, Nom et Code sont obligatoires.');
       return;
     }
     onSave(form);
@@ -24,7 +33,7 @@ const CreateStepModal = ({ workflows, onSave, onClose, loading, fixedWorkflowId 
     <div className="wfh-overlay" onClick={onClose}>
       <div className="wfh-modal-card" onClick={e => e.stopPropagation()}>
         <div className="wfh-modal-header">
-          <h3>🔵 Nouvel État (Step)</h3>
+          <h3>{isEditMode ? '✏️ Modifier l\'État' : '🔵 Nouvel État (Step)'}</h3>
           <button className="wfh-modal-close" onClick={onClose}>✕</button>
         </div>
         <div className="wfh-modal-body">
@@ -34,7 +43,7 @@ const CreateStepModal = ({ workflows, onSave, onClose, loading, fixedWorkflowId 
                 <label>WORKFLOW <span className="wfh-req">*</span></label>
                 <select className="wfh-form-input" value={form.workflow} onChange={e => set('workflow', e.target.value)}>
                   <option value="">-- Sélectionner un workflow --</option>
-                  {workflows.map(w => <option key={w.id} value={w.id}>{w.name || w.nom}</option>)}
+                  {(workflows || []).map(w => <option key={w.id} value={w.id}>{w.name || w.nom}</option>)}
                 </select>
               </div>
             </div>
@@ -67,7 +76,7 @@ const CreateStepModal = ({ workflows, onSave, onClose, loading, fixedWorkflowId 
         <div className="wfh-modal-footer">
           <button className="wfh-btn-secondary" onClick={onClose} disabled={loading}>Annuler</button>
           <button className="wfh-btn-primary" onClick={handleSubmit} disabled={loading}>
-            {loading ? '⏳ Enregistrement...' : '✔ Créer l\'état'}
+            {loading ? '⏳ Enregistrement...' : isEditMode ? '✔ Sauvegarder' : '✔ Créer l\'état'}
           </button>
         </div>
       </div>

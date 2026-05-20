@@ -37,7 +37,7 @@ const PlanningAudit = () => {
     );
 
     const handleViewDetail = (planningId) => {
-        navigate(`/admin/planning-audit/${planningId}`);
+        navigate(`/dashboard/planning-audit/${planningId}`);
     };
 
     if (loading) return <div className="audit-loading">Chargement des données d'audit...</div>;
