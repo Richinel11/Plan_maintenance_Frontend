@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { toast } from 'sonner';
 import { 
     getAvailableTransitionsForPlanning, 
     executeWorkflowTransition, 
@@ -70,7 +71,7 @@ const WorkflowControlBar = ({ planningId, onActionSuccess }) => {
             if (onActionSuccess) onActionSuccess();
             
         } catch (error) {
-            alert("Erreur lors de l'exécution de l'action: " + (error.response?.data?.error || error.message));
+            toast.error("Erreur lors de l'exécution de l'action: " + (error.response?.data?.error || error.message));
         } finally {
             setLoading(false);
         }

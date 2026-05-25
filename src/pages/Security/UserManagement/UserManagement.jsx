@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { getUsers, getRoles, getEntites } from '../../../services/userService';
+import { toast } from 'sonner';
 import UsersTable from './components/UsersTable';
 import UserModal from './components/UserModal';
 import ConfirmModal from './components/ConfirmModal';
@@ -41,6 +42,7 @@ const UserManagement = () => {
             setEntites(Array.isArray(entitesData) ? entitesData : (entitesData?.results || []));
         } catch (error) {
             console.error("Erreur lors du chargement des données", error);
+            toast.error("Impossible de charger les données. Vérifiez la connexion au serveur.");
             setUsers([]);
             setRoles([]);
             setEntites([]);

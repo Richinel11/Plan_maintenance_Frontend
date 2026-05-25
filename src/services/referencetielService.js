@@ -1,8 +1,8 @@
 import api from "../API/axiosInstance";
 
 /* REFERENCES */
-export const getReferences = async () => {
-  const response = await api.get("/references/");
+export const getReferences = async (entiteMetierId) => {
+  const response = await api.get(`references/?entite_metier_id=${entiteMetierId}`);
   return response.data;
 };
 

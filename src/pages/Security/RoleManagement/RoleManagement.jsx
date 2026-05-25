@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { getRoles, getPermissions, deleteRole, patchRole, getRolePermissions } from '../../../services/userService';
+import { toast } from 'sonner';
 import RolesTable from './components/RolesTable';
 import RoleModal from './components/RoleModal';
 import './RoleManagement.css';
@@ -83,17 +84,30 @@ const RoleManagement = () => {
         setIsRoleModalOpen(true);
     };
 
-    const handleDeleteRoleClick = async (role) => {
-        if (window.confirm(`Êtes-vous sûr de vouloir supprimer définitivement le rôle "${role.nom}" ? Cette action est irréversible.`)) {
-            try {
-                // Appel à la route de suppression avec le code_role (clé métier)
-                await deleteRole(role.code_role);
-                refreshData(); 
-            } catch (error) {
-                console.error(`Erreur lors de la tentative de suppression:`, error);
-                alert(error.response?.data?.detail || error.message || `Impossible de supprimer ce rôle. Il est peut-être déjà utilisé.`);
+    const handleDeleteRoleClick = (role) => {
+        toast.warning(
+            `Supprimer le rôle "${role.nom}" ?`,
+            {
+                description: 'Cette action est irréversible. Le rôle sera définitivement supprimé.',
+                duration: 8000,
+                action: {
+                    label: 'Confirmer',
+                    onClick: async () => {
+                        try {
+                            await deleteRole(role.code_role);
+                            toast.success(`Rôle "${role.nom}" supprimé avec succès.`);
+                            refreshData();
+                        } catch (error) {
+                            toast.error(error.response?.data?.detail || error.message || `Impossible de supprimer ce rôle. Il est peut-être déjà utilisé.`);
+                        }
+                    }
+                },
+                cancel: {
+                    label: 'Annuler',
+                    onClick: () => {}
+                }
             }
-        }
+        );
     };
 
     const refreshData = () => {

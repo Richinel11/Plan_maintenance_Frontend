@@ -3,6 +3,7 @@ import { getPermissions, deletePermission } from '../../../services/userService'
 import PermissionsTable from '../RoleManagement/components/PermissionsTable';
 import PermissionModal from '../RoleManagement/components/PermissionModal';
 import '../RoleManagement/RoleManagement.css'; // On réutilise les styles structurels de la page
+import { toast } from 'sonner';
 
 const PermissionManagement = () => {
     const [permissions, setPermissions] = useState([]);
@@ -61,16 +62,31 @@ const PermissionManagement = () => {
         setIsPermissionModalOpen(true);
     };
 
-    const handleDeletePermissionClick = async (permId) => {
-        if (window.confirm("Êtes-vous sûr de vouloir supprimer cette permission ? Les rôles associés perdront également cette permission.")) {
-            try {
-                await deletePermission(permId);
-                fetchData();
-            } catch (error) {
-                console.error("Erreur lors de la suppression de la permission", error);
-                alert(error.response?.data?.detail || "Erreur lors de la suppression");
+    const handleDeletePermissionClick = (permId) => {
+        toast.warning(
+            "Supprimer cette permission ?",
+            {
+                description: "Les rôles associés perdront également cette permission.",
+                duration: 8000,
+                action: {
+                    label: "Confirmer",
+                    onClick: async () => {
+                        try {
+                            await deletePermission(permId);
+                            toast.success("Permission supprimée avec succès.");
+                            fetchData();
+                        } catch (error) {
+                            console.error("Erreur lors de la suppression de la permission", error);
+                            toast.error(error.response?.data?.detail || "Erreur lors de la suppression");
+                        }
+                    }
+                },
+                cancel: {
+                    label: "Annuler",
+                    onClick: () => {}
+                }
             }
-        }
+        );
     };
 
     return (

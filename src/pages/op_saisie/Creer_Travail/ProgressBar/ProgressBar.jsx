@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { toast } from 'sonner';
 import { ArrowRight, ArrowLeft } from "lucide-react";
 import "./Progress.css";
 
@@ -23,6 +24,8 @@ import {
   createPlanning,
   getOptionsByService,
 } from "../../../../API/planningService";
+
+import { getEntites } from "../../../../services/userService";
 
 export default function MultiStepForm() {
   const [plannings, setPlannings] = useState([]);
@@ -107,13 +110,22 @@ export default function MultiStepForm() {
       try {
         // Chargement parallèle des données de base
         // Note: ouvrages/postes/departs/troncons sont déduits des items de la Référence
+
+        const entitemetier_id = await getEntites().then((ents) => {
+          const ent = ents.find((e) => {
+            console.log("Comparaison entité métier:", e.name, "avec service:", service);
+            return e.name.toLocaleLowerCase() === service.toLocaleLowerCase(); //
+          });
+          return ent ? ent.id : null;
+        });
+        console.log("Entité métier ID pour le service", service, ":", entitemetier_id);
         const [
           referencesData,
           typesData,
           planningsResponse,
           chargesData,
         ] = await Promise.all([
-          getReferences(),
+          getReferences(entitemetier_id),
           getTypesActivite(),
           getPlannings(),
           getChargesConsignation(),
@@ -246,10 +258,10 @@ export default function MultiStepForm() {
       setLoading(true);
       const payload = mapPlanningPayload(formData);
       await createPlanning(payload);
-      alert("Planning créé avec succès");
+      toast.success("Planning créé avec succès");
     } catch (error) {
       console.error(error);
-      alert("Erreur lors de la création du planning");
+      toast.error("Erreur lors de la création du planning");
     } finally {
       setLoading(false);
     }
@@ -327,9 +339,9 @@ export default function MultiStepForm() {
                 onChange={(e) => setService(e.target.value)}
               >
                 <option value="">-- Sélectionner une entité --</option>
-                <option value="transport">Transport</option>
-                <option value="distribution">Distribution</option>
-                <option value="production">Production</option>
+                <option value="Transport">Transport</option>
+                <option value="Distribution">Distribution</option>
+                <option value="Production">Production</option>
               </select>
               <svg className="chevron" viewBox="0 0 20 20" fill="currentColor" width="16" height="16">
                 <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />

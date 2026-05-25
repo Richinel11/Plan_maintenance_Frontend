@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { getCurrentUser } from "../../../services/Authservice";
+import { toast } from "sonner";
 
 import FileInput from "../Importer_Plannings/importation";
 import readExcel from "./readFile";
@@ -194,15 +195,11 @@ const prevStep = () => {
   const handleFileSelect = async (file) => {
     try {
       setFileName(file.name);
-
       const data = await readExcel(file);
-
       setExcelData(data);
-
     } catch (error) {
       console.error(error);
-
-      alert("Erreur importation fichier");
+      toast.error("Erreur lors de l'importation du fichier. Vérifiez le format.");
     }
   };
 
@@ -266,16 +263,22 @@ const prevStep = () => {
   /* ---------------- DELETE ---------------- */
 
   const handleDeleteRow = (rowIndex) => {
-    const confirmed = window.confirm(
-      "Voulez-vous supprimer cette ligne ?"
-    );
-    if (!confirmed) return;
-
-    const targetIndex = excelData.length > rows.length ? rowIndex + 1 : rowIndex;
-    const updated = excelData.filter(
-      (_, index) => index !== targetIndex
-    );
-    setExcelData(updated);
+    toast.warning("Supprimer cette ligne ?", {
+      description: "Cette action est irréversible.",
+      duration: 6000,
+      action: {
+        label: "Confirmer",
+        onClick: () => {
+          const targetIndex = excelData.length > rows.length ? rowIndex + 1 : rowIndex;
+          const updated = excelData.filter((_, index) => index !== targetIndex);
+          setExcelData(updated);
+        }
+      },
+      cancel: {
+        label: "Annuler",
+        onClick: () => {}
+      }
+    });
   };
 
   /* ---------------- ADD ROW ---------------- */
@@ -320,7 +323,7 @@ const handleAddPlanningRow = () => {
 
   const handleSubmit = async () => {
     if (!rows.length) {
-      alert("Aucune donnée");
+      toast.error("Aucune donnée à soumettre. Ajoutez des lignes avant de valider.");
       return;
     }
 
@@ -369,14 +372,14 @@ const handleAddPlanningRow = () => {
       setSubmissionStatus("Terminé !");
       setTimeout(() => {
         setIsSubmissionModalOpen(false);
-        alert("Planning et travaux importés avec succès");
+        toast.success("Planning et travaux importés avec succès !");
         navigate("/dashboard/Tableaux_De_Bord");
       }, 1000);
 
     } catch (error) {
       console.error(error);
       setSubmissionStatus("Erreur lors de l'importation");
-      alert("Erreur lors de l'importation : " + (error.response?.data?.error || "Erreur inconnue"));
+      toast.error("Erreur lors de l'importation : " + (error.response?.data?.error || "Erreur inconnue"));
       setIsSubmissionModalOpen(false);
     } finally {
       setLoading(false);

@@ -39,6 +39,10 @@ export const createPlanning = (data) => {
   return api.post("/plannings/", data);
 };
 
+export const deletePlanning = (id) => {
+  return api.delete(`/plannings/${id}/`);
+};
+
 export const createTravail = (data) => {
   return api.post("/travaux/", data);
 };

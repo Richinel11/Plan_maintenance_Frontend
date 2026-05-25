@@ -1,28 +1,27 @@
 import React, { useState } from 'react';
 import { deactivateUser, activateUser } from '../../../../services/userService';
+import { toast } from 'sonner';
 import './Modals.css';
 
 const ConfirmModal = ({ isOpen, onClose, user, onSuccess }) => {
     const [loading, setLoading] = useState(false);
-    const [error, setError] = useState(null);
 
     const isActive = user?.is_active;
 
     const handleConfirm = async () => {
         setLoading(true);
-        setError(null);
         try {
             if (isActive) {
-                // Désactiver → statut passe à "Inactif" via DELETE /delete-user/<uuid>/
                 await deactivateUser(user.id);
+                toast.success(`Utilisateur "${user.username}" désactivé avec succès.`);
             } else {
-                // Réactiver → statut passe à "Actif" via POST /restore-user/<uuid>/
                 await activateUser(user.id);
+                toast.success(`Utilisateur "${user.username}" réactivé avec succès.`);
             }
             onSuccess();
             onClose();
         } catch (err) {
-            setError(err.response?.data?.detail || err.response?.data?.error || "Une erreur s'est produite.");
+            toast.error(err.response?.data?.detail || err.response?.data?.error || "Une erreur s'est produite.");
         } finally {
             setLoading(false);
         }
@@ -41,7 +40,6 @@ const ConfirmModal = ({ isOpen, onClose, user, onSuccess }) => {
                 </div>
                 
                 <div className="modal-body">
-                    {error && <div className="modal-error">{error}</div>}
                     <div className="confirm-icon-wrapper">
                         <span className="material-symbols-outlined confirm-icon">
                             {isActive ? 'person_off' : 'how_to_reg'}

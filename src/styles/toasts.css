@@ -1,0 +1,84 @@
+/* src/styles/toasts.css */
+
+/* Variables pour une maintenance facile */
+:root {
+    --toast-width: 500px;
+    --toast-font-size: 16px;
+    --toast-radius: 12px;
+    --toast-shadow: 0 10px 10px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+    --toast-border-width: 2px;
+}
+
+/* Style de base pour les toasts Sonner */
+[data-sonner-toast] {
+    width: var(--toast-width) !important;
+    font-size: var(--toast-font-size) !important;
+    border-radius: var(--toast-radius) !important;
+    box-shadow: var(--toast-shadow) !important;
+    padding: 16px 20px !important;
+    border: var(--toast-border-width) solid transparent !important;
+    font-family: 'Inter', 'Segoe UI', Roboto, sans-serif !important;
+}
+
+/* Positionnement centré et animation plus fluide */
+[data-sonner-toaster][data-x-position='center'] {
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+}
+
+/* Styles spécifiques par type avec bordures accentuées */
+[data-sonner-toast][data-type='success'] {
+    background-color: #f0fdf4 !important;
+    border-color: #22c55e !important;
+    color: #14532d !important;
+}
+
+[data-sonner-toast][data-type='error'] {
+    background-color: #fef2f2 !important;
+    border-color: #ef4444 !important;
+    color: #7f1d1d !important;
+}
+
+[data-sonner-toast][data-type='warning'] {
+    background-color: #fffbeb !important;
+    border-color: #0bf50b67 !important;
+    color: #d647477b !important;
+}
+
+/* Style pour les boutons d'action (Confirmation) */
+[data-sonner-toast] [data-button] {
+    background-color: #1f2937 !important;
+    color: white !important;
+    padding: 8px 16px !important;
+    border-radius: 6px !important;
+    font-weight: 600 !important;
+    transition: all 0.2s ease !important;
+    margin-left: 12px !important;
+}
+
+[data-sonner-toast] [data-button]:hover {
+    background-color: #c7232337 !important;
+    transform: translateY(-1px) !important;
+}
+
+/* Style pour le bouton d'annulation */
+[data-sonner-toast] [data-cancel] {
+    background-color: #e5e7eb !important;
+    color: #374151 !important;
+    padding: 8px 16px !important;
+    border-radius: 6px !important;
+    font-weight: 500 !important;
+}
+
+/* Titre et description */
+[data-sonner-toast] [data-title] {
+    font-weight: 700 !important;
+    margin-bottom: 4px !important;
+    display: block !important;
+}
+
+[data-sonner-toast] [data-description] {
+    color: inherit !important;
+    opacity: 0.9 !important;
+    line-height: 1.5 !important;
+}

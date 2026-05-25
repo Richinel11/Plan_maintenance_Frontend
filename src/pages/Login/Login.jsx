@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import AuthLayout from './AuthLayout';
 import { login } from '../../services/Authservice';
 import { getUserById } from '../../services/userService';
+import { toast } from 'sonner';
 import './Login.css';
 
 const Login = () => {
@@ -10,12 +11,10 @@ const Login = () => {
     const [identifier, setIdentifier] = useState('');
     const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
-    const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        setError('');
         setLoading(true);
 
         try {
@@ -24,8 +23,6 @@ const Login = () => {
             console.log(data);
             console.log(user);
 
-            // Si c'est un compte Active Directory (LDAP), ils ne changent jamais leur mot de passe ici !
-            // Sinon (compte externe), on vérifie si c'est la première connexion.
             if (!user.ldap_req && user.first_connection) {
                 navigate('/change-password', { state: { userId: user.id } });
             } else {
@@ -37,7 +34,6 @@ const Login = () => {
                 const backendData = err.response.data;
                 let backendMessage = null;
                 
-                // Tente d'extraire le message d'erreur depuis les formats standards de Django DRF
                 if (backendData && backendData.detail) {
                     backendMessage = backendData.detail;
                 } else if (backendData && backendData.error) {
@@ -45,7 +41,6 @@ const Login = () => {
                 } else if (backendData && backendData.non_field_errors) {
                     backendMessage = backendData.non_field_errors[0];
                 } else if (typeof backendData === 'object') {
-                    // S'il y a d'autres champs d'erreurs (ex: {"username": ["Ce champ est requis"]})
                     const firstKey = Object.keys(backendData)[0];
                     if (firstKey && Array.isArray(backendData[firstKey])) {
                         backendMessage = backendData[firstKey][0];
@@ -56,29 +51,27 @@ const Login = () => {
                     backendMessage = backendData;
                 }
 
-                // Si on a réussi à extraire le message du backend, on l'affiche
                 if (backendMessage) {
-                    setError(backendMessage);
+                    toast.error(backendMessage);
                 } else {
-                    // Fallbacks par défaut liés au contexte de connexion
                     if (err.response.status === 400) {
-                        setError('Format des identifiants invalide. Veuillez vérifier votre saisie.');
+                        toast.error('Format des identifiants invalide. Veuillez vérifier votre saisie.');
                     } else if (err.response.status === 401) {
-                        setError('Identifiant ou mot de passe incorrect.');
+                        toast.error('Identifiant ou mot de passe incorrect.');
                     } else if (err.response.status === 403) {
-                        setError('Votre compte est désactivé ou vous n\'avez pas la permission de vous connecter.');
+                        toast.error('Votre compte est désactivé ou vous n\'avez pas la permission de vous connecter.');
                     } else if (err.response.status === 404) {
-                        setError('Profil introuvable. Ce compte existe mais ne possède pas de profil applicatif valide dans EneoPlan.');
+                        toast.error('Profil introuvable. Ce compte existe mais ne possède pas de profil applicatif valide dans EneoPlan.');
                     } else if (err.response.status >= 500) {
-                        setError('Le serveur d\'authentification est indisponible (Erreur ' + err.response.status + '). Veuillez réessayer plus tard.');
+                        toast.error('Le serveur d\'authentification est indisponible (Erreur ' + err.response.status + '). Veuillez réessayer plus tard.');
                     } else {
-                        setError(`Erreur de connexion inattendue (Code ${err.response.status}).`);
+                        toast.error(`Erreur de connexion inattendue (Code ${err.response.status}).`);
                     }
                 }
             } else if (err.request) {
-                setError(err.message);
+                toast.error(err.message);
             } else {
-                setError('Erreur inattendue : ' + err.message);
+                toast.error('Erreur inattendue : ' + err.message);
             }
         } finally {
             setLoading(false);
@@ -125,13 +118,6 @@ const Login = () => {
                         </span>
                     </div>
                 </div>
-
-                {/* Affichage de l'erreur */}
-                {error && (
-                    <div style={{ color: 'red', fontSize: '0.85rem', marginBottom: '10px' }}>
-                        {error}
-                    </div>
-                )}
 
                 {/* <div className="forgot-password-container">
                     <a href="#" className="forgot-password-link">Mot de passe oublié ?</a>

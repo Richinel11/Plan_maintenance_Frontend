@@ -2,7 +2,8 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import './Dashboard.css';
 import Footer from '../Plannings/footer/footer';
-import { getPlannings } from "../../../API/planningService";
+import { getPlannings, deletePlanning } from "../../../API/planningService";
+import { toast } from "sonner";
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -11,26 +12,27 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({ total: 0, encours: 0, cloture: 0 });
 
+  const fetchPlannings = async () => {
+    try {
+      setLoading(true);
+      const data = await getPlannings(1);
+      const results = data.results || data;
+      const planningsData = Array.isArray(results) ? results : [];
+      setPlannings(planningsData);
+
+      // Mise à jour basique des stats
+      const encours = planningsData.filter(p => (p.statut || "").toLowerCase().includes("cours")).length;
+      const cloture = planningsData.filter(p => (p.statut || "").toLowerCase().includes("clôturé")).length;
+      setStats({ total: data.count || planningsData.length, encours, cloture });
+
+    } catch (error) {
+      console.error("Erreur lors de la récupération des plannings:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchPlannings = async () => {
-      try {
-        setLoading(true);
-        const data = await getPlannings(1);
-        const results = data.results || data;
-        const planningsData = Array.isArray(results) ? results : [];
-        setPlannings(planningsData);
-
-        // Mise à jour basique des stats
-        const encours = planningsData.filter(p => (p.statut || "").toLowerCase().includes("cours")).length;
-        const cloture = planningsData.filter(p => (p.statut || "").toLowerCase().includes("clôturé")).length;
-        setStats({ total: data.count || planningsData.length, encours, cloture });
-
-      } catch (error) {
-        console.error("Erreur lors de la récupération des plannings:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
     fetchPlannings();
   }, []);
 
@@ -65,10 +67,27 @@ const Dashboard = () => {
 
   const handleDelete = (planning, e) => {
     e.stopPropagation();
-    if (window.confirm(`Êtes-vous sûr de vouloir supprimer le planning "${planning.nom}" ?`)) {
-      console.log("Delete planning:", planning.id);
-      // Logique de suppression
-    }
+    toast.warning(`Supprimer le planning "${planning.nom}" ?`, {
+      description: "Cette action est irréversible et supprimera également tous les travaux associés.",
+      duration: 8000,
+      action: {
+        label: "Confirmer",
+        onClick: async () => {
+          try {
+            await deletePlanning(planning.id);
+            toast.success("Planning supprimé avec succès.");
+            fetchPlannings();
+          } catch (error) {
+            console.error("Erreur lors de la suppression:", error);
+            toast.error("Impossible de supprimer le planning.");
+          }
+        }
+      },
+      cancel: {
+        label: "Annuler",
+        onClick: () => {}
+      }
+    });
   };
 
   return (
