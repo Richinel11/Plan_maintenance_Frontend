@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect} from "react";
 import "./AdvancedGantt.css";
 import mockData from "./data/ganttAdvancedData";
 
@@ -9,11 +9,36 @@ const days = [
   "Jeudi 19 Oct."
 ];
 
-export default function AdvancedGantt() {
-  const [data, setData] = useState([]);
+export default function AdvancedGantt({
+  data,
+  view,
+  // currentWeek
+}) {
+
 
   useEffect(() => {
-    setData(mockData);
+
+        // MOCK FOR NOW
+        setEntities([
+          "Production",
+          "Transport",
+          "Distribution"
+        ]);
+
+        setStatuses([
+          "En cours",
+          "Terminé",
+          "En attente"
+        ]);
+
+        // GANTT MOCK DATA
+        setGanttData(mockData);
+
+      }, []);
+
+const totalColumns = view === "semaine" ? 7 : 30;
+  useEffect(() => {
+    // setData(mockData);
 
     // 🔌 backend later:
     // fetch("/api/gantt")
@@ -38,7 +63,7 @@ export default function AdvancedGantt() {
         <div className="sidebar">
           <div className="sidebar-header">TRAVAUX & ENTITÉS</div>
 
-          {data.map((item) => (
+          {data?.map((item) => (
             <div className={`sidebar-item ${item.alert ? "alert" : ""}`} key={item.id}>
               <div className="title">
                 {item.name}
@@ -62,15 +87,15 @@ export default function AdvancedGantt() {
           </div>
 
           {/* ROWS */}
-          {data.map((row) => (
+          {data?.map((row) => (
             <div className="row" key={row.id}>
               {row.tasks.map((task, i) => (
                 <div
                   key={i}
                   className={`task ${task.color}`}
                   style={{
-                    left: `${(task.start / 4) * 100}%`,
-                    width: `${((task.end - task.start) / 4) * 100}%`,
+                 left: `${(task.start / totalColumns) * 100}%`,
+                 width: `${(((task.end - task.start + 1) / totalColumns) * 100)}%`,
                   }}
                 >
                   Reference titre

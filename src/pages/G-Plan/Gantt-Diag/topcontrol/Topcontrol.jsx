@@ -1,10 +1,27 @@
-import React, { useState } from "react";
+import React from "react";
 import "./Topcontrol.css";
 import { GrFormPrevious, GrFormNext } from "react-icons/gr"; 
 
 
-export default function TopControls() {
-  const [view, setView] = useState("semaine");
+export default function TopControls({
+  view,
+  setView,
+
+  selectedEntity,
+  setSelectedEntity,
+
+  selectedStatus,
+  setSelectedStatus,
+
+  entities,
+  statuses,
+
+  currentWeek,
+  setCurrentWeek,
+
+  onAnalyze
+}) {
+ 
 
   return (
     <div className="controls-container">
@@ -12,17 +29,40 @@ export default function TopControls() {
       {/* LEFT SIDE */}
       <div className="controls-left">
 
-        <button className="btn-primary">
-          lancer l'analyse
-        </button>
+     <button
+        className="btn-primary"
+        onClick={onAnalyze}
+      >
+        lancer l'analyse
+      </button>
 
-        <select className="select">
-          <option>Toutes les Entités</option>
-        </select>
+      <select
+        className="select"
+        value={selectedEntity}
+        onChange={(e) => setSelectedEntity(e.target.value)}
+      >
+        <option value="">Toutes les Entités</option>
 
-        <select className="select warning">
-          <option>Tous les statuts</option>
-        </select>
+        {entities.map((entity) => (
+          <option key={entity} value={entity}>
+            {entity}
+          </option>
+        ))}
+      </select>
+
+      <select
+        className="select warning"
+        value={selectedStatus}
+        onChange={(e) => setSelectedStatus(e.target.value)}
+      >
+        <option value="">Tous les statuts</option>
+
+        {statuses.map((status) => (
+          <option key={status} value={status}>
+            {status}
+          </option>
+        ))}
+      </select>
 
       </div>
 
@@ -49,9 +89,17 @@ export default function TopControls() {
           {/* <button>{"‹"}</button>
           <span>Sem. 42 (Oct)</span>
           <button>{"›"}</button> */}
-         <GrFormPrevious />
-          <span>Sem. 42 (Oct)</span>
-           <GrFormNext />
+         <GrFormPrevious
+            onClick={() => setCurrentWeek(w => w - 1)}
+            style={{ cursor: "pointer" }}
+          />
+
+          <span>Sem. {currentWeek}</span>
+
+           <GrFormNext
+              onClick={() => setCurrentWeek(w => w + 1)}
+              style={{ cursor: "pointer" }}
+            />
         </div>
 
       </div>

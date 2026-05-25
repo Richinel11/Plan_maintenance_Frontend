@@ -22,7 +22,10 @@ const mockAlerts = [
 
 export default function AlertsPanel() {
   const [alerts, setAlerts] = useState([]);
-
+  const [showAll, setShowAll] = useState(false);
+  const displayedAlerts = showAll
+  ? alerts
+  : alerts.slice(0, 3);
   // 🔌 Ready for backend
   useEffect(() => {
     setAlerts(mockAlerts);
@@ -39,12 +42,19 @@ export default function AlertsPanel() {
       {/* HEADER */}
       <div className="alerts-header">
         <h3>Alertes Actives</h3>
-        <span className="see-all">Voir tout</span>
+          {alerts.length > 3 && (
+            <span
+              className="see-all"
+              onClick={() => setShowAll(!showAll)}
+            >
+              {showAll ? "Voir moins" : "Voir tout"}
+            </span>
+          )}
       </div>
 
       {/* LIST */}
       <div className="alerts-list">
-        {alerts.map((alert) => (
+        {displayedAlerts.map((alert) => (
           <div className="alert-item" key={alert.id}>
             
             <div className="alert-icon">❗</div>

@@ -55,17 +55,18 @@
 .timeline {
   position: relative;
   height: 30px;           /* slightly taller */
-  padding: 4px;           /* 🔥 inner spacing */
+  top: 4px;           /* 🔥 inner spacing */
   background: #f3f4f6;
   border-radius: 6px;
 }
 
 /* tasks */
 .task {
-  position: absolute;
-  top: 50%;
+  position: relative;
+  top: 27px;
+  margin-top: 10px;  
   transform: translateY(-50%);
-  height: 12px;
+  height: 28px;
   border-radius: 8px;
 }
 
