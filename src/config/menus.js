@@ -48,5 +48,19 @@ export const menuConfig = {
 };
 
 // --- Mappings de compatibilité (Backend Django) ---
+// Codes legacy en minuscule
 menuConfig['op1'] = menuConfig['operateur_de_saisie'];
 menuConfig['Ad1'] = menuConfig['admin'];
+
+// Codes réels du backend (code_role en majuscule dans les modèles Django)
+menuConfig['OPERATEUR_SAISIE'] = menuConfig['operateur_de_saisie'];
+menuConfig['operateur_saisie'] = menuConfig['operateur_de_saisie'];
+menuConfig['opérateur_de_saisie'] = menuConfig['operateur_de_saisie'];
+menuConfig['ADMIN'] = menuConfig['admin'];
+menuConfig['ADMINISTRATEUR'] = menuConfig['admin'];
+menuConfig['administrateur'] = menuConfig['admin'];
+menuConfig['GEST_PLANIF'] = menuConfig['gest_planif'];
+menuConfig['RESP_EXPLOIT'] = menuConfig['resp_exploit'];
+menuConfig['CCR'] = menuConfig['ccr'];
+menuConfig['REG_AUDIT'] = menuConfig['reg_audit'];
+menuConfig['EQ_COMM'] = menuConfig['eq_comm'];

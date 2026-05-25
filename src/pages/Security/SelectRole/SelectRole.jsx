@@ -15,16 +15,29 @@ const staticRolesFallback = {
     'reg_audit': { icon: 'fact_check' }
 };
 
+// Helper : lit les données utilisateur depuis le cookie, puis localStorage en fallback
+const readUser = () => {
+    const cookieStr = Cookies.get('user');
+    if (cookieStr) {
+        try { return JSON.parse(cookieStr); } catch (e) {}
+    }
+    const lsStr = localStorage.getItem('user');
+    if (lsStr) {
+        try { return JSON.parse(lsStr); } catch (e) {}
+    }
+    return null;
+};
+
 const SelectRole = () => {
     const [selectedRole, setSelectedRole] = useState(null);
     const navigate = useNavigate();
 
-    // 1. On lit les données utilisateur que le backend nous a envoyées via la connexion
-    const userString = Cookies.get('user');
-    const user = userString ? JSON.parse(userString) : null;
+    // 1. On lit les données utilisateur (cookie en priorité, localStorage en fallback)
+    const user = readUser();
 
-    // 2. On récupère la liste des rôles de l'utilisateur. 
+    // 2. On récupère la liste des rôles de l'utilisateur.
     const allowedRolesList = user?.roles ? user.roles : (user?.role ? [user.role] : []);
+
 
     // 3. Auto-sélection ET Redirection : si 1 SEUL rôle, on part en automatique
     useEffect(() => {

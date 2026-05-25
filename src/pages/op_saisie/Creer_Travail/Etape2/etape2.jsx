@@ -1,145 +1,190 @@
-import React from "react";
+import React, { useState, useEffect, useRef } from "react";
 import "./etape2.css";
-import { ChevronDown } from "lucide-react";
+import { X, Check } from "lucide-react";
+import SearchableSelect from "../components/SearchableSelect";
 
-/* ---------------- SELECT FIELD ---------------- */
-function SelectField({
-  label,
-  value,
-  options,
-  placeholder,
-  onChange,
-}) {
-  const isObjectArray =
-    options &&
-    options.length > 0 &&
-    typeof options[0] ===
-      "object";
+const Etape2 = ({ formData, onChange, fields = [], options = {}, errors = {} }) => {
+  const isFieldVisible = (field) => fields && fields.includes(field);
+  const safeOptions = (key) => (options && options[key] ? options[key] : []);
+
+  const [isTronconOpen, setIsTronconOpen] = useState(false);
+  const tronconWrapperRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (tronconWrapperRef.current && !tronconWrapperRef.current.contains(e.target)) {
+        setIsTronconOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const tronconsList = safeOptions("Troncons");
+  const currentTypedVal = formData.Troncons || "";
+
+  const filteredTroncons = tronconsList.filter((opt) => {
+    const label = typeof opt === "object"
+      ? opt.libelle || opt.nom || opt.code || opt.name || ""
+      : opt;
+    return String(label).toLowerCase().includes(currentTypedVal.toLowerCase());
+  });
 
   return (
-    <div className="select-group" style={{ width: '100%' }}>
-      <label className="field-label" style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold' }}>
-        {label}
-      </label>
-      <div className="select-wrapper" style={{ position: 'relative' }}>
-        <select
-          value={value || ""}
-          onChange={(e) => onChange(e.target.value)}
-          style={{
-            width: '100%',
-            padding: '10px',
-            borderRadius: '4px',
-            border: '1px solid #ccc',
-            appearance: 'none'
-          }}
-        >
-          <option value="">{placeholder}</option>
-          {options &&
-            options.map((opt) => {
-              if (isObjectArray) {
-                return (
-                  <option key={opt.id} value={opt.id}>
-                    {opt.libelle || opt.nom || opt.name || 
-                     `${opt.first_name || ""} ${opt.last_name || ""}`.trim()}
-                  </option>
-                );
-              }
-              return (
-                <option key={opt} value={opt}>{opt}</option>
-              );
-            })}
-        </select>
-        <ChevronDown
-          className="chevron"
-          size={18}
-          style={{ position: 'absolute', right: '10px', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }}
-        />
+    <div className="etape-container">
+      <div className="etape-title">
+        <span>Détails Techniques</span>
+        <h1>Localisation &amp; Consistance</h1>
+      </div>
+
+      {/* ── Tronçons ── */}
+      {isFieldVisible("Troncons") && (
+        <div className="part1" ref={tronconWrapperRef}>
+          <label className="field-label">
+            Tronçons / Consignes<span className="required-star">*</span>
+          </label>
+          <div className={`creatable-select-container${errors.Troncons ? " input-error" : ""}`}>
+            <div className="creatable-select-input-wrapper">
+              <input
+                type="text"
+                placeholder="Rechercher ou saisir un tronçon..."
+                value={formData.Troncons || ""}
+                onChange={(e) => {
+                  onChange("Troncons", e.target.value);
+                  onChange("troncon_id", null);
+                  setIsTronconOpen(true);
+                }}
+                onFocus={() => setIsTronconOpen(true)}
+                className={errors.Troncons ? "input-error" : ""}
+              />
+              {formData.Troncons && (
+                <button
+                  type="button"
+                  className="creatable-select-clear"
+                  onClick={() => {
+                    onChange("Troncons", "");
+                    onChange("troncon_id", null);
+                    setIsTronconOpen(false);
+                  }}
+                  title="Effacer"
+                >
+                  <X size={14} />
+                </button>
+              )}
+            </div>
+
+            {isTronconOpen && (
+              <div className="creatable-select-dropdown">
+                {filteredTroncons.length === 0 ? (
+                  currentTypedVal.trim() === "" && (
+                    <div style={{ padding: "12px 14px", color: "#94A3B8", fontStyle: "italic", fontSize: 13, textAlign: "center" }}>
+                      Aucun tronçon disponible. Saisissez pour en créer un.
+                    </div>
+                  )
+                ) : (
+                  filteredTroncons.map((opt) => {
+                    const id = typeof opt === "object" ? opt.id : opt;
+                    const label = typeof opt === "object"
+                      ? opt.libelle || opt.nom || opt.code || opt.name || ""
+                      : opt;
+                    const isSelected = String(formData.troncon_id) === String(id);
+
+                    return (
+                      <div
+                        key={id}
+                        className={`creatable-select-option ${isSelected ? "selected" : ""}`}
+                        onClick={() => {
+                          onChange("troncon_id", id);
+                          onChange("Troncons", label);
+                          setIsTronconOpen(false);
+                        }}
+                      >
+                        <span>{label}</span>
+                        {isSelected && <Check size={14} style={{ color: "#1B75BB", flexShrink: 0 }} />}
+                      </div>
+                    );
+                  })
+                )}
+              </div>
+            )}
+          </div>
+          {errors.Troncons && <span className="field-error">⚠️ {errors.Troncons}</span>}
+        </div>
+      )}
+
+      {/* ── Consistances des travaux ── */}
+      {isFieldVisible("Consistances_Des_Travaux") && (
+        <div className="part2">
+          <label className="field-label">
+            Consistances des travaux<span className="required-star">*</span>
+          </label>
+          <textarea
+            placeholder="Décrivez en détail la nature technique de l'intervention..."
+            value={formData.Consistances_Des_Travaux || ""}
+            onChange={(e) => onChange("Consistances_Des_Travaux", e.target.value)}
+            className={errors.Consistances_Des_Travaux ? "input-error" : ""}
+          />
+          {errors.Consistances_Des_Travaux && (
+            <span className="field-error">⚠️ {errors.Consistances_Des_Travaux}</span>
+          )}
+        </div>
+      )}
+
+      {/* ── Localités impactées ── */}
+      {isFieldVisible("Localites_impactees") && (
+        <div className="part3">
+          <label className="field-label">
+            Localités impactées<span className="required-star">*</span>
+          </label>
+          <input
+            type="text"
+            placeholder="Listez les quartiers ou zones impactés..."
+            value={formData.Localites_impactees || ""}
+            onChange={(e) => onChange("Localites_impactees", e.target.value)}
+            className={errors.Localites_impactees ? "input-error" : ""}
+          />
+          {errors.Localites_impactees && (
+            <span className="field-error">⚠️ {errors.Localites_impactees}</span>
+          )}
+        </div>
+      )}
+
+      {/* ── Moyens + Charges (grille 2 colonnes) ── */}
+      <div className="part4">
+        {isFieldVisible("Moyens_mis_en_oeuvre") && (
+          <div className="part-child">
+            <SearchableSelect
+              label={<>Moyens mis en œuvre <span className="required-star" style={{ color: "#EF4444" }}>*</span></>}
+              value={formData.Moyens_mis_en_oeuvre || ""}
+              options={safeOptions("Moyens_mis_en_oeuvre")}
+              placeholder="Sélectionner les ressources"
+              onChange={(val) => onChange("Moyens_mis_en_oeuvre", val)}
+              hasError={!!errors.Moyens_mis_en_oeuvre}
+            />
+            {errors.Moyens_mis_en_oeuvre && (
+              <span className="field-error">⚠️ {errors.Moyens_mis_en_oeuvre}</span>
+            )}
+          </div>
+        )}
+
+        {isFieldVisible("Charges_de_consignation") && (
+          <div className="part-child">
+            <SearchableSelect
+              label={<>Charge de consignation <span className="required-star" style={{ color: "#EF4444" }}>*</span></>}
+              value={formData.charge_consignation_id || ""}
+              options={safeOptions("Charges_de_consignation")}
+              placeholder="Sélectionner une charge"
+              onChange={(val) => onChange("charge_consignation_id", val)}
+              hasError={!!errors.Charges_de_consignation}
+            />
+            {errors.Charges_de_consignation && (
+              <span className="field-error">⚠️ {errors.Charges_de_consignation}</span>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );
-}
-
-const Etape2 = ({ formData, onChange, fields = [], options = {} }) => {
-    const isFieldVisible = (field) => fields && fields.includes(field);
-
-    const safeOptions = (key) => options && options[key] ? options[key] : [];
-
-    return(
-    <div className="etape-container">
-        <div className="etape-title">
-            <span>Détails Techniques</span>
-            <h1>Localisation & Consistance</h1>
-        </div>
-
-        {isFieldVisible("Troncons") && (
-            <div className="part1">
-                <h2>Tronçons / Consignes</h2>
-                <input 
-                    type="text" 
-                    placeholder="Précisez les tronçons concernés..." 
-                    value={formData.Troncons || ""}
-                    onChange={(e) => onChange("Troncons", e.target.value)}
-                />
-            </div>
-        )}
-
-        {isFieldVisible("Consistances_Des_Travaux") && (
-            <div className="part2">
-                <h2>Consistances des travaux</h2>
-                <textarea 
-                    placeholder="Décrivez en détail la nature technique de l'intervention..." 
-                    value={formData.Consistances_Des_Travaux || ""}
-                    onChange={(e) => onChange("Consistances_Des_Travaux", e.target.value)}
-                    className="form-textarea"
-                    style={{ minHeight: '100px', width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid #dbe2ea' }}
-                />
-            </div>
-        )}
-
-        {isFieldVisible("Localites_impactees") && (
-            <div className="part3">
-                <h2>Localités impactées</h2>
-                <input 
-                    placeholder="Listez les quartiers ou zones impactés..."
-                    value={formData.Localites_impactees || ""}
-                    onChange={(e) => onChange("Localites_impactees", e.target.value)}
-                />
-            </div>
-        )}
-
-        <div className="part4" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginTop: '20px' }}>
-            {isFieldVisible("Moyens_mis_en_oeuvre") && (
-                <div className="part-child">
-                    <h2>Moyens mis en oeuvre</h2>
-                    <select 
-                        value={formData.Moyens_mis_en_oeuvre || ""}
-                        onChange={(e) => onChange("Moyens_mis_en_oeuvre", e.target.value)}
-                        style={{ width: '100%', height: '52px', borderRadius: '10px', border: '1px solid #dbe2ea', padding: '0 16px' }}
-                    >
-                        <option value="">Sélectionner les ressources</option>
-                        {safeOptions("Moyens_mis_en_oeuvre").map(opt => (
-                            <option key={typeof opt === 'object' ? opt.id : opt} value={typeof opt === 'object' ? opt.id : opt}>
-                                {typeof opt === 'object' ? (opt.libelle || opt.nom) : opt}
-                            </option>
-                        ))}
-                    </select>
-                </div>
-            )}
-            
-            {isFieldVisible("Charges_de_consignation") && (
-                <div className="part-child">
-                    <SelectField
-                        label="Charge de consignation"
-                        value={formData.charge_consignation_id}
-                        options={safeOptions("Charges_de_consignation")}
-                        placeholder="Sélectionner un charge"
-                        onChange={(val) => onChange("charge_consignation_id", val)}
-                    />
-                </div>
-            )}
-        </div>
-    </div>
-    );
 };
 
 export default Etape2;

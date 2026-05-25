@@ -35,7 +35,10 @@ export const mapPlanningPayload = (data) => {
     depart_id: findId("depart_id"),
     troncon_id: findId("troncon_id"),
     charge_consignation_id: findId("charge_consignation_id"),
-    centrale_thermique_sollicitee_id: findId("centrale_thermique_sollicitee_id"),
+    centrale_thermique_sollicitee_id: findId("centrale_thermique_sollicitee_id") || findId("Centrale_thermique"),
+    unite_demanderesse_id: findId("unite_demanderesse_id") || findId("Unite_demanderesse"),
+    reference_id: findId("reference_id"),
+
 
     // Text fields
     reference: cleanStr(find(["reference", "Reference"])),

@@ -1,74 +1,8 @@
 import React from "react";
 import "./etape3.css";
-import { ChevronDown } from "lucide-react";
+import SearchableSelect from "../components/SearchableSelect";
 
-/* ---------------- SELECT FIELD ---------------- */
-function SelectField({
-  label,
-  value,
-  options,
-  placeholder,
-  onChange,
-}) {
-  const isObjectArray =
-    options &&
-    options.length > 0 &&
-    typeof options[0] ===
-      "object";
-
-  return (
-    <div className="form-group">
-      <label>{label}</label>
-      <div style={{ position: 'relative' }}>
-        <select
-          value={value || ""}
-          onChange={(e) => onChange(e.target.value)}
-          style={{
-            width: '100%',
-            padding: '14px 15px',
-            borderRadius: '9px',
-            border: '1px solid #cfd8e3',
-            appearance: 'none',
-            background: 'white',
-            fontSize: '16px',
-            outline: 'none',
-            cursor: 'pointer'
-          }}
-        >
-          <option value="">{placeholder}</option>
-          {options &&
-            options.map((opt) => {
-              if (isObjectArray) {
-                return (
-                  <option key={opt.id} value={opt.id}>
-                    {opt.libelle || opt.nom || opt.name || 
-                     `${opt.first_name || ""} ${opt.last_name || ""}`.trim()}
-                  </option>
-                );
-              }
-              return (
-                <option key={opt} value={opt}>{opt}</option>
-              );
-            })}
-        </select>
-        <ChevronDown
-          className="chevron"
-          size={20}
-          style={{ 
-            position: 'absolute', 
-            right: '15px', 
-            top: '50%', 
-            transform: 'translateY(-50%)', 
-            pointerEvents: 'none',
-            color: '#44556c'
-          }}
-        />
-      </div>
-    </div>
-  );
-}
-
-const PlanningSection = ({ formData, onChange, fields, options }) => {
+const PlanningSection = ({ formData, onChange, fields, options, errors = {} }) => {
   const isFieldVisible = (field) => fields.includes(field);
 
   const hasImpacts = 
@@ -91,12 +25,18 @@ const PlanningSection = ({ formData, onChange, fields, options }) => {
 
         {isFieldVisible("Debut_planifiee") && (
           <div className="form-group full">
-            <label>Date & Heure de début planifié</label>
+            <label>
+              Date & Heure de début planifié<span className="required-star">*</span>
+            </label>
             <input
               type="datetime-local"
               value={formData.Debut_planifiee || ""}
               onChange={(e) => onChange("Debut_planifiee", e.target.value)}
+              className={errors.Debut_planifiee ? "input-error" : ""}
             />
+            {errors.Debut_planifiee && (
+              <span className="field-error">⚠️ {errors.Debut_planifiee}</span>
+            )}
           </div>
         )}
 
@@ -104,13 +44,19 @@ const PlanningSection = ({ formData, onChange, fields, options }) => {
 
           {isFieldVisible("Duree") && (
             <div className="form-group">
-              <label>Durée (en heures)</label>
+              <label>
+                Durée (en heures)<span className="required-star">*</span>
+              </label>
               <input 
                 type="number" 
                 placeholder="ex: 4" 
                 value={formData.Duree || ""}
                 onChange={(e) => onChange("Duree", e.target.value)}
+                className={errors.Duree ? "input-error" : ""}
               />
+              {errors.Duree && (
+                <span className="field-error">⚠️ {errors.Duree}</span>
+              )}
             </div>
           )}
 
@@ -127,12 +73,18 @@ const PlanningSection = ({ formData, onChange, fields, options }) => {
 
         {isFieldVisible("Date_programmee") && (
           <div className="form-group full">
-            <label>Date programmée au calendrier</label>
+            <label>
+              Date programmée au calendrier<span className="required-star">*</span>
+            </label>
             <input 
               type="date" 
               value={formData.Date_programmee || ""}
               onChange={(e) => onChange("Date_programmee", e.target.value)}
+              className={errors.Date_programmee ? "input-error" : ""}
             />
+            {errors.Date_programmee && (
+              <span className="field-error">⚠️ {errors.Date_programmee}</span>
+            )}
           </div>
         )}
 
@@ -159,55 +111,85 @@ const PlanningSection = ({ formData, onChange, fields, options }) => {
           <div className="grid-2">
             {isFieldVisible("Prevision_puissance_sollicite") && (
               <div className="form-group">
-                <label>Puissance sollicitée (MW)</label>
+                <label>
+                  Puissance sollicitée (MW)<span className="required-star">*</span>
+                </label>
                 <input 
                   type="number" 
                   value={formData.Prevision_puissance_sollicite || ""}
                   onChange={(e) => onChange("Prevision_puissance_sollicite", e.target.value)}
+                  className={errors.Prevision_puissance_sollicite ? "input-error" : ""}
                 />
+                {errors.Prevision_puissance_sollicite && (
+                  <span className="field-error">⚠️ {errors.Prevision_puissance_sollicite}</span>
+                )}
               </div>
             )}
             {isFieldVisible("Prevision_puissance_interrompue") && (
               <div className="form-group">
-                <label>Puissance interrompue (MW)</label>
+                <label>
+                  Puissance interrompue (MW)<span className="required-star">*</span>
+                </label>
                 <input 
                   type="number" 
                   value={formData.Prevision_puissance_interrompue || ""}
                   onChange={(e) => onChange("Prevision_puissance_interrompue", e.target.value)}
+                  className={errors.Prevision_puissance_interrompue ? "input-error" : ""}
                 />
+                {errors.Prevision_puissance_interrompue && (
+                  <span className="field-error">⚠️ {errors.Prevision_puissance_interrompue}</span>
+                )}
               </div>
             )}
             {isFieldVisible("Prevision_ENF") && (
               <div className="form-group">
-                <label>Énergie Non Fournie (ENF)</label>
+                <label>
+                  Énergie Non Fournie (ENF)<span className="required-star">*</span>
+                </label>
                 <input 
                   type="number" 
                   value={formData.Prevision_ENF || ""}
                   onChange={(e) => onChange("Prevision_ENF", e.target.value)}
+                  className={errors.Prevision_ENF ? "input-error" : ""}
                 />
+                {errors.Prevision_ENF && (
+                  <span className="field-error">⚠️ {errors.Prevision_ENF}</span>
+                )}
               </div>
             )}
           </div>
 
           <div className="grid-2" style={{marginTop: "15px"}}>
             {isFieldVisible("Centrale_thermique") && (
-              <SelectField
-                label="Centrale thermique"
-                value={formData.Centrale_thermique || ""}
-                options={options.Centrale_thermique}
-                placeholder="Sélectionner la centrale"
-                onChange={(val) => onChange("Centrale_thermique", val)}
-              />
+              <div className="form-group">
+                <SearchableSelect
+                  label={<>Centrale thermique <span className="required-star" style={{ color: "#EF4444" }}>*</span></>}
+                  value={formData.Centrale_thermique || ""}
+                  options={options.Centrale_thermique || []}
+                  placeholder="Sélectionner la centrale"
+                  onChange={(val) => onChange("Centrale_thermique", val)}
+                  hasError={!!errors.Centrale_thermique}
+                />
+                {errors.Centrale_thermique && (
+                  <span className="field-error">⚠️ {errors.Centrale_thermique}</span>
+                )}
+              </div>
             )}
             {isFieldVisible("Qte_de_fuel") && (
               <div className="form-group">
-                <label>Quantité de fuel estimée</label>
+                <label>
+                  Quantité de fuel estimée<span className="required-star">*</span>
+                </label>
                 <input 
                   type="text" 
                   placeholder="ex: 500 Litres"
                   value={formData.Qte_de_fuel || ""}
                   onChange={(e) => onChange("Qte_de_fuel", e.target.value)}
+                  className={errors.Qte_de_fuel ? "input-error" : ""}
                 />
+                {errors.Qte_de_fuel && (
+                  <span className="field-error">⚠️ {errors.Qte_de_fuel}</span>
+                )}
               </div>
             )}
           </div>
@@ -223,12 +205,19 @@ const PlanningSection = ({ formData, onChange, fields, options }) => {
           </div>
 
           <div className="form-group full">
+            <label>
+              Observations<span className="required-star">*</span>
+            </label>
             <textarea
               rows="4"
               placeholder="Saisir des observations complémentaires ou des contraintes spécifiques..."
               value={formData.Observations || ""}
               onChange={(e) => onChange("Observations", e.target.value)}
+              className={errors.Observations ? "input-error" : ""}
             />
+            {errors.Observations && (
+              <span className="field-error">⚠️ {errors.Observations}</span>
+            )}
           </div>
         </div>
       )}
