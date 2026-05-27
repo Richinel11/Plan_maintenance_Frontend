@@ -12,4 +12,4 @@ services:
       - .:/app
     ports:
       - "3000:80" # Accessible sur http://localhost:3000
-    restart: unless-stopped
+    restart: always

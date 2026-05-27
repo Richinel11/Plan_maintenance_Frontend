@@ -41,28 +41,28 @@ export const mapPlanningPayload = (data) => {
 
 
     // Text fields
-    reference: cleanStr(find(["reference", "Reference"])),
-    consistance_travaux: cleanStr(find(["consistance_travaux", "Consistances_Des_Travaux"])),
+    reference: cleanStr(find(["reference", "Reference", "Référence"])),
+    consistance_travaux: cleanStr(find(["consistance_travaux", "Consistances_Des_Travaux", "Consistance des travaux"])),
     troncons_consignes: cleanStr(find(["troncons_consignes", "Troncons", "Ouvrages", "Poste", "Departs", "Depart", "Troncon", "Ouvrage"])), // On peut utiliser ces colonnes pour la consistance si l'ID n'est pas dispo
-    localites_impactees: cleanStr(find(["localites_impactees", "Localites_impactees"])),
-    moyens_mis_en_oeuvre: cleanStr(find(["moyens_mis_en_oeuvre", "Moyens_mis_en_oeuvre"])),
+    localites_impactees: cleanStr(find(["localites_impactees", "Localites_impactees", "Localités impactées"])),
+    moyens_mis_en_oeuvre: cleanStr(find(["moyens_mis_en_oeuvre", "Moyens_mis_en_oeuvre", "Moyens mis en oeuvre"])),
     observations: cleanStr(find(["observations", "Observations", "Obervations"])),
     probleme_rencontre: cleanStr(find(["probleme_rencontre"])),
-    type_reseau: clean(find(["type_reseau", "Types_de_reseau"])),
+    type_reseau: clean(find(["type_reseau", "Types_de_reseau", "Type de réseau"])),
 
     // Dates / Times
-    heure_debut_planifie: clean(find(["heure_debut_planifie", "Debut_planifiee"])),
-    heure_fin_planifie: clean(find(["heure_fin_planifie", "Fin_planifiee"])),
-    date_programmee: clean(find(["date_programmee", "Date_programmee"])),
+    heure_debut_planifie: clean(find(["heure_debut_planifie", "Debut_planifiee", "Début planifiée", "Début planifié"])),
+    heure_fin_planifie: clean(find(["heure_fin_planifie", "Fin_planifiee", "Fin planifiée", "Fin planifié"])),
+    date_programmee: clean(find(["date_programmee", "Date_programmee", "Date programmée"])),
     date_report_travaux: clean(find(["date_report_travaux"])),
 
     // Numbers
-    duree: data.Duree ? parseInt(data.Duree) : (data.duree ? parseInt(data.duree) : null),
-    unite_duree: find(["unite_duree"]) || "HEURES",
-    disponibilite_mecanique_mw: clean(find(["disponibilite_mecanique_mw", "Disponibilite_mecanique"])),
-    prevision_puissance_sollicitee: clean(find(["prevision_puissance_sollicitee", "Prevision_puissance_sollicite"])),
-    prevision_puissance_interrompue: clean(find(["prevision_puissance_interrompue", "Prevision_puissance_interrompue"])),
-    qte_fuel_sollicitee: clean(find(["qte_fuel_sollicitee", "Qte_de_fuel"])),
+    duree: data.Duree ? parseInt(data.Duree) : (data.duree ? parseInt(data.duree) : (data["Durée"] ? parseInt(data["Durée"]) : null)),
+    unite_duree: find(["unite_duree", "Unité de durée"]) || "HEURES",
+    disponibilite_mecanique_mw: clean(find(["disponibilite_mecanique_mw", "Disponibilite_mecanique", "Disponibilité mécanique"])),
+    prevision_puissance_sollicitee: clean(find(["prevision_puissance_sollicitee", "Prevision_puissance_sollicite", "Puissance sollicitée"])),
+    prevision_puissance_interrompue: clean(find(["prevision_puissance_interrompue", "Prevision_puissance_interrompue", "Puissance interrompue"])),
+    qte_fuel_sollicitee: clean(find(["qte_fuel_sollicitee", "Qte_de_fuel", "Quantité de fuel"])),
 
     // Booleans
     statut_probleme: data.statut_probleme || false,

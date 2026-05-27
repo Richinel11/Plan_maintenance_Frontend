@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import {
   Search,
   CheckCircle2,
@@ -9,7 +9,7 @@ import {
   Navigation,
   Loader2,
 } from "lucide-react";
-import { getReferenceDetails } from "../../../../API/planningService";
+import { getReferenceById } from "../../../../services/referencetielService";
 import SearchableSelect from "./SearchableSelect";
 
 /* ────────────────────────────────────────────────────────────
@@ -69,7 +69,6 @@ export default function PlanningForm({
   onChange,
   references = [],
   typesActivite,
-  service,
   fields = [],
   options = {},
   errors = {},
@@ -78,7 +77,52 @@ export default function PlanningForm({
   const [isOpen, setIsOpen] = useState(false);
   const [selectedRef, setSelectedRef] = useState(null);
   const [refLoading, setRefLoading] = useState(false);
+  const [uniteDemanderesseOptions, setUniteDemanderesseOptions] = useState([]);
   const wrapperRef = useRef(null);
+
+  const getOptionLabel = (opt) => {
+    if (!opt) return "";
+    if (typeof opt === "object") {
+      return (
+        opt.valeur ||
+        opt.nom ||
+        opt.libelle ||
+        opt.name ||
+        opt.username ||
+        `${opt.first_name || ""} ${opt.last_name || ""}`.trim() ||
+        `ID: ${opt.id || ""}`
+      );
+    }
+    return String(opt);
+  };
+
+  const buildUniteDemanderesseOptions = useCallback((details = {}) => {
+    const explicitUnits = [];
+    if (Array.isArray(details.unites_demanderesses)) explicitUnits.push(...details.unites_demanderesses);
+    if (Array.isArray(details.unite_demanderesses)) explicitUnits.push(...details.unite_demanderesses);
+    if (explicitUnits.length > 0) {
+      return explicitUnits.map((item, index) => ({
+        id: item.id ?? `reference-unite-${index}`,
+        valeur: getOptionLabel(item),
+      }));
+    }
+
+    if (!Array.isArray(details.items)) return [];
+    return details.items
+      .filter((item) => {
+        const typeName = (item.type?.nom || item.type?.name || "").toString().toLowerCase();
+        return (
+          typeName.includes("unite") ||
+          typeName.includes("unité") ||
+          typeName.includes("demander") ||
+          typeName.includes("demanderesse")
+        );
+      })
+      .map((item, index) => ({
+        id: item.id ?? `reference-item-unite-${index}`,
+        valeur: getOptionLabel(item),
+      }));
+  }, []);
 
   const isFieldVisible = (field) => fields.includes(field);
 
@@ -119,15 +163,16 @@ export default function PlanningForm({
     if (formData.reference_id) {
       const fetchDetails = async () => {
         try {
-          const details = await getReferenceDetails(formData.reference_id);
+          const details = await getReferenceById(formData.reference_id);
           setSelectedRef(details);
+          setUniteDemanderesseOptions(buildUniteDemanderesseOptions(details));
         } catch (err) {
           console.error("Erreur initialisation référence:", err);
         }
       };
       fetchDetails();
     }
-  }, [formData.reference_id]);
+  }, [formData.reference_id, buildUniteDemanderesseOptions]);
 
   /**
    * Correspondance flexible entre les noms de TypeReferentiel du backend
@@ -180,8 +225,9 @@ export default function PlanningForm({
     onChange("Reference", label);
 
     try {
-      const details = await getReferenceDetails(ref.id);
+      const details = await getReferenceById(ref.id);
       setSelectedRef(details);
+      setUniteDemanderesseOptions(buildUniteDemanderesseOptions(details));
       console.log('[PlanningForm] items de la référence reçus du backend:', details.items);
       if (details.items) {
         details.items.forEach(it => console.log('  → type.nom:', it.type?.nom, '| valeur:', it.valeur));
@@ -190,6 +236,7 @@ export default function PlanningForm({
     } catch (err) {
       console.error("Erreur chargement détails référence :", err);
       applyReferenceItems(ref.items);
+      setUniteDemanderesseOptions(buildUniteDemanderesseOptions(ref));
     } finally {
       setRefLoading(false);
     }
@@ -199,6 +246,7 @@ export default function PlanningForm({
   const handleClearReference = () => {
     setSelectedRef(null);
     setSearchTerm("");
+    setUniteDemanderesseOptions([]);
     onChange("reference_id", null);
     onChange("Reference", "");
     onChange("Segments", "");
@@ -206,6 +254,8 @@ export default function PlanningForm({
     onChange("Poste", "");
     onChange("Departs", "");
     onChange("Troncons", "");
+    onChange("unite_demanderesse_id", "");
+    onChange("Unite_demanderesse", "");
   };
 
   // Labels affichés dans les champs auto-remplis
@@ -486,10 +536,20 @@ export default function PlanningForm({
                 <div>
                   <SearchableSelect
                     label={<>Unité demanderesse <span className="required-star" style={{ color: "#EF4444" }}>*</span></>}
-                    value={formData.Unite_demanderesse}
-                    options={options.Unite_demanderesse || []}
+                    value={formData.unite_demanderesse_id || ""}
+                    options={uniteDemanderesseOptions.length > 0 ? uniteDemanderesseOptions : (options.Unite_demanderesse || [])}
                     placeholder="Rechercher ou sélectionner une unité"
-                    onChange={(val) => onChange("Unite_demanderesse", val)}
+                    onChange={(val) => {
+                      onChange("unite_demanderesse_id", val);
+                      const sourceOptions = uniteDemanderesseOptions.length > 0 ? uniteDemanderesseOptions : (options.Unite_demanderesse || []);
+                      if (val) {
+                        const selectedUnit = sourceOptions.find(u => String(u.id) === String(val));
+                        const label = selectedUnit ? (selectedUnit.valeur || selectedUnit.nom || selectedUnit.name) : "";
+                        onChange("Unite_demanderesse", label);
+                      } else {
+                        onChange("Unite_demanderesse", "");
+                      }
+                    }}
                     hasError={!!errors.Unite_demanderesse}
                   />
                   {errors.Unite_demanderesse && <span className="field-error">⚠️ {errors.Unite_demanderesse}</span>}

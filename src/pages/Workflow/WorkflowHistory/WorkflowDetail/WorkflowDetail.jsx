@@ -11,17 +11,27 @@ import {
   createTransition,
   updateTransition,
   deleteTransition,
-  getAllPlannings,
-  associatePlanningToWorkflow,
-  dissociatePlanningFromWorkflow
 } from '../../../../services/workflowService';
 import { getRoles } from '../../../../services/userService';
 import CreateStepModal from '../components/CreateStepModal';
 import CreateTransitionModal from '../components/CreateTransitionModal';
-import AssociatePlanningModal from '../components/AssociatePlanningModal';
 import './WorkflowDetail.css';
 
-// ... (STATUS_BADGE and Badge components unchanged)
+// ─── Badge statut ─────────────────────────────────────────────────────────────
+const STATUS_BADGE = {
+  actif:     { label: 'Actif',     bg: 'rgba(141,198,64,0.15)',  color: '#5d8b1f' },
+  brouillon: { label: 'Brouillon', bg: 'rgba(147,149,151,0.15)', color: '#5a5c5e' },
+  archivé:   { label: 'Archivé',   bg: 'rgba(229,57,53,0.10)',   color: '#c62828' },
+};
+
+const Badge = ({ status }) => {
+  const s = STATUS_BADGE[status] || STATUS_BADGE.brouillon;
+  return (
+    <span style={{ background: s.bg, color: s.color, padding:'4px 12px', borderRadius:'20px', fontSize:'11px', fontWeight:700, letterSpacing:'0.4px' }}>
+      {s.label}
+    </span>
+  );
+};
 
 const WorkflowDetail = () => {
   const { id } = useParams();
@@ -30,7 +40,6 @@ const WorkflowDetail = () => {
   const [workflow, setWorkflow] = useState(null);
   const [steps, setSteps] = useState([]);
   const [transitions, setTransitions] = useState([]);
-  const [plannings, setPlannings] = useState([]);
   const [roles, setRoles] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -39,30 +48,21 @@ const WorkflowDetail = () => {
   const [selectedStep, setSelectedStep] = useState(null);  
   // état actuel de la transition en cours d'édition
   const [selectedTransition, setSelectedTransition] = useState(null);
-  const [showAssociateModal, setShowAssociateModal] = useState(false);
   const [savingModal, setSavingModal] = useState(false);
 
   const loadWorkflowData = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      const [wf, sts, trs, allPls, rls] = await Promise.all([
+      const [wf, sts, trs, rls] = await Promise.all([
         getWorkflowById(id),
         getStepsByWorkflow(id).catch(() => []),
         getTransitions(id).catch(() => []),
-        getAllPlannings().catch(() => []),
         getRoles().catch(() => []),
       ]);
       setWorkflow(wf);
       setSteps(Array.isArray(sts) ? sts : []);
       setTransitions(Array.isArray(trs) ? trs : []);
-
-      // Filtrer les plannings associés à ce workflow (par UUID)
-      const associatedPlannings = Array.isArray(allPls)
-        ? allPls.filter(p => p.workflow?.id === id || p.workflow === id)
-        : [];
-      setPlannings(associatedPlannings);
-
       setRoles(Array.isArray(rls) ? rls : []);
     } catch (err) {
       setError("Impossible de charger les détails du workflow.");
@@ -183,49 +183,24 @@ const WorkflowDetail = () => {
     });
   };
 
-  const handleAssociatePlanning = async (planningId) => {
-    setSavingModal(true);
-    try {
-      await associatePlanningToWorkflow(id, planningId);
-      setShowAssociateModal(false);
-      await loadWorkflowData();
-      toast.success("Planning associé avec succès.");
-    } catch (err) {
-      toast.error("Erreur lors de l'association du planning.");
-    } finally {
-      setSavingModal(false);
-    }
-  };
-
-  const handleDissociatePlanning = (planningId) => {
-    toast.warning("Dissocier ce planning ?", {
-      description: "Le planning ne sera plus lié à ce workflow.",
-      duration: 8000,
-      action: {
-        label: "Confirmer",
-        onClick: async () => {
-          try {
-            await dissociatePlanningFromWorkflow(id, planningId);
-            await loadWorkflowData();
-            toast.success("Planning dissocié avec succès.");
-          } catch (err) {
-            toast.error("Erreur lors de la dissociation du planning.");
-          }
-        }
-      },
-      cancel: {
-        label: "Annuler",
-        onClick: () => {}
-      }
-    });
-  };
-
   if (loading && !workflow) {
-    // ... (Loading state unchanged)
+    return (
+      <div className="wfd-page-loading">
+        <div className="wfd-spinner"></div>
+        <p>Chargement du workflow...</p>
+      </div>
+    );
   }
 
   if (error) {
-    // ... (Error state unchanged)
+    return (
+      <div className="wfd-page">
+        <div className="wfd-alert-error">{error}</div>
+        <button className="wfd-back-btn" onClick={() => navigate('/dashboard/workflow/historique')}>
+          ← Retour à la liste
+        </button>
+      </div>
+    );
   }
 
   return (
@@ -251,22 +226,28 @@ const WorkflowDetail = () => {
           initialData={selectedTransition?.id ? selectedTransition : null}
         />
       )}
-      {showAssociateModal && (
-        <AssociatePlanningModal
-          onSave={handleAssociatePlanning}
-          onClose={() => setShowAssociateModal(false)}
-          loading={savingModal}
-          existingPlanningIds={plannings.map(p => p.id)}
-        />
-      )}
 
       {/* Breadcrumb et Retour */}
-      {/* ... */}
+      <div className="wfd-breadcrumb">
+        <button className="wfd-back-btn" onClick={() => navigate('/dashboard/workflow/historique')}>
+          ← Retour à l'historique des workflows
+        </button>
+      </div>
 
       {/* Header Info */}
       <div className="wfd-header">
         <div className="wfd-header-left">
-          {/* ... */}
+          <div className="wfd-title-row">
+            <h1 className="wfd-title">{workflow?.name || workflow?.nom}</h1>
+            <Badge status={workflow?.is_active ? 'actif' : 'brouillon'} />
+          </div>
+          <div className="wfd-meta-row">
+            <span className="wfd-code-pill">CODE: {workflow?.code}</span>
+            {workflow?.created_at && (
+              <span className="wfd-date-text">Créé le {new Date(workflow.created_at).toLocaleDateString('fr-FR')}</span>
+            )}
+          </div>
+          <p className="wfd-description">{workflow?.description || 'Aucune description fournie pour ce workflow.'}</p>
         </div>
 
         {/* KPI Cards */}
@@ -279,65 +260,6 @@ const WorkflowDetail = () => {
             <div className="wfd-kpi-value" style={{ color: '#8DC640' }}>{steps.length}</div>
             <div className="wfd-kpi-label">États (Steps)</div>
           </div>
-          <div className="wfd-kpi-card" style={{ borderLeftColor: '#1B75BB' }}>
-            <div className="wfd-kpi-value" style={{ color: '#1B75BB' }}>{plannings.length}</div>
-            <div className="wfd-kpi-label">Plannings</div>
-          </div>
-        </div>
-      </div>
-
-      {/* SECTION DU HAUT : PLANNINGS ASSOCIÉS (AJOUTÉE) */}
-      <div className="wfd-section">
-        <div className="wfd-section-header">
-          <div className="wfd-section-title">
-            <span className="material-symbols-outlined icon-blue">calendar_month</span>
-            <h2>Plannings associés</h2>
-            <span className="wfd-badge-count">{plannings.length}</span>
-          </div>
-          <button className="wfd-btn-primary wfd-btn-sm" onClick={() => setShowAssociateModal(true)}>
-            + Associer un Planning
-          </button>
-        </div>
-
-        <div className="wfd-table-wrapper">
-          <table className="wfd-table">
-            <thead>
-              <tr>
-                <th>Nom du Planning</th>
-                <th>Code</th>
-                <th>Service</th>
-                <th>Statut</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {plannings.length === 0 ? (
-                <tr>
-                  <td colSpan={5} className="wfd-no-data">
-                    Aucun planning associé à ce workflow.
-                  </td>
-                </tr>
-              ) : (
-                plannings.map(p => (
-                  <tr key={p.id}>
-                    <td className="wfd-font-medium">{p.nom || p.name}</td>
-                    <td><span className="wfd-code-tag">{p.code}</span></td>
-                    <td>{p.service || '—'}</td>
-                    <td>{p.statut || '—'}</td>
-                    <td className="wfd-td-actions">
-                      <button
-                        className="wfd-action-btn delete"
-                        onClick={() => handleDissociatePlanning(p.id)}
-                        title="Dissocier le planning"
-                      >
-                        <span className="material-symbols-outlined">link_off</span>
-                      </button>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
         </div>
       </div>
 

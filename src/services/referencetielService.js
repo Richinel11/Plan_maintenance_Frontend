@@ -28,20 +28,38 @@ export const getTypesActivite = async () => {
   try {
     const response = await api.get("/types-activite/");
     return response.data;
-  } catch (e) {
+  } catch {
     console.warn("Types activite endpoint not available, returning empty array");
     return [];
   }
 };
 
-export const getChargesConsignation = async () => {
+export const getChargesConsignation = async (entiteMetierId = null) => {
   try {
-    const response = await api.get("/charges-consignation/");
+    const url = entiteMetierId
+      ? `/charges-consignation/?entite_metier_id=${entiteMetierId}`
+      : "/charges-consignation/";
+    const response = await api.get(url);
     return response.data;
-  } catch (e) {
+  } catch {
     console.warn("Charges consignation endpoint not available, returning empty array");
     return [];
   }
+};
+
+export const getUnites = async (entiteMetierId) => {
+  try {
+    const response = await api.get(`/users/unites-demanderesses/?entite_metier_id=${entiteMetierId}`);
+    return response.data;
+  } catch {
+    console.warn("Unites endpoint not available, returning empty array");
+    return [];
+  }
+};
+
+export const getUniteById = async (id) => {
+  const response = await api.get(`/users/unites-demanderesses/${id}/`);
+  return response.data;
 };
 
 

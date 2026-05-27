@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import { toast } from 'sonner';
 import { ArrowRight, ArrowLeft } from "lucide-react";
 import "./Progress.css";
@@ -15,6 +16,7 @@ import {
   getReferences,
   getTypesActivite,
   getChargesConsignation,
+  getUnites,
 } from "../../../../services/referencetielService";
 
 import { mapPlanningPayload } from "../../../../utils/planningMapper";
@@ -22,6 +24,7 @@ import { mapPlanningPayload } from "../../../../utils/planningMapper";
 import {
   getPlannings,
   createPlanning,
+  createTravail,
   getOptionsByService,
 } from "../../../../API/planningService";
 
@@ -44,6 +47,7 @@ export default function MultiStepForm() {
   const [troncons] = useState([]);
   const [segments, setSegments] = useState([]);
   const [chargesConsignation, setChargesConsignation] = useState([]);
+  const [unitesDemanderesse, setUnitesDemanderesse] = useState([]);
   /* Options dynamiques chargées selon le service choisi */
   const [serviceOptions, setServiceOptions] = useState({});
 
@@ -55,6 +59,7 @@ export default function MultiStepForm() {
 
   const options = {
     ...serviceOptions,
+    Unite_demanderesse: unitesDemanderesse,
     Segments: segments,
     Ouvrages: ouvrages,
     Poste: postes,
@@ -124,18 +129,21 @@ export default function MultiStepForm() {
           typesData,
           planningsResponse,
           chargesData,
+          unitesData,
         ] = await Promise.all([
           getReferences(entitemetier_id),
           getTypesActivite(),
           getPlannings(),
-          getChargesConsignation(),
+          getChargesConsignation(entitemetier_id),
+          getUnites(entitemetier_id),
         ]);
 
         setReferences(referencesData?.results || referencesData || []);
         setTypesActivite(typesData?.results || typesData || []);
         // getPlannings retourne { results, count, next, previous } ou un tableau brut
         setPlannings(planningsResponse?.results || planningsResponse || []);
-        setChargesConsignation(chargesData?.results || chargesData || []);
+        setChargesConsignation(chargesData?.results || chargesData?.data || chargesData || []);
+        setUnitesDemanderesse(unitesData?.results || unitesData || []);
       } catch (error) {
         console.error("Erreur chargement référentiel :", error);
       }

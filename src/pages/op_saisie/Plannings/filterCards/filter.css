@@ -1,46 +1,189 @@
+/* ===================================================
+   FILTER BAR — Design premium unifié
+=================================================== */
 
-/* Horizontal Filters */
 .filters {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  /* gap: 24px; */
-  margin-bottom: 20px; 
-  border-radius: 5%;        /* Aligns all filters nicely at the bottom */
+  display: flex;
+  align-items: center;
+  gap: 0;
+  background: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 2px 12px rgba(37, 99, 235, 0.07), 0 1px 3px rgba(0,0,0,0.06);
+  border: 1px solid #e8edf5;
+  overflow: hidden;
+  margin-bottom: 20px;
+  transition: box-shadow 0.2s ease;
+}
+
+.filters:hover {
+  box-shadow: 0 4px 20px rgba(37, 99, 235, 0.1), 0 2px 6px rgba(0,0,0,0.07);
+}
+
+/* Séparateur vertical entre cards */
+.filter-card + .filter-card {
+  border-left: 1px solid #eef2f8;
 }
 
 .filter-card {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  min-width: 180px;        /*  Good width for each filter */
-
-  background: white;
-  padding: 32px;
-  /* border-radius: 24px; */
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
+  gap: 6px;
+  flex: 1;
+  min-width: 160px;
+  padding: 16px 20px;
+  background: transparent;
+  transition: background 0.18s ease;
+  position: relative;
 }
 
+.filter-card:hover {
+  background: #f8fbff;
+}
+
+.filter-card:first-child {
+  border-radius: 16px 0 0 16px;
+}
+
+.filter-card:last-child {
+  border-radius: 0 16px 16px 0;
+}
+
+/* Label */
 .filter-card label {
-  font-size: 12px;
-  font-weight: 600;
-  color: #6b7280;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 10px;
+  font-weight: 700;
+  color: #94a3b8;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.8px;
+  white-space: nowrap;
 }
 
+.filter-card label .filter-icon {
+  width: 14px;
+  height: 14px;
+  opacity: 0.7;
+}
+
+/* Select wrapper pour flèche custom */
+.filter-select-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.filter-select-wrapper::after {
+  content: '';
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 0;
+  height: 0;
+  border-left: 5px solid transparent;
+  border-right: 5px solid transparent;
+  border-top: 5px solid #64748b;
+  pointer-events: none;
+}
+
+/* Select & Input */
 .filter-card select,
-.filter-card input {
-  padding: 10px 14px;
-  border: 1px solid #d1d5db;
-  border-radius: 12px;
-  font-size: 15px;
-  background: white;
-  min-height: 42px;
+.filter-card input[type="text"],
+.filter-card input[type="date"] {
+  width: 100%;
+  padding: 8px 32px 8px 0;
+  border: none;
+  border-bottom: 2px solid transparent;
+  border-radius: 0;
+  font-size: 14px;
+  font-weight: 500;
+  color: #1e293b;
+  background: transparent;
+  cursor: pointer;
+  outline: none;
+  appearance: none;
+  -webkit-appearance: none;
+  transition: border-color 0.2s ease, color 0.2s ease;
+  min-height: unset;
+  font-family: 'Inter', system-ui, sans-serif;
 }
 
 .filter-card select:focus,
 .filter-card input:focus {
-  outline: none;
-  border-color: #3b82f6;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  border-bottom-color: #2563eb;
+  color: #2563eb;
+  box-shadow: none;
+}
+
+.filter-card select option {
+  color: #1e293b;
+  font-weight: 400;
+}
+
+/* Input date */
+.filter-date-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.filter-date-wrapper .date-icon {
+  width: 15px;
+  height: 15px;
+  color: #64748b;
+  flex-shrink: 0;
+}
+
+.filter-card input[type="date"] {
+  padding-right: 0;
+  min-width: 130px;
+  color: #475569;
+}
+
+.filter-card input[type="date"]::-webkit-calendar-picker-indicator {
+  opacity: 0.5;
+  cursor: pointer;
+}
+
+/* Badge actif sur un filtre */
+.filter-card.active label {
+  color: #2563eb;
+}
+
+.filter-card.active select,
+.filter-card.active input {
+  color: #2563eb;
+  border-bottom-color: #2563eb;
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+  .filters {
+    flex-wrap: wrap;
+    border-radius: 12px;
+  }
+
+  .filter-card {
+    flex: 1 1 45%;
+    border-left: none !important;
+    border-bottom: 1px solid #eef2f8;
+  }
+
+  .filter-card:nth-child(odd) {
+    border-right: 1px solid #eef2f8;
+  }
+
+  .filter-card:last-child,
+  .filter-card:nth-last-child(2):nth-child(odd) {
+    border-bottom: none;
+  }
+}
+
+@media (max-width: 540px) {
+  .filter-card {
+    flex: 1 1 100%;
+    border-right: none !important;
+  }
 }

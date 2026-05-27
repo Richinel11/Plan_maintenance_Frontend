@@ -110,7 +110,6 @@ const WorkflowHistory = () => {
         code: form.code,
         description: form.description,
         is_active: form.is_active,
-        planning_id: null
       });
       setShowWorkflowModal(false);
       await loadAll();

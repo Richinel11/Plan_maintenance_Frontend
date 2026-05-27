@@ -55,8 +55,7 @@ const Dashboard = () => {
   };
 
   const handlePlanningClick = (planning) => {
-    // Redirection vers l'onglet Planning (Tableaux_De_Bord)
-    navigate("/dashboard/Tableaux_De_Bord", { state: { planning } });
+    navigate(`/dashboard/Planning/${planning.id}`);
   };
 
   const handleEdit = (planning, e) => {
