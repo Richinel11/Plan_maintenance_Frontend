@@ -10,7 +10,7 @@ const decodJWT = (token) =>{
 export const login = async (username, password) => {
   const { data } = await api.post('users/login/', { username, password });
 
-    // On stocke les tokens dans les cookies
+  // On stocke les tokens dans les cookies
   if (data.access) {
     Cookies.set('accessToken', data.access, { expires: 1 });
   }
@@ -25,37 +25,44 @@ export const login = async (username, password) => {
 
   const userResponse = await api.get(`users/find-user/${userId}/`);
   const userData = userResponse.data;
-  Cookies.set('user', JSON.stringify(userData), { expires: 1 });
 
-  // Lier le "service" (entité métier) pour les formulaires Plannings / Travaux
-  if (userData && userData.entite_metier) {
-      let type = '';
-      const entite = userData.entite_metier;
-      
-      if (Array.isArray(entite) && entite.length > 0) {
-          type = entite[0].type || entite[0];
-      } else if (typeof entite === 'object') {
-          type = entite.type;
-      } else {
-          type = entite;
-      }
-      
-      if (type) {
-          let serviceName = 'transport'; // default
-          const t = type.toUpperCase();
-          if (t === 'PROD') serviceName = 'production';
-          else if (t === 'TRANS') serviceName = 'transport';
-          else if (t === 'DIST') serviceName = 'distribution';
-          else serviceName = type.toLowerCase();
+  // On ne stocke que les données essentielles dans le cookie pour éviter de dépasser
+  // la limite de 4KB des cookies navigateurs (les permissions des rôles sont volumineuses).
+  const essentialUserData = {
+    id: userData.id,
+    username: userData.username,
+    first_name: userData.first_name,
+    last_name: userData.last_name,
+    email: userData.email,
+    region: userData.region,
+    is_active: userData.is_active,
+    is_ldap: userData.is_ldap,
+    first_connection: userData.first_connection,
+    entite_metier: userData.entite_metier,
+    // On garde les rôles SANS leurs permissions détaillées pour réduire la taille
+    roles: (userData.roles || []).map(r => ({
+      id: r.id,
+      nom: r.nom,
+      code_role: r.code_role,
+      description: r.description,
+    })),
+  };
 
-          Cookies.set('service', serviceName, { expires: 1 });
-      }
+  // Stockage cookie (petit) + localStorage (complet) en parallèle
+  try {
+    Cookies.set('user', JSON.stringify(essentialUserData), { expires: 1 });
+  } catch (e) {
+    console.warn('Cookie trop grand, stockage dans localStorage uniquement');
   }
+  // localStorage comme source de vérité (pas de limite de taille)
+  localStorage.setItem('user', JSON.stringify(essentialUserData));
+
+  console.log('User data stored:', essentialUserData);
 
   return {
     ...data,
     user: userData
-  }
+  };
 };
 
 export const logout = () => {
@@ -64,11 +71,20 @@ export const logout = () => {
   Cookies.remove('refreshToken');
   Cookies.remove('activeRole');
   Cookies.remove('activeRoleName');
+  localStorage.removeItem('user');
 };
 
 export const getCurrentUser = () => {
-  const user = Cookies.get('user');
-  return user ? JSON.parse(user) : null;
+  // Essaie d'abord le cookie, puis fallback sur localStorage
+  const cookieUser = Cookies.get('user');
+  if (cookieUser) {
+    try { return JSON.parse(cookieUser); } catch (e) {}
+  }
+  const lsUser = localStorage.getItem('user');
+  if (lsUser) {
+    try { return JSON.parse(lsUser); } catch (e) {}
+  }
+  return null;
 };
 
 export const changePassword = async (password) => {

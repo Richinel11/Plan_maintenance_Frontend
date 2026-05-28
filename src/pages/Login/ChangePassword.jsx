@@ -16,8 +16,8 @@ const ChangePassword = () => {
     const navigate = useNavigate();
 
     // Récupère l'id de l'utilisateur transmis depuis LoginPage
-    const location = useLocation();
-    const userId = location.state?.userId;
+    // const location = useLocation();
+    // const userId = location.state?.userId;
 
     const handleSubmit = async (e) => {
         e.preventDefault();

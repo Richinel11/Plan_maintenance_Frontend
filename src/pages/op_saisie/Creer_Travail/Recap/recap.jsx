@@ -3,7 +3,28 @@
 import React from "react";
 import "./recap.css";
 
-const RecapPlanning = ({ formData }) => {
+const RecapPlanning = ({ formData, fields = [] }) => {
+  // Si fields est vide (par exemple s'il n'est pas passé), on affiche tout par défaut
+  const isFieldVisible = (field) => fields.length === 0 || fields.includes(field);
+
+  const showSection2 =
+    isFieldVisible("Troncons") ||
+    isFieldVisible("Localites_impactees") ||
+    isFieldVisible("Consistances_Des_Travaux") ||
+    isFieldVisible("Moyens_mis_en_oeuvre") ||
+    isFieldVisible("Charges_de_consignation") ||
+    isFieldVisible("Disponibilite_mecanique");
+
+  const showSection3 =
+    isFieldVisible("Debut_planifiee") ||
+    isFieldVisible("Duree") ||
+    isFieldVisible("Fin_planifiee") ||
+    isFieldVisible("Date_programmee") ||
+    isFieldVisible("Prevision_puissance_sollicite") ||
+    isFieldVisible("Prevision_puissance_interrompue") ||
+    isFieldVisible("Prevision_ENF") ||
+    isFieldVisible("Observations");
+
   return (
     <div className="recap-container">
 
@@ -32,302 +53,389 @@ const RecapPlanning = ({ formData }) => {
 
         <div className="info-grid">
 
-          <div className="info-item">
-            <label>Référence</label>
-            <span>
-              {formData.Reference || "-"}
-            </span>
-          </div>
+          {isFieldVisible("Reference") && (
+            <div className="info-item">
+              <label>Référence</label>
+              <span>
+                {formData.Reference || "-"}
+              </span>
+            </div>
+          )}
 
-          <div className="info-item">
-            <label>Ouvrage</label>
+          {isFieldVisible("Segments") && (
+            <div className="info-item">
+              <label>Segment</label>
+              <span>
+                {formData.Segments || "-"}
+              </span>
+              <small className="badge green">
+                AUTO-REMPLI
+              </small>
+            </div>
+          )}
 
-            <span>
-              {formData.Ouvrages || "-"}
-            </span>
+          {isFieldVisible("Ouvrages") && (
+            <div className="info-item">
+              <label>Ouvrage</label>
 
-            <small className="badge green">
-              AUTO-REMPLI
-            </small>
-          </div>
+              <span>
+                {formData.Ouvrages || "-"}
+              </span>
 
-          <div className="info-item">
-            <label>Poste concerné</label>
+              <small className="badge green">
+                AUTO-REMPLI
+              </small>
+            </div>
+          )}
 
-            <span>
-              {formData.Poste || "-"}
-            </span>
+          {isFieldVisible("Poste") && (
+            <div className="info-item">
+              <label>Poste concerné</label>
 
-            <small className="badge green">
-              AUTO-REMPLI
-            </small>
-          </div>
+              <span>
+                {formData.Poste || "-"}
+              </span>
 
-          <div className="info-item">
-            <label>Départ</label>
+              <small className="badge green">
+                AUTO-REMPLI
+              </small>
+            </div>
+          )}
 
-            <span>
-              {formData.Departs || "-"}
-            </span>
+          {isFieldVisible("Departs") && (
+            <div className="info-item">
+              <label>Départ</label>
 
-            <small className="badge green">
-              AUTO-REMPLI
-            </small>
-          </div>
+              <span>
+                {formData.Departs || "-"}
+              </span>
 
-          <div className="info-item">
-            <label>Unité demanderesse</label>
+              <small className="badge green">
+                AUTO-REMPLI
+              </small>
+            </div>
+          )}
 
-            <span>
-              {formData.Unite_demanderesse || "-"}
-            </span>
-          </div>
+          {isFieldVisible("Unite_demanderesse") && (
+            <div className="info-item">
+              <label>Unité demanderesse</label>
 
-          <div className="info-item">
-            <label>Exploitations</label>
+              <span>
+                {formData.Unite_demanderesse || "-"}
+              </span>
+            </div>
+          )}
 
-            <span>
-              {formData.Exploitations || "-"}
-            </span>
-          </div>
+          {isFieldVisible("Exploitations") && (
+            <div className="info-item">
+              <label>Exploitations</label>
 
-          <div className="info-item">
-            <label>Type de travaux</label>
+              <span>
+                {formData.Exploitations || "-"}
+              </span>
+            </div>
+          )}
 
-            <span className="blue-link">
-              {formData.Type_de_travaux ||
-                formData.type_travaux_id ||
-                "-"}
-            </span>
-          </div>
+          {isFieldVisible("Type_de_travaux") && (
+            <div className="info-item">
+              <label>Type de travaux</label>
 
-          <div className="info-item">
-            <label>Type de réseau</label>
+              <span className="blue-link">
+                {formData.Type_de_travaux ||
+                  formData.type_travaux_id ||
+                  "-"}
+              </span>
+            </div>
+          )}
 
-            <span>
-              {formData.Types_de_reseau || "-"}
-            </span>
-          </div>
+          {isFieldVisible("Types_de_reseau") && (
+            <div className="info-item">
+              <label>Type de réseau</label>
 
-          <div className="info-item">
-            <label>Centrale thermique</label>
+              <span>
+                {formData.Types_de_reseau || "-"}
+              </span>
+            </div>
+          )}
 
-            <span>
-              {formData.Centrale_thermique || "-"}
-            </span>
-          </div>
+          {isFieldVisible("Centrale_thermique") && (
+            <div className="info-item">
+              <label>Centrale thermique</label>
 
-          <div className="info-item">
-            <label>Quantité de fuel</label>
+              <span>
+                {formData.Centrale_thermique || "-"}
+              </span>
+            </div>
+          )}
 
-            <span>
-              {formData.Qte_de_fuel || "-"}
-            </span>
-          </div>
+          {isFieldVisible("Qte_de_fuel") && (
+            <div className="info-item">
+              <label>Quantité de fuel</label>
+
+              <span>
+                {formData.Qte_de_fuel || "-"}
+              </span>
+            </div>
+          )}
 
         </div>
       </div>
 
       {/* SECTION 2 */}
-      <div className="card-section">
+      {showSection2 && (
+        <div className="card-section">
 
-        <h2>
-          📍 Section 2 : Localisation & Consistance
-        </h2>
+          <h2>
+            📍 Section 2 : Localisation & Consistance
+          </h2>
 
-        <div className="two-column">
+          {(isFieldVisible("Troncons") || isFieldVisible("Localites_impactees")) && (
+            <div className="two-column">
 
-          <div className="block">
-            <label>
-              TRONÇONS / CONSIGNES
-            </label>
+              {isFieldVisible("Troncons") && (
+                <div className="block">
+                  <label>
+                    TRONÇONS / CONSIGNES
+                  </label>
 
-            <p>
-              {formData.Troncons || "-"}
-            </p>
-          </div>
+                  <p>
+                    {formData.Troncons || "-"}
+                  </p>
+                </div>
+              )}
 
-          <div className="block">
+              {isFieldVisible("Localites_impactees") && (
+                <div className="block">
 
-            <label>
-              LOCALITÉS IMPACTÉES
-            </label>
+                  <label>
+                    LOCALITÉS IMPACTÉES
+                  </label>
 
-            <div className="tags">
+                  <div className="tags">
 
-              {formData.Localites_impactees
-                ? formData.Localites_impactees
-                    .split(",")
-                    .map((item, index) => (
-                      <span key={index}>
-                        {item.trim()}
-                      </span>
-                    ))
-                : <span>-</span>}
+                    {formData.Localites_impactees
+                      ? formData.Localites_impactees
+                          .split(",")
+                          .map((item, index) => (
+                            <span key={index}>
+                              {item.trim()}
+                            </span>
+                          ))
+                      : <span>-</span>}
+
+                  </div>
+                </div>
+              )}
 
             </div>
-          </div>
+          )}
+
+          {isFieldVisible("Consistances_Des_Travaux") && (
+            <div className="block full-block">
+
+              <label>
+                CONSISTANCE DES TRAVAUX
+              </label>
+
+              <p>
+                {formData.Consistances_Des_Travaux || "-"}
+              </p>
+
+            </div>
+          )}
+
+          {isFieldVisible("Disponibilite_mecanique") && (
+            <div className="block full-block">
+
+              <label>
+                DISPONIBILITÉ MÉCANIQUE
+              </label>
+
+              <p>
+                {formData.Disponibilite_mecanique || "-"}
+              </p>
+
+            </div>
+          )}
+
+          {(isFieldVisible("Moyens_mis_en_oeuvre") || isFieldVisible("Charges_de_consignation")) && (
+            <div className="two-column">
+
+              {isFieldVisible("Moyens_mis_en_oeuvre") && (
+                <div className="block">
+
+                  <label>
+                    MOYENS MIS EN ŒUVRE
+                  </label>
+
+                  <p>
+                    {formData.Moyens_mis_en_oeuvre || "-"}
+                  </p>
+
+                </div>
+              )}
+
+              {isFieldVisible("Charges_de_consignation") && (
+                <div className="block">
+
+                  <label>
+                    CHARGES DE CONSIGNATION
+                  </label>
+
+                  <p>
+                    {formData.charge_consignation_id || "-"}
+                  </p>
+
+                </div>
+              )}
+
+            </div>
+          )}
 
         </div>
-
-        <div className="block full-block">
-
-          <label>
-            CONSISTANCE DES TRAVAUX
-          </label>
-
-          <p>
-            {formData.Consistances_Des_Travaux || "-"}
-          </p>
-
-        </div>
-
-        <div className="two-column">
-
-          <div className="block">
-
-            <label>
-              MOYENS MIS EN ŒUVRE
-            </label>
-
-            <p>
-              {formData.Moyens_mis_en_oeuvre || "-"}
-            </p>
-
-          </div>
-
-          <div className="block">
-
-            <label>
-              CHARGES DE CONSIGNATION
-            </label>
-
-            <p>
-              {formData.charge_consignation_id || "-"}
-            </p>
-
-          </div>
-
-        </div>
-
-      </div>
+      )}
 
       {/* SECTION 3 */}
-      <div className="card-section">
+      {showSection3 && (
+        <div className="card-section">
 
-        <h2>
-          📅 Section 3 : Programmation & Impact
-        </h2>
+          <h2>
+            📅 Section 3 : Programmation & Impact
+          </h2>
 
-        <div className="schedule-boxes">
+          {(isFieldVisible("Debut_planifiee") || isFieldVisible("Duree") || isFieldVisible("Fin_planifiee")) && (
+            <div className="schedule-boxes">
 
-          <div className="time-box">
+              {isFieldVisible("Debut_planifiee") && (
+                <div className="time-box">
 
-            <label>
-              DATE & HEURE DÉBUT
-            </label>
+                  <label>
+                    DATE & HEURE DÉBUT
+                  </label>
 
-            <strong>
-              {formData.Debut_planifiee || "-"}
-            </strong>
+                  <strong>
+                    {formData.Debut_planifiee || "-"}
+                  </strong>
 
-          </div>
+                </div>
+              )}
 
-          <div className="time-box">
+              {isFieldVisible("Duree") && (
+                <div className="time-box">
 
-            <label>
-              DURÉE PRÉVUE
-            </label>
+                  <label>
+                    DURÉE PRÉVUE
+                  </label>
 
-            <strong>
-              {formData.Duree || "-"} Heures
-            </strong>
+                  <strong>
+                    {formData.Duree || "-"} Heures
+                  </strong>
 
-          </div>
+                </div>
+              )}
 
-          <div className="time-box">
+              {isFieldVisible("Fin_planifiee") && (
+                <div className="time-box">
 
-            <label>
-              HEURE DE FIN
-            </label>
+                  <label>
+                    HEURE DE FIN
+                  </label>
 
-            <strong>
-              {formData.Fin_planifiee || "-"}
-            </strong>
+                  <strong>
+                    {formData.Fin_planifiee || "-"}
+                  </strong>
 
-            <small className="badge green">
-              CALCULÉ AUTO
-            </small>
+                  <small className="badge green">
+                    CALCULÉ AUTO
+                  </small>
 
-          </div>
+                </div>
+              )}
+
+            </div>
+          )}
+
+          {(isFieldVisible("Date_programmee") ||
+            isFieldVisible("Prevision_puissance_sollicite") ||
+            isFieldVisible("Prevision_puissance_interrompue") ||
+            isFieldVisible("Prevision_ENF")) && (
+            <div className="info-grid second-grid">
+
+              {isFieldVisible("Date_programmee") && (
+                <div className="info-item">
+
+                  <label>
+                    Date programmée
+                  </label>
+
+                  <span>
+                    {formData.Date_programmee || "-"}
+                  </span>
+
+                </div>
+              )}
+
+              {isFieldVisible("Prevision_puissance_sollicite") && (
+                <div className="info-item">
+
+                  <label>
+                    Puissance sollicitée
+                  </label>
+
+                  <span>
+                    {formData.Prevision_puissance_sollicite || "-"} MW
+                  </span>
+
+                </div>
+              )}
+
+              {isFieldVisible("Prevision_puissance_interrompue") && (
+                <div className="info-item">
+
+                  <label>
+                    Puissance interrompue
+                  </label>
+
+                  <span>
+                    {formData.Prevision_puissance_interrompue || "-"} MW
+                  </span>
+
+                </div>
+              )}
+
+              {isFieldVisible("Prevision_ENF") && (
+                <div className="info-item">
+
+                  <label>
+                    END / ENF
+                  </label>
+
+                  <span>
+                    {formData.Prevision_ENF || "-"}
+                  </span>
+
+                </div>
+              )}
+
+            </div>
+          )}
+
+          {isFieldVisible("Observations") && (
+            <div className="observation-box">
+
+              <label>
+                OBSERVATIONS
+              </label>
+
+              <p>
+                {formData.Observations || formData.Obervations || "-"}
+              </p>
+
+            </div>
+          )}
 
         </div>
-
-        <div className="info-grid second-grid">
-
-          <div className="info-item">
-
-            <label>
-              Date programmée
-            </label>
-
-            <span>
-              {formData.Date_programmee || "-"}
-            </span>
-
-          </div>
-
-          <div className="info-item">
-
-            <label>
-              Puissance sollicitée
-            </label>
-
-            <span>
-              {formData.Prevision_puissance_sollicite || "-"} MW
-            </span>
-
-          </div>
-
-          <div className="info-item">
-
-            <label>
-              Puissance interrompue
-            </label>
-
-            <span>
-              {formData.Prevision_puissance_interrompue || "-"} MW
-            </span>
-
-          </div>
-
-          <div className="info-item">
-
-            <label>
-              END / ENF
-            </label>
-
-            <span>
-              {formData.Prevision_ENF || "-"}
-            </span>
-
-          </div>
-
-        </div>
-
-        <div className="observation-box">
-
-          <label>
-            OBSERVATIONS
-          </label>
-
-          <p>
-            {formData.Obervations || "-"}
-          </p>
-
-        </div>
-
-      </div>
+      )}
 
     </div>
   );

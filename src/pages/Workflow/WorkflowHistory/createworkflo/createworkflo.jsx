@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getCurrentUser } from '../../../../services/Authservice';
+import { toast } from 'sonner';
 import { createWorkflow, getWorkflows } from '../../../../services/workflowService';
 import { 
     DndContext, 
@@ -211,11 +212,11 @@ const CreateGlobalWorkflow = () => {
 
         try {
             await createWorkflow(payload);
-            alert("Workflow créé avec succès (Mock)");
+            toast.success(`Workflow "${workflowName}" créé avec succès !`);
             navigate('/dashboard/workflow/historique');
         } catch (error) {
             console.error("Erreur lors de la création du workflow :", error);
-            alert("Erreur lors de la création : la route backend n'est probablement pas prête.");
+            toast.error(error.response?.data?.detail || "Erreur lors de la création du workflow. Vérifiez la connexion au backend.");
         }
     };
 

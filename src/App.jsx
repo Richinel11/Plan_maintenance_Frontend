@@ -1,5 +1,7 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { Toaster } from 'sonner';
+import './styles/toasts.css';
 import Login from './pages/Login/Login';
 import ChangePassword from './pages/Login/ChangePassword';
 import SelectRole from './pages/Security/SelectRole/SelectRole';
@@ -23,6 +25,11 @@ import Gantt from './pages/G-Plan/Gantt-Diag/Interface';
 function App() {
     return (
         <div className="app-container">
+            <Toaster
+                position="top-center"
+                richColors
+                closeButton
+            />
             <Router>
                 <Routes>
                     <Route path="/" element={<Navigate to="/login" replace />} />

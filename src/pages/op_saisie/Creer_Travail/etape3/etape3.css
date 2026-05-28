@@ -1,13 +1,19 @@
-/* etape3.css — styles locaux uniquement */
-
+/* etape3.css */
 
 .planning-wrapper {
-  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  font-family: 'Inter', sans-serif;
 }
 
-/* CARD */
+/* CARD PAR SECTION */
 .section-block {
-  margin-bottom: 35px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 4px 16px rgba(0,0,0,0.04);
 }
 
 /* TITLE */
@@ -15,51 +21,71 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  margin-bottom: 22px;
-  padding-bottom: 10px;
-  border-bottom: 1px solid #d7dee8;
+  margin-bottom: 20px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid #e2e8f0;
 }
 
 .section-title .icon {
-  font-size: 22px;
-  color: #1976d2;
+  font-size: 20px;
 }
 
 .section-title h2 {
-  font-size: 20px;
+  font-size: 14px;
   font-weight: 700;
-  color: #132238;
+  color: #334155;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin: 0;
 }
 
-/* FORM */
+/* FORM GROUP */
 .form-group {
-  margin-bottom: 20px;
+  margin-bottom: 18px;
+}
+
+.form-group.full {
+  grid-column: span 2;
 }
 
 .form-group label {
   display: block;
-  font-size: 15px;
-  font-weight: 600;
-  color: #44556c;
+  font-size: 12px;
+  font-weight: 700;
+  color: #334155;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
   margin-bottom: 8px;
+  font-family: 'Inter', sans-serif;
 }
 
 .form-group input,
 .form-group textarea {
   width: 100%;
-  border: 1px solid #cfd8e3;
-  border-radius: 9px;
-  padding: 14px 15px;
-  font-size: 16px;
-  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 11px 14px;
+  font-size: 14px;
+  font-family: 'Inter', sans-serif;
+  font-weight: 500;
+  background: #f8fafc;
+  color: #334155;
   outline: none;
-  transition: 0.2s ease;
+  transition: all 0.2s ease;
+  box-sizing: border-box;
 }
 
 .form-group input:focus,
 .form-group textarea:focus {
-  border-color: #1976d2;
-  box-shadow: 0 0 0 3px rgba(25, 118, 210, 0.08);
+  border-color: #1B75BB;
+  background: #ffffff;
+  box-shadow: 0 0 0 3px #EBF5FF;
+}
+
+.form-group input:hover,
+.form-group textarea:hover {
+  border-color: #BFD9F2;
+  background: #ffffff;
 }
 
 /* GRID */
@@ -69,22 +95,26 @@
   gap: 16px;
 }
 
-/* AUTO FIELD */
+/* CHAMP AUTO-CALCULÉ */
 .auto-box {
   width: 100%;
-  padding: 14px 15px;
-  border-radius: 9px;
-  border: 1px solid #9be0ba;
-  background: #eaf9f0;
-  color: #0d8c57;
-  font-weight: 700;
-  font-size: 16px;
+  padding: 11px 14px;
+  border-radius: 10px;
+  border: 1px solid #BBF7D0;
+  background: #F0FDF4;
+  color: #166534;
+  font-weight: 600;
+  font-size: 14px;
+  font-family: 'Inter', sans-serif;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
 }
 
 /* TEXTAREA */
 textarea {
-  resize: none;
-  min-height: 130px;
+  resize: vertical;
+  min-height: 110px;
 }
 
 /* RESPONSIVE */
@@ -93,7 +123,7 @@ textarea {
     grid-template-columns: 1fr;
   }
 
-  .planning-wrapper {
-    padding: 18px;
+  .form-group.full {
+    grid-column: span 1;
   }
 }

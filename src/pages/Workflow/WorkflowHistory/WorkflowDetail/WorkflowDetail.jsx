@@ -105,15 +105,27 @@ const WorkflowDetail = () => {
     }
   };
 
-  const handleDeleteStep = async (stepId) => {
-    if (!window.confirm('Voulez-vous vraiment supprimer cet état ?')) return;
-    try {
-      await deleteStep(id, stepId);
-      await loadWorkflowData();
-      toast.success("État supprimé avec succès.");
-    } catch (err) {
-      toast.error("Erreur lors de la suppression de l'état.");
-    }
+  const handleDeleteStep = (stepId) => {
+    toast.warning("Supprimer cet état ?", {
+      description: "Cette action est irréversible.",
+      duration: 8000,
+      action: {
+        label: "Confirmer",
+        onClick: async () => {
+          try {
+            await deleteStep(id, stepId);
+            await loadWorkflowData();
+            toast.success("État supprimé avec succès.");
+          } catch (err) {
+            toast.error("Erreur lors de la suppression de l'état.");
+          }
+        }
+      },
+      cancel: {
+        label: "Annuler",
+        onClick: () => {}
+      }
+    });
   };
 
   // ─ Handler unifié pour créer OU modifier une transition ─────────────────────
@@ -148,15 +160,27 @@ const WorkflowDetail = () => {
     }
   };
 
-  const handleDeleteTransition = async (transitionId) => {
-    if (!window.confirm('Voulez-vous vraiment supprimer cette transition ?')) return;
-    try {
-      await deleteTransition(id, transitionId);
-      await loadWorkflowData();
-      toast.success("Transition supprimée avec succès.");
-    } catch (err) {
-      toast.error("Erreur lors de la suppression de la transition.");
-    }
+  const handleDeleteTransition = (transitionId) => {
+    toast.warning("Supprimer cette transition ?", {
+      description: "Cette action est irréversible.",
+      duration: 8000,
+      action: {
+        label: "Confirmer",
+        onClick: async () => {
+          try {
+            await deleteTransition(id, transitionId);
+            await loadWorkflowData();
+            toast.success("Transition supprimée avec succès.");
+          } catch (err) {
+            toast.error("Erreur lors de la suppression de la transition.");
+          }
+        }
+      },
+      cancel: {
+        label: "Annuler",
+        onClick: () => {}
+      }
+    });
   };
 
   const handleAssociatePlanning = async (planningId) => {
@@ -173,15 +197,27 @@ const WorkflowDetail = () => {
     }
   };
 
-  const handleDissociatePlanning = async (planningId) => {
-    if (!window.confirm('Voulez-vous vraiment dissocier ce planning de ce workflow ?')) return;
-    try {
-      await dissociatePlanningFromWorkflow(id, planningId);
-      await loadWorkflowData();
-      toast.success("Planning dissocié avec succès.");
-    } catch (err) {
-      toast.error("Erreur lors de la dissociation du planning.");
-    }
+  const handleDissociatePlanning = (planningId) => {
+    toast.warning("Dissocier ce planning ?", {
+      description: "Le planning ne sera plus lié à ce workflow.",
+      duration: 8000,
+      action: {
+        label: "Confirmer",
+        onClick: async () => {
+          try {
+            await dissociatePlanningFromWorkflow(id, planningId);
+            await loadWorkflowData();
+            toast.success("Planning dissocié avec succès.");
+          } catch (err) {
+            toast.error("Erreur lors de la dissociation du planning.");
+          }
+        }
+      },
+      cancel: {
+        label: "Annuler",
+        onClick: () => {}
+      }
+    });
   };
 
   if (loading && !workflow) {

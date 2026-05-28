@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { createRole, updateRole, assignPermissionToRole, removePermissionFromRole } from '../../../../services/userService';
+import { toast } from 'sonner';
 import '../../UserManagement/components/Modals.css';
 
 const RoleModal = ({ isOpen, onClose, role, allPermissions, onSuccess }) => {
@@ -13,7 +14,6 @@ const RoleModal = ({ isOpen, onClose, role, allPermissions, onSuccess }) => {
     });
 
     const [loading, setLoading] = useState(false);
-    const [error, setError] = useState(null);
     const [permSearch, setPermSearch] = useState('');
 
     useEffect(() => {
@@ -28,7 +28,6 @@ const RoleModal = ({ isOpen, onClose, role, allPermissions, onSuccess }) => {
             } else {
                 setFormData({ nom: '', code_role: '', description: '', permissions: [] });
             }
-            setError(null);
             setPermSearch('');
         }
     }, [isOpen, role, isEditMode]);
@@ -63,7 +62,6 @@ const RoleModal = ({ isOpen, onClose, role, allPermissions, onSuccess }) => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        setError(null);
         setLoading(true);
         try {
             const rolePayload = {
@@ -86,14 +84,16 @@ const RoleModal = ({ isOpen, onClose, role, allPermissions, onSuccess }) => {
                 const toRemove = currentPerms.filter(c => !formData.permissions.includes(c));
                 for (const c of toAdd) { try { await assignPermissionToRole(roleCode, c); } catch (err) { console.warn(err); } }
                 for (const c of toRemove) { try { await removePermissionFromRole(roleCode, c); } catch (err) { console.warn(err); } }
+                toast.success(`Rôle "${formData.nom}" mis à jour avec succès.`);
             } else {
                 for (const c of formData.permissions) { try { await assignPermissionToRole(roleCode, c); } catch (err) { console.warn(err); } }
+                toast.success(`Rôle "${formData.nom}" créé avec succès.`);
             }
 
             onSuccess();
             onClose();
         } catch (err) {
-            setError(err.response?.data?.detail || err.response?.data?.code_role?.[0] || err.message || "Erreur lors de l'enregistrement.");
+            toast.error(err.response?.data?.detail || err.response?.data?.code_role?.[0] || err.message || "Erreur lors de l'enregistrement.");
         } finally {
             setLoading(false);
         }
@@ -125,7 +125,6 @@ const RoleModal = ({ isOpen, onClose, role, allPermissions, onSuccess }) => {
                 {/* ── Form ── */}
                 <form onSubmit={handleSubmit} className="modal-form">
                     <div className="modal-form-body">
-                        {error && <div className="modal-error">{error}</div>}
 
                         {/* ── Carte principale (CSS Grid 2 colonnes) ── */}
                         <div className="form-card-grid">

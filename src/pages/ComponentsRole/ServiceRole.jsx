@@ -1,23 +1,8 @@
-import { useMemo, useState, useEffect } from "react";
-import { MOCK_OPTIONS } from "../../config/mockData";
+import { useMemo, useState } from "react";
 
 const useServiceRole = () => {
 
-    const getCookie = (name) => {
-        const value = `; ${document.cookie}`;
-        const parts = value.split(`; ${name}=`);
-        return parts.length === 2
-            ? parts.pop().split(";").shift()
-            : "";
-        };
-
-    const [service, setService] = useState(getCookie("service") || "transport");
-
-    useEffect(() => {
-        document.cookie = `service=${service}; path=/`;
-    }, [service]);
-
-  
+    const [service, setService] = useState("transport");
 
   const fields = useMemo(() => {
     switch (service.toLowerCase()) {
@@ -111,7 +96,9 @@ const useServiceRole = () => {
     }
   }, [service]);
 
-    return { service, setService, fields, referenceConfig, options: MOCK_OPTIONS };
+    // Les options des listes déroulantes sont maintenant chargées depuis le backend
+    // via getOptionsByService(service) dans ProgressBar.jsx — plus de mock data ici.
+    return { service, setService, fields, referenceConfig, options: {} };
 };
 
 export default useServiceRole;

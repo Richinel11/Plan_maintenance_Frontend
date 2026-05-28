@@ -1,6 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import { createUser, updateUser, update_userrole } from '../../../../services/userService';
+import { toast } from 'sonner';
 import './Modals.css';
+
+// Les 9 régions ENEO gérées directement dans le frontend
+const ENEO_REGIONS = [
+    'Douala',
+    'Yaoundé',
+    'Centre',
+    'Littoral & Sud-Ouest',
+    'Ouest & Nord-Ouest',
+    'Sud',
+    'Sanaga Océan',
+    'Nord',
+    'Est',
+];
 
 const UserModal = ({ isOpen, onClose, user, roles, entites, onSuccess }) => {
     const isEditMode = !!user;
@@ -18,7 +32,6 @@ const UserModal = ({ isOpen, onClose, user, roles, entites, onSuccess }) => {
     });
 
     const [loading, setLoading] = useState(false);
-    const [error, setError] = useState(null);
     const [showPassword, setShowPassword] = useState(false);
     const [roleSearch, setRoleSearch] = useState('');
 
@@ -50,7 +63,6 @@ const UserModal = ({ isOpen, onClose, user, roles, entites, onSuccess }) => {
                     is_ldap: false
                 });
             }
-            setError(null);
             setRoleSearch('');
         }
     }, [isOpen, user, isEditMode]);
@@ -66,7 +78,6 @@ const UserModal = ({ isOpen, onClose, user, roles, entites, onSuccess }) => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        setError(null);
         setLoading(true);
 
         try {
@@ -86,6 +97,7 @@ const UserModal = ({ isOpen, onClose, user, roles, entites, onSuccess }) => {
                     role: formData.code_role
                 };
                 await update_userrole(user.id, payload2);
+                toast.success(`Utilisateur "${formData.username}" mis à jour avec succès.`);
             } else {
                 const payload = {
                     username: formData.username,
@@ -101,6 +113,7 @@ const UserModal = ({ isOpen, onClose, user, roles, entites, onSuccess }) => {
                     payload.password = formData.password;
                 }
                 await createUser(payload);
+                toast.success(`Utilisateur "${formData.username}" créé avec succès.`);
             }
             onSuccess();
             onClose();
@@ -110,9 +123,9 @@ const UserModal = ({ isOpen, onClose, user, roles, entites, onSuccess }) => {
                 const messages = Object.entries(apiError)
                     .map(([key, val]) => `${key}: ${Array.isArray(val) ? val.join(', ') : val}`)
                     .join(' | ');
-                setError(messages);
+                toast.error(messages);
             } else {
-                setError(err.message || "Une erreur est survenue lors de l'enregistrement.");
+                toast.error(err.message || "Une erreur est survenue lors de l'enregistrement.");
             }
         } finally {
             setLoading(false);
@@ -142,7 +155,6 @@ const UserModal = ({ isOpen, onClose, user, roles, entites, onSuccess }) => {
 
                 <form onSubmit={handleSubmit} className="modal-form">
                     <div className="modal-form-body">
-                        {error && <div className="modal-error">{error}</div>}
 
                         {/* Infos de base */}
                         <div className="form-card">
@@ -202,14 +214,17 @@ const UserModal = ({ isOpen, onClose, user, roles, entites, onSuccess }) => {
                             <div className="form-row">
                                 <div className="form-group">
                                     <label>Région</label>
-                                    <input
-                                        type="text"
+                                    <select
                                         name="region"
                                         value={formData.region}
                                         onChange={handleChange}
                                         className="form-input"
-                                        placeholder="Ex: Littoral"
-                                    />
+                                    >
+                                        <option value="">-- Sélectionner une région --</option>
+                                        {ENEO_REGIONS.map(region => (
+                                            <option key={region} value={region}>{region}</option>
+                                        ))}
+                                    </select>
                                 </div>
                                 <div className="form-group">
                                     <label>Entité Métier <span className="text-danger">*</span></label>

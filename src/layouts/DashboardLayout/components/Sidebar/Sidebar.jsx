@@ -4,6 +4,19 @@ import { menuConfig } from '../../../../config/menus';
 import Cookies from 'js-cookie';
 import './Sidebar.css';
 
+// Helper : lit les données utilisateur depuis le cookie, puis localStorage en fallback
+const readUser = () => {
+    const cookieStr = Cookies.get('user');
+    if (cookieStr) {
+        try { return JSON.parse(cookieStr); } catch (e) {}
+    }
+    const lsStr = localStorage.getItem('user');
+    if (lsStr) {
+        try { return JSON.parse(lsStr); } catch (e) {}
+    }
+    return { nom: 'Utilisateur', prenom: '' };
+};
+
 /**
  * Composant Sidebar strict
  * Il se contente d'afficher le menu et ne gère aucune logique lourde. 
@@ -11,9 +24,9 @@ import './Sidebar.css';
  */
 const Sidebar = () => {
     // 1. Récupération des informations de l'utilisateur stockées en session
-    const userString = Cookies.get('user');
-    const user = userString ? JSON.parse(userString) : { nom: 'Utilisateur', prenom: '' };
-    const fullName = `${user.prenom || ''} ${user.nom || ''}`.trim() || 'Utilisateur Anonyme';
+    const user = readUser();
+    const fullName = `${user.first_name || user.prenom || ''} ${user.last_name || user.nom || ''}`.trim() || 'Utilisateur Anonyme';
+
 
     // 2. Détermination du rôle actif pour savoir quels menus afficher
     // On utilise le NOM du rôle (stable) plutôt que le CODE (instable ex: op1, Ad1...)

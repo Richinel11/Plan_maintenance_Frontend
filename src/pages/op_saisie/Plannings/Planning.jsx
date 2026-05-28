@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { getCurrentUser } from "../../../services/Authservice";
+import { toast } from "sonner";
 
 import FileInput from "../Importer_Plannings/importation";
 import readExcel from "./readFile";
@@ -18,11 +19,8 @@ import Recap from "../Creer_Travail/Recap/recap";
 import {
   getReferences,
   getTypesActivite,
-  getOuvrages,
-  getPostes,
-  getDeparts,
-  getTroncons,
 } from "../../../services/referencetielService";
+
 
 const ExcelDisplay = () => {
   const navigate = useNavigate();
@@ -43,10 +41,7 @@ const ExcelDisplay = () => {
   /* REFERENTIEL DATA */
   const [references, setReferences] = useState([]);
   const [typesActivite, setTypesActivite] = useState([]);
-  const [ouvrages, setOuvrages] = useState([]);
-  const [postes, setPostes] = useState([]);
-  const [departs, setDeparts] = useState([]);
-  const [troncons, setTroncons] = useState([]);
+
 
   /* SUBMISSION PROGRESS */
   const [isSubmissionModalOpen, setIsSubmissionModalOpen] = useState(false);
@@ -80,45 +75,19 @@ const [planningFormData, setPlanningFormData] = useState({
   React.useEffect(() => {
     const fetchData = async () => {
       try {
-        const [ovs, pst, dpt, trc, refs, tps] = await Promise.all([
-          getOuvrages(), getPostes(), getDeparts(), getTroncons(),
+        const [refs, tps] = await Promise.all([
           getReferences(), getTypesActivite()
         ]);
-        setOuvrages(ovs || []); setPostes(pst || []); setDeparts(dpt || []); setTroncons(trc || []);
-        setReferences(refs || []); setTypesActivite(tps || []);
+        setReferences(refs || []);
+        setTypesActivite(tps || []);
       } catch (err) { console.error("Referentiel load error", err); }
     };
     fetchData();
   }, []);
 
-  /* AUTO GENERATE REFERENCE */
-  React.useEffect(() => {
-    if (!referenceConfig?.length) return;
-    const fieldValues = {
-      ouvrage_id: ouvrages.find(o => o.id === Number(planningFormData.ouvrage_id))?.nom || "",
-      poste_id: postes.find(p => p.id === Number(planningFormData.poste_id))?.nom || "",
-      troncon_id: troncons.find(t => t.id === Number(planningFormData.troncon_id))?.nom || "",
-      depart_id: departs.find(d => d.id === Number(planningFormData.depart_id))?.nom || "",
-      Segments: service.toUpperCase(),
-      Ouvrages: ouvrages.find(o => o.id === Number(planningFormData.ouvrage_id))?.nom || "",
-      Poste: postes.find(p => p.id === Number(planningFormData.poste_id))?.nom || "",
-      Departs: departs.find(d => d.id === Number(planningFormData.depart_id))?.nom || "",
-    };
 
-    const values = referenceConfig.map(f => fieldValues[f]).filter(Boolean);
-    const newRef = values.join("-");
+  /* AUTO GENERATE REFERENCE — now derived from Reference items, no standalone lookup needed */
 
-    if (newRef !== planningFormData.Reference) {
-      setPlanningFormData(prev => ({
-        ...prev,
-        Reference: newRef,
-        Ouvrages: fieldValues.Ouvrages,
-        Poste: fieldValues.Poste,
-        Departs: fieldValues.Departs,
-        Segments: fieldValues.Segments,
-      }));
-    }
-  }, [referenceConfig, planningFormData.ouvrage_id, planningFormData.poste_id, planningFormData.troncon_id, planningFormData.depart_id, service, ouvrages, postes, departs, troncons]);
 
 const handleOpenAddModal = () => {
   setPlanningFormData({
@@ -226,15 +195,11 @@ const prevStep = () => {
   const handleFileSelect = async (file) => {
     try {
       setFileName(file.name);
-
       const data = await readExcel(file);
-
       setExcelData(data);
-
     } catch (error) {
       console.error(error);
-
-      alert("Erreur importation fichier");
+      toast.error("Erreur lors de l'importation du fichier. Vérifiez le format.");
     }
   };
 
@@ -298,16 +263,22 @@ const prevStep = () => {
   /* ---------------- DELETE ---------------- */
 
   const handleDeleteRow = (rowIndex) => {
-    const confirmed = window.confirm(
-      "Voulez-vous supprimer cette ligne ?"
-    );
-    if (!confirmed) return;
-
-    const targetIndex = excelData.length > rows.length ? rowIndex + 1 : rowIndex;
-    const updated = excelData.filter(
-      (_, index) => index !== targetIndex
-    );
-    setExcelData(updated);
+    toast.warning("Supprimer cette ligne ?", {
+      description: "Cette action est irréversible.",
+      duration: 6000,
+      action: {
+        label: "Confirmer",
+        onClick: () => {
+          const targetIndex = excelData.length > rows.length ? rowIndex + 1 : rowIndex;
+          const updated = excelData.filter((_, index) => index !== targetIndex);
+          setExcelData(updated);
+        }
+      },
+      cancel: {
+        label: "Annuler",
+        onClick: () => {}
+      }
+    });
   };
 
   /* ---------------- ADD ROW ---------------- */
@@ -352,7 +323,7 @@ const handleAddPlanningRow = () => {
 
   const handleSubmit = async () => {
     if (!rows.length) {
-      alert("Aucune donnée");
+      toast.error("Aucune donnée à soumettre. Ajoutez des lignes avant de valider.");
       return;
     }
 
@@ -401,14 +372,14 @@ const handleAddPlanningRow = () => {
       setSubmissionStatus("Terminé !");
       setTimeout(() => {
         setIsSubmissionModalOpen(false);
-        alert("Planning et travaux importés avec succès");
+        toast.success("Planning et travaux importés avec succès !");
         navigate("/dashboard/Tableaux_De_Bord");
       }, 1000);
 
     } catch (error) {
       console.error(error);
       setSubmissionStatus("Erreur lors de l'importation");
-      alert("Erreur lors de l'importation : " + (error.response?.data?.error || "Erreur inconnue"));
+      toast.error("Erreur lors de l'importation : " + (error.response?.data?.error || "Erreur inconnue"));
       setIsSubmissionModalOpen(false);
     } finally {
       setLoading(false);

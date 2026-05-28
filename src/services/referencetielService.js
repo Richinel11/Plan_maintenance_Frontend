@@ -1,8 +1,8 @@
 import api from "../API/axiosInstance";
 
 /* REFERENCES */
-export const getReferences = async () => {
-  const response = await api.get("/references/");
+export const getReferences = async (entiteMetierId) => {
+  const response = await api.get(`references/?entite_metier_id=${entiteMetierId}`);
   return response.data;
 };
 
@@ -12,44 +12,36 @@ export const getReferenceById = async (id) => {
 };
 
 
-/* OUVRAGES */
-export const getOuvrages = async () => {
-  const response = await api.get("/ouvrage/");
-  return response.data;
-};
+// Les anciens endpoints (/ouvrage/, /postes/, /departs/, /troncons/, /Localisation/)
+// ont été supprimés du backend. Ils sont gérés via le système de Référence (items).
+// Les fonctions ci-dessous sont gardées temporairement pour éviter de casser des
+// composants qui les appelleraient, mais elles retournent un tableau vide.
 
-/* POSTES */
-export const getPostes = async () => {
-  const response = await api.get("/postes/");
-  return response.data;
-};
+export const getOuvrages = async () => [];
+export const getPostes = async () => [];
+export const getDeparts = async () => [];
+export const getLocalisations = async () => [];
+export const getTroncons = async () => [];
 
-/* DEPARTS */
-export const getDeparts = async () => {
-  const response = await api.get("/departs/");
-  return response.data;
-};
-
-/* LOCALISATIONS (Segments) */
-export const getLocalisations = async () => {
-  const response = await api.get("/Localisation/");
-  return response.data;
-};
-
-/* TRONCONS */
-export const getTroncons = async () => {
-  const response = await api.get("/troncons/");
-  return response.data;
-};
 
 export const getTypesActivite = async () => {
-  const response = await api.get("/types-activite/");
-  return response.data;
+  try {
+    const response = await api.get("/types-activite/");
+    return response.data;
+  } catch (e) {
+    console.warn("Types activite endpoint not available, returning empty array");
+    return [];
+  }
 };
 
 export const getChargesConsignation = async () => {
-  const response = await api.get("/charges-consignation/");
-  return response.data;
+  try {
+    const response = await api.get("/charges-consignation/");
+    return response.data;
+  } catch (e) {
+    console.warn("Charges consignation endpoint not available, returning empty array");
+    return [];
+  }
 };
 
 
