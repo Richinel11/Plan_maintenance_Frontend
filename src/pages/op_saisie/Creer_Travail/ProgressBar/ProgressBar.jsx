@@ -1,10 +1,11 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { toast } from 'sonner';
+
+
 import { ArrowRight, ArrowLeft } from "lucide-react";
 import "./Progress.css";
 
-import Etape2 from "../Etape2/etape2";
 import Etape3 from "../etape3/etape3";
 import Recap from "../Recap/recap";
 import PlanningForm from "../components/PlanningForm";
@@ -26,15 +27,18 @@ import {
   createPlanning,
   createTravail,
   getOptionsByService,
+  getCentrales,
 } from "../../../../API/planningService";
 
 import { getEntites } from "../../../../services/userService";
 
 export default function MultiStepForm() {
+  const navigate = useNavigate();
   const [plannings, setPlannings] = useState([]);
   const [step, setStep] = useState(0);
   const [loading, setLoading] = useState(false);
   const [optionsLoading, setOptionsLoading] = useState(false);
+
 
   /* ---------------- STATES RÉFÉRENTIEL ---------------- */
   const [references, setReferences] = useState([]);
@@ -48,6 +52,7 @@ export default function MultiStepForm() {
   const [segments, setSegments] = useState([]);
   const [chargesConsignation, setChargesConsignation] = useState([]);
   const [unitesDemanderesse, setUnitesDemanderesse] = useState([]);
+  const [centrales, setCentrales] = useState([]);
   /* Options dynamiques chargées selon le service choisi */
   const [serviceOptions, setServiceOptions] = useState({});
 
@@ -66,6 +71,7 @@ export default function MultiStepForm() {
     Departs: departs,
     Charges_de_consignation: chargesConsignation,
     Troncons: troncons,
+    Centrale_thermique: centrales,
   };
 
   /* ---------------- FORM DATA ---------------- */
@@ -102,6 +108,7 @@ export default function MultiStepForm() {
     Prevision_puissance_interrompue: "",
     Prevision_ENF: "",
     Centrale_thermique: "",
+    centrale_thermique_sollicitee_id: null,
     Qte_de_fuel: "",
     Observations: "",
     Jour_avant_travaux: null,
@@ -130,12 +137,14 @@ export default function MultiStepForm() {
           planningsResponse,
           chargesData,
           unitesData,
+          centralesData,
         ] = await Promise.all([
           getReferences(entitemetier_id),
           getTypesActivite(),
           getPlannings(),
           getChargesConsignation(entitemetier_id),
           getUnites(entitemetier_id),
+          getCentrales(),
         ]);
 
         setReferences(referencesData?.results || referencesData || []);
@@ -144,6 +153,7 @@ export default function MultiStepForm() {
         setPlannings(planningsResponse?.results || planningsResponse || []);
         setChargesConsignation(chargesData?.results || chargesData?.data || chargesData || []);
         setUnitesDemanderesse(unitesData?.results || unitesData || []);
+        setCentrales(centralesData?.results || centralesData || []);
       } catch (error) {
         console.error("Erreur chargement référentiel :", error);
       }
@@ -214,44 +224,11 @@ export default function MultiStepForm() {
     formData.Jour_avant_travaux,
   ]);
 
-  /* ---------------- AUTO RESOLVE TEXT LABELS FOR RECAP ---------------- */
-  useEffect(() => {
-    const getLabel = (list, id) => {
-      if (!id) return "";
-      const item = list.find((i) => String(i.id) === String(id));
-      return item ? (item.nom || item.libelle || item.ville || item.name || "") : "";
-    };
-
-    const fieldValues = {
-      Ouvrages: getLabel(ouvrages, formData.ouvrage_id),
-      Poste: getLabel(postes, formData.poste_id),
-      Departs: getLabel(departs, formData.depart_id),
-      Segments: getLabel(segments, formData.segment_id),
-    };
-
-    let updates = {};
-    if (fieldValues.Ouvrages !== formData.Ouvrages) updates.Ouvrages = fieldValues.Ouvrages;
-    if (fieldValues.Poste !== formData.Poste) updates.Poste = fieldValues.Poste;
-    if (fieldValues.Departs !== formData.Departs) updates.Departs = fieldValues.Departs;
-    if (fieldValues.Segments !== formData.Segments) updates.Segments = fieldValues.Segments;
-
-    if (Object.keys(updates).length > 0) {
-      setFormData((prev) => ({ ...prev, ...updates }));
-    }
-  }, [
-    formData.ouvrage_id,
-    formData.poste_id,
-    formData.depart_id,
-    formData.segment_id,
-    ouvrages,
-    postes,
-    departs,
-    segments,
-    formData.Ouvrages,
-    formData.Poste,
-    formData.Departs,
-    formData.Segments,
-  ]);
+  /* NOTE : Les champs Segments/Ouvrages/Poste/Departs sont désormais
+     auto-remplis directement par PlanningForm via les items de la Référence.
+     L'ancien useEffect de résolution par ID a été supprimé car il écrasait
+     ces valeurs avec des chaînes vides (les listes ouvrages/postes/departs
+     sont vides par design depuis la refonte du référentiel). */
 
   const [errors, setErrors] = useState({});
 
@@ -265,15 +242,38 @@ export default function MultiStepForm() {
     try {
       setLoading(true);
       const payload = mapPlanningPayload(formData);
-      await createPlanning(payload);
-      toast.success("Planning créé avec succès");
+      console.log("[Soumission] Payload travail envoyé au backend:", payload);
+      await createTravail(payload);
+
+      // Toast de succès
+      const planningId = formData.planning_id;
+      toast.success("Travail créé avec succès !", {
+        description: planningId
+          ? "Redirection vers le planning associé..."
+          : "Le travail a été créé.",
+        duration: 2000,
+      });
+
+      // Redirection après le toast
+      setTimeout(() => {
+        if (planningId) {
+          navigate(`/dashboard/Planning/${planningId}`);
+        }
+      }, 1800);
+
     } catch (error) {
-      console.error(error);
-      toast.error("Erreur lors de la création du planning");
+      const detail = error?.response?.data;
+      console.error("[Soumission] Erreur 400 :", detail);
+      toast.error(
+        detail
+          ? `Erreur : ${JSON.stringify(detail)}`
+          : "Erreur lors de la création du travail"
+      );
     } finally {
       setLoading(false);
     }
   };
+
 
   /* ---------------- VALIDATION DES ÉTAPES ---------------- */
   const validateStep = () => {
@@ -300,18 +300,7 @@ export default function MultiStepForm() {
       req("Disponibilite_mecanique",   formData.Disponibilite_mecanique);
     }
 
-    // Étape 2 — Localisation (Distribution uniquement, step 1)
-    if (service === "distribution" && step === 1) {
-      req("Troncons",                formData.Troncons);
-      req("Consistances_Des_Travaux",formData.Consistances_Des_Travaux);
-      req("Localites_impactees",     formData.Localites_impactees);
-      req("Moyens_mis_en_oeuvre",    formData.Moyens_mis_en_oeuvre);
-      req("Charges_de_consignation", formData.charge_consignation_id);
-    }
-
-    // Étape 3 — Programmation
-    const etape3Step = service === "distribution" ? 2 : 1;
-    if (step === etape3Step) {
+    if (step === 1) {
       req("Debut_planifiee",                   formData.Debut_planifiee);
       req("Duree",                              formData.Duree);
       req("Date_programmee",                   formData.Date_programmee);
@@ -321,6 +310,11 @@ export default function MultiStepForm() {
       req("Centrale_thermique",                formData.Centrale_thermique);
       req("Qte_de_fuel",                       formData.Qte_de_fuel);
       req("Observations",                      formData.Observations || formData.Obervations);
+
+      // Validation des champs techniques de la Distribution déplacés en étape 2
+      req("Troncons",                          formData.Troncons);
+      req("Localites_impactees",               formData.Localites_impactees);
+      req("Moyens_mis_en_oeuvre",              formData.Moyens_mis_en_oeuvre);
     }
 
     setErrors(newErrors);
@@ -343,13 +337,13 @@ export default function MultiStepForm() {
             </div>
             <div className="associate-select-wrapper">
               <select
-                value={service}
-                onChange={(e) => setService(e.target.value)}
+                value={service?.toLowerCase()}
+                onChange={(e) => setService(e.target.value.toLowerCase())}
               >
                 <option value="">-- Sélectionner une entité --</option>
-                <option value="Transport">Transport</option>
-                <option value="Distribution">Distribution</option>
-                <option value="Production">Production</option>
+                <option value="transport">Transport</option>
+                <option value="distribution">Distribution</option>
+                <option value="production">Production</option>
               </select>
               <svg className="chevron" viewBox="0 0 20 20" fill="currentColor" width="16" height="16">
                 <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
@@ -393,22 +387,6 @@ export default function MultiStepForm() {
         </>
       ),
     },
-    ...(service === "distribution"
-      ? [
-          {
-            title: "Localisation & Consistance",
-            content: (
-              <Etape2
-                formData={formData}
-                onChange={handleInputChange}
-                fields={fields}
-                options={options}
-                errors={errors}
-              />
-            ),
-          },
-        ]
-      : []),
     {
       title: "Programmation & Impact",
       content: (

@@ -8,7 +8,6 @@ export const menuConfig = {
     operateur_de_saisie: [
         { path: '/dashboard/OP-home', name: 'Accueil', icon: 'dashboard' },
         { path: '/dashboard/Planning', name: 'Import', icon: 'upload_file' },
-        { path: '/dashboard/Tableaux_De_Bord', name: 'planning', icon: 'analytics' },
         { path: '/dashboard/CreerTravail', name: 'Nouveau Travail', icon: 'add_box' },
     ],
     gest_planif: [

@@ -20,6 +20,7 @@ import {
   getReferences,
   getTypesActivite,
 } from "../../../services/referencetielService";
+import { getEntites } from "../../../services/userService";
 
 // Helper : retourne la liste des colonnes correspondant à un service
 const getFieldsForService = (service) => {
@@ -172,11 +173,13 @@ const ExcelDisplay = () => {
   const [loadingPlanning, setLoadingPlanning] = useState(false);
   const [planningDetail, setPlanningDetail] = useState(null);
 
+  /* ENTITES METIER */
+  const [entites, setEntites] = useState([]);
+
   /* REFERENTIEL DATA */
   const [references, setReferences] = useState([]);
   const [unites, setUnites] = useState([]);
   const [typesActivite, setTypesActivite] = useState([]);
-
 
   /* SUBMISSION PROGRESS */
   const [isSubmissionModalOpen, setIsSubmissionModalOpen] = useState(false);
@@ -207,21 +210,23 @@ const ExcelDisplay = () => {
     service: "",
   });
 
-  /* LOAD REFERENTIEL */
+  /* LOAD REFERENTIEL & ENTITES */
   React.useEffect(() => {
     const fetchData = async () => {
       try {
         const user = getCurrentUser();
         const entiteMetierId = user?.entite_metier?.id;
 
-        const [refs, tps, units] = await Promise.all([
+        const [refs, tps, units, ents] = await Promise.all([
           getReferences(), 
           getTypesActivite(),
-          entiteMetierId ? getReferences(entiteMetierId) : Promise.resolve([])
+          entiteMetierId ? getReferences(entiteMetierId) : Promise.resolve([]),
+          getEntites()
         ]);
         setReferences(refs || []);
         setTypesActivite(tps || []);
         setUnites(units || []);
+        setEntites(ents || []);
       } catch (err) { console.error("Referentiel load error", err); }
     };
     fetchData();
@@ -515,61 +520,77 @@ const handleAddPlanningRow = () => {
     try {
       setLoading(true);
 
+      // Déterminer l'entité métier correspondant au service sélectionné
+      const selectedEntite = entites.find(e => e.name.toLowerCase() === service.toLowerCase());
+      const entiteMetierId = selectedEntite ? selectedEntite.id : null;
+
+      if (!entiteMetierId) {
+        console.warn(`Aucune entité métier trouvée pour le service : ${service}`);
+      }
+
       // 1. Créer le planning
       const planningResponse = await createPlanning({
         nom: fileName || "Nouveau Planning",
-        code: `PLAN-${Date.now()}`
+        entite_metier_id: entiteMetierId
       });
       
       const planningId = planningResponse.data.id;
       setSubmissionProgress(10);
       setSubmissionStatus("Planning créé. Envoi des travaux...");
 
-      // 2. Envoyer les travaux un à un
-      for (let i = 0; i < rows.length; i++) {
-        const row = rows[i];
-        // S'assurer qu'on ne prend pas l'entête par erreur
-        if (i === 0 && excelData.length > 0 && row === excelData[0]) continue;
+      // 2. Préparer les travaux
+      // On s'assure de ne pas envoyer l'entête si elle est présente dans rows
+      const dataRows = rows.filter(row => row !== headers);
+      const totalToSubmit = dataRows.length;
+      let successCount = 0;
+      let errorCount = 0;
 
-        const rowObject = {
-          ...convertRowToObject(headers, row),
-          service: service
-        };
+      // 3. Envoyer les travaux un à un
+      for (let i = 0; i < totalToSubmit; i++) {
+        const row = dataRows[i];
 
-        // Fusionner avec les IDs si on est en mode saisie manuelle (optionnel mais recommandé)
-        // Note: rowObject contient déjà les valeurs indexées par headers
-        
-        const payload = mapPlanningPayload(rowObject);
-        payload.planning_id = planningId;
+        try {
+          const rowObject = {
+            ...convertRowToObject(headers, row),
+            service: service
+          };
 
-        console.log(`ENVOI TRAVAIL ${i + 1} =>`, payload);
-        setSubmissionStatus(`Envoi du travail ${i + 1} / ${rows.length}...`);
-        await createTravail(payload);
+          const payload = mapPlanningPayload(rowObject);
+          payload.planning_id = planningId;
 
-        const progress = 10 + Math.round(((i + 1) / rows.length) * 90);
+          console.log(`ENVOI TRAVAIL ${i + 1}/${totalToSubmit} =>`, payload);
+          setSubmissionStatus(`Envoi du travail ${i + 1} / ${totalToSubmit}...`);
+          
+          await createTravail(payload);
+          successCount++;
+        } catch (rowError) {
+          console.error(`Erreur sur la ligne ${i + 1}:`, rowError?.response?.data || rowError.message);
+          errorCount++;
+        }
+
+        const progress = 10 + Math.round(((i + 1) / totalToSubmit) * 90);
         setSubmissionProgress(progress);
       }
 
-      setSubmissionStatus("Terminé !");
+      setSubmissionStatus(errorCount > 0 ? `Terminé avec ${errorCount} erreurs` : "Terminé !");
+      
       setTimeout(() => {
         setIsSubmissionModalOpen(false);
-        toast.success("Planning et travaux importés avec succès !");
-
-        // ─────────────────────────────────────────────────────────────
-        //  Navigation vers la page de détail du planning
-        //
-        //  On passe le planningId dans le "state" de React Router.
-        //  Tableaux.jsx va lire ce state via useLocation() pour
-        //  charger directement les travaux de CE planning
-        //  au lieu d'afficher la liste générale.
-        // ─────────────────────────────────────────────────────────────
-        navigate(`/dashboard/Planning/${planningId}`);
-      }, 1000);
+        if (successCount > 0) {
+          toast.success(`${successCount} travaux importés avec succès !`);
+          if (errorCount > 0) {
+            toast.warning(`${errorCount} lignes n'ont pas pu être importées.`);
+          }
+          navigate(`/dashboard/Planning/${planningId}`);
+        } else {
+          toast.error("Aucun travail n'a pu être importé. Vérifiez le format des données.");
+        }
+      }, 1500);
 
     } catch (error) {
-      console.error(error);
-      setSubmissionStatus("Erreur lors de l'importation");
-      toast.error("Erreur lors de l'importation : " + (error.response?.data?.error || "Erreur inconnue"));
+      console.error("Global submit error:", error);
+      setSubmissionStatus("Erreur lors de la création du planning");
+      toast.error("Erreur : " + (error.response?.data?.error || "Impossible de créer le planning"));
       setIsSubmissionModalOpen(false);
     } finally {
       setLoading(false);
@@ -786,7 +807,7 @@ const handleAddPlanningRow = () => {
               <button
                 type="button"
                 className="btn-draft"
-                onClick={() => navigate("/dashboard/Tableaux_De_Bord")}
+                onClick={() => navigate("/dashboard/OP-home")}
                 style={{ background: "#475569", color: "#fff", display: "flex", alignItems: "center", gap: "8px" }}
               >
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">

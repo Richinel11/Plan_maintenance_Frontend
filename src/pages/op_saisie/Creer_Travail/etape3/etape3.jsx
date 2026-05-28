@@ -15,6 +15,71 @@ const PlanningSection = ({ formData, onChange, fields, options, errors = {} }) =
   return (
     <div className="planning-wrapper">
 
+      {/* LOCALISATION & TECHNIQUE (Distribution) - PLACÉ EN PREMIER */}
+      {(isFieldVisible("Troncons") || isFieldVisible("Localites_impactees") || isFieldVisible("Moyens_mis_en_oeuvre")) && (
+        <div className="section-block">
+          <div className="section-title">
+            <span className="icon">📍</span>
+            <h2>Localisation &amp; Consistance</h2>
+          </div>
+
+          {isFieldVisible("Troncons") && (
+            <div className="form-group full">
+              <label>
+                Tronçons / Consignes<span className="required-star">*</span>
+              </label>
+              <input
+                type="text"
+                placeholder="ex: Tronçon A, Section B..."
+                value={formData.Troncons || ""}
+                onChange={(e) => onChange("Troncons", e.target.value)}
+                className={errors.Troncons ? "input-error" : ""}
+              />
+              {errors.Troncons && (
+                <span className="field-error">⚠️ {errors.Troncons}</span>
+              )}
+            </div>
+          )}
+
+          {isFieldVisible("Localites_impactees") && (
+            <div className="form-group full" style={{ marginTop: "15px" }}>
+              <label>
+                Localités impactées<span className="required-star">*</span>
+              </label>
+              <input
+                type="text"
+                placeholder="ex: Quartier X, Zone Y..."
+                value={formData.Localites_impactees || ""}
+                onChange={(e) => onChange("Localites_impactees", e.target.value)}
+                className={errors.Localites_impactees ? "input-error" : ""}
+              />
+              {errors.Localites_impactees && (
+                <span className="field-error">⚠️ {errors.Localites_impactees}</span>
+              )}
+            </div>
+          )}
+
+          {isFieldVisible("Moyens_mis_en_oeuvre") && (
+            <div className="form-group full" style={{ marginTop: "15px" }}>
+              <label>
+                Moyens mis en œuvre<span className="required-star">*</span>
+              </label>
+              <textarea
+                rows="2"
+                placeholder="Listez les camions, équipes, matériels et autres moyens nécessaires..."
+                value={formData.Moyens_mis_en_oeuvre || ""}
+                onChange={(e) => onChange("Moyens_mis_en_oeuvre", e.target.value)}
+                className={errors.Moyens_mis_en_oeuvre ? "input-error" : ""}
+                style={{ resize: "vertical" }}
+              />
+              {errors.Moyens_mis_en_oeuvre && (
+                <span className="field-error">⚠️ {errors.Moyens_mis_en_oeuvre}</span>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+
       {/* PROGRAMMATION */}
       <div className="section-block">
 
@@ -167,7 +232,17 @@ const PlanningSection = ({ formData, onChange, fields, options, errors = {} }) =
                   value={formData.Centrale_thermique || ""}
                   options={options.Centrale_thermique || []}
                   placeholder="Sélectionner la centrale"
-                  onChange={(val) => onChange("Centrale_thermique", val)}
+                  onChange={(val) => {
+                    onChange("Centrale_thermique", val);
+                    // Stocker aussi le label pour l'affichage dans le récap
+                    const found = (options.Centrale_thermique || []).find(
+                      (c) => String(c.id) === String(val)
+                    );
+                    onChange(
+                      "Centrale_thermique_label",
+                      found ? (found.valeur || found.nom || found.libelle || "") : ""
+                    );
+                  }}
                   hasError={!!errors.Centrale_thermique}
                 />
                 {errors.Centrale_thermique && (

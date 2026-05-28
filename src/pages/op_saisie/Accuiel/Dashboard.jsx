@@ -39,7 +39,7 @@ const Dashboard = () => {
   const filteredPlannings = plannings.filter(p => 
     (p.nom || p.name || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
     (p.code || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (p.service || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (p.entite_metier?.name || p.service || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
     (p.statut || "").toLowerCase().includes(searchTerm.toLowerCase())
   );
 
@@ -156,7 +156,7 @@ const Dashboard = () => {
               <tr>
                 <th>NOM DU PLANNING</th>
                 <th>CODE</th>
-                <th>SERVICE</th>
+                <th>ENTITÉ</th>
                 <th>STATUT</th>
                 <th style={{ textAlign: 'right' }}>ACTIONS</th>
               </tr>
@@ -173,7 +173,7 @@ const Dashboard = () => {
                       <span className="planning-name">{planning.nom || planning.name || '—'}</span>
                     </td>
                     <td><span className="ref">{planning.code || '—'}</span></td>
-                    <td>{planning.service || '—'}</td>
+                    <td>{planning.entite_metier?.name || planning.service || '—'}</td>
                     <td><span className={`status ${getStatusClass(planning.statut)}`}>{planning.statut || 'Brouillon'}</span></td>
                     <td>
                       {(planning.statut || '').toLowerCase() !== 'clôturé' ? (

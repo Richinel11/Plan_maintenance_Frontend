@@ -139,11 +139,8 @@ const RecapPlanning = ({ formData, fields = [] }) => {
           {isFieldVisible("Type_de_travaux") && (
             <div className="info-item">
               <label>Type de travaux</label>
-
               <span className="blue-link">
-                {formData.Type_de_travaux ||
-                  formData.type_travaux_id ||
-                  "-"}
+                {formData.Type_de_travaux || "-"}
               </span>
             </div>
           )}
@@ -161,9 +158,8 @@ const RecapPlanning = ({ formData, fields = [] }) => {
           {isFieldVisible("Centrale_thermique") && (
             <div className="info-item">
               <label>Centrale thermique</label>
-
               <span>
-                {formData.Centrale_thermique || "-"}
+                {formData.Centrale_thermique_label || "-"}
               </span>
             </div>
           )}
@@ -277,15 +273,12 @@ const RecapPlanning = ({ formData, fields = [] }) => {
 
               {isFieldVisible("Charges_de_consignation") && (
                 <div className="block">
-
                   <label>
                     CHARGES DE CONSIGNATION
                   </label>
-
                   <p>
-                    {formData.charge_consignation_id || "-"}
+                    {formData.Charges_de_consignation_label || "-"}
                   </p>
-
                 </div>
               )}
 

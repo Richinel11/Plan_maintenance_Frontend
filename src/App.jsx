@@ -18,7 +18,6 @@ import PlanningWorkflowDetail from './pages/Workflow/PlanningWorkflowDetail';
 
 import OP_home from './pages/op_saisie/Accuiel/Dashboard';
 import Planning from './pages/op_saisie/Plannings/Planning';
-import Tableaux_De_Bord from './pages/op_saisie/Plannings/TableauxDeBord/Tableaux';
 import Creer_Travail from "./pages/op_saisie/Creer_Travail/Nouveau_Travail";
 import Dashboard_Plan from './pages/G-Plan/Dashboard/Dashboard';
 import Gantt from './pages/G-Plan/Gantt-Diag/Interface';
@@ -59,7 +58,6 @@ function App() {
                             path="Planning/:id"
                             element={<Planning />}
                             />
-                        <Route path="Tableaux_De_Bord" element={<Tableaux_De_Bord />} />
                         <Route path="CreerTravail" element={<Creer_Travail />} />
 
                         {/* Contenus pour G-Plan */}

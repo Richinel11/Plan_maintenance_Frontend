@@ -511,7 +511,8 @@ export default function PlanningForm({
         {(isFieldVisible("Unite_demanderesse") ||
           isFieldVisible("Exploitations") ||
           isFieldVisible("Type_de_travaux") ||
-          isFieldVisible("Types_de_reseau")) && (
+          isFieldVisible("Types_de_reseau") ||
+          isFieldVisible("Disponibilite_mecanique")) && (
           <div
             style={{
               marginTop: 20,
@@ -575,7 +576,17 @@ export default function PlanningForm({
                     value={formData.type_travaux_id || ""}
                     options={typesActivite || []}
                     placeholder="Nature des travaux"
-                    onChange={(val) => onChange("type_travaux_id", val)}
+                    onChange={(val) => {
+                      onChange("type_travaux_id", val);
+                      // Stocker aussi le label pour l'affichage dans le récap
+                      const found = (typesActivite || []).find(
+                        (t) => String(t.id) === String(val)
+                      );
+                      onChange(
+                        "Type_de_travaux",
+                        found ? (found.libelle || found.nom || found.valeur || "") : ""
+                      );
+                    }}
                     hasError={!!errors.Type_de_travaux}
                   />
                   {errors.Type_de_travaux && <span className="field-error">⚠️ {errors.Type_de_travaux}</span>}
@@ -583,15 +594,57 @@ export default function PlanningForm({
               )}
               {isFieldVisible("Types_de_reseau") && (
                 <div>
-                  <SearchableSelect
-                    label={<>Types de réseau <span className="required-star" style={{ color: "#EF4444" }}>*</span></>}
-                    value={formData.Types_de_reseau}
-                    options={options.Types_de_reseau || []}
-                    placeholder="Sélectionner le réseau"
-                    onChange={(val) => onChange("Types_de_reseau", val)}
-                    hasError={!!errors.Types_de_reseau}
+                  <label className="field-label" style={{ display: "block", marginBottom: 6 }}>
+                    Types de réseau <span className="required-star" style={{ color: "#EF4444" }}>*</span>
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="ex: HTA, HTB, BT..."
+                    value={formData.Types_de_reseau || ""}
+                    onChange={(e) => onChange("Types_de_reseau", e.target.value.toUpperCase())}
+                    className={`form-textarea ${errors.Types_de_reseau ? "input-error" : ""}`}
+                    style={{
+                      width: "100%",
+                      padding: "11px 14px",
+                      border: `1.5px solid ${errors.Types_de_reseau ? "#EF4444" : "#E2E8F0"}`,
+                      borderRadius: 10,
+                      fontSize: 14,
+                      fontFamily: "Inter, sans-serif",
+                      outline: "none",
+                      boxSizing: "border-box",
+                      minHeight: "44px"
+                    }}
                   />
-                  {errors.Types_de_reseau && <span className="field-error">⚠️ {errors.Types_de_reseau}</span>}
+                  {errors.Types_de_reseau && <span className="field-error" style={{ display: "block", marginTop: 4 }}>⚠️ {errors.Types_de_reseau}</span>}
+                </div>
+              )}
+              {isFieldVisible("Disponibilite_mecanique") && (
+                <div>
+                  <label className="field-label" style={{ display: "block", marginBottom: 6 }}>
+                    Disponibilité mécanique (MW) <span className="required-star" style={{ color: "#EF4444" }}>*</span>
+                  </label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    placeholder="ex: 150"
+                    value={formData.Disponibilite_mecanique || ""}
+                    onChange={(e) => onChange("Disponibilite_mecanique", e.target.value)}
+                    className={`form-textarea ${errors.Disponibilite_mecanique ? "input-error" : ""}`}
+                    style={{
+                      width: "100%",
+                      padding: "11px 14px",
+                      border: `1.5px solid ${errors.Disponibilite_mecanique ? "#EF4444" : "#E2E8F0"}`,
+                      borderRadius: 10,
+                      fontSize: 14,
+                      fontFamily: "Inter, sans-serif",
+                      outline: "none",
+                      boxSizing: "border-box",
+                      minHeight: "44px"
+                    }}
+                  />
+                  {errors.Disponibilite_mecanique && (
+                    <span className="field-error" style={{ display: "block", marginTop: 4 }}>⚠️ {errors.Disponibilite_mecanique}</span>
+                  )}
                 </div>
               )}
             </div>
@@ -625,7 +678,22 @@ export default function PlanningForm({
               value={formData.charge_consignation_id || ""}
               options={options.Charges_de_consignation || []}
               placeholder="Sélectionner une charge"
-              onChange={(val) => onChange("charge_consignation_id", val)}
+              onChange={(val) => {
+                onChange("charge_consignation_id", val);
+                // Stocker aussi le label pour l'affichage dans le récap
+                const found = (options.Charges_de_consignation || []).find(
+                  (c) => String(c.id) === String(val)
+                );
+                if (found) {
+                  const lbl =
+                    `${found.first_name || ""} ${found.last_name || ""}`.trim() ||
+                    found.username ||
+                    found.nom ||
+                    found.valeur ||
+                    "";
+                  onChange("Charges_de_consignation_label", lbl);
+                }
+              }}
               hasError={!!errors.Charges_de_consignation}
             />
             {errors.Charges_de_consignation && (
