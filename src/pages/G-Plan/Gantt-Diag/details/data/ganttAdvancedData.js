@@ -1,62 +1,68 @@
-const data = [
+
+const mockData = [
   {
     id: 1,
-    name: "Acier Laminé - Batch #203",
-    ref: "PRD-2023-A92",
-    type: "PRD",
+    name: 'Acier Laminé - Batch #203',
+    type: 'PRD',
+    ref: 'PRD-2023-A92',
+    alert: false,
     tasks: [
-      { start: 1, end: 3, color: "green" },
-    ],
+      { start: 1, end: 4, color: 'green' }
+    ]
   },
   {
     id: 2,
-    name: "Unite demanderesse",
-    ref: "TRP-FR-59-11",
-    type: "TRP",
+    name: 'Unité demanderesse',
+    type: 'TRP',
+    ref: 'TRP-FR-59-11',
     alert: true,
     tasks: [
-      { start: 2, end: 4, color: "gray" },
-      { start: 2, end: 4, color: "blue" },
-    ],
+      { start: 2, end: 5, color: 'light-green' },
+      { start: 3, end: 6, color: 'blue' }
+    ]
   },
   {
     id: 3,
-    name: "Déploiement Retail Lyon",
-    ref: "DST-L-012",
-    type: "DST",
+    name: 'Déploiement Retail Lyon',
+    type: 'DST',
+    ref: 'DST-L-012',
+    alert: false,
     tasks: [
-      { start: 2, end: 4, color: "green" },
-    ],
+      { start: 3, end: 6, color: 'blue' }
+    ]
   },
   {
     id: 4,
-    name: "Assemblage Unité C-1",
-    ref: "PRD-2023-B14",
-    type: "PRD",
+    name: 'Assemblage Unité C-1',
+    type: 'PRD',
+    ref: 'PRD-2023-B14',
+    alert: false,
     tasks: [
-      { start: 0, end: 2, color: "light-green" },
-    ],
+      { start: 1, end: 3, color: 'green' }
+    ]
   },
   {
     id: 5,
-    name: "Transit Maritime Le Havre",
-    ref: "TRP-MAR-920",
-    type: "TRP",
+    name: 'Transit Maritime Le Havre',
+    type: 'TRP',
+    ref: 'TRP-MAR-920',
     alert: true,
     tasks: [
-      { start: 2, end: 4, color: "gray" },
-      { start: 2, end: 4, color: "blue" },
-    ],
+      { start: 0, end: 4, color: 'light-green' },
+      { start: 3, end: 5, color: 'gray' }
+    ]
   },
   {
     id: 6,
-    name: "Réseau Distribution Ouest",
-    ref: "DST-W-440",
-    type: "DST",
+    name: 'Réseau Distribution Ouest',
+    type: 'DST',
+    ref: 'DST-W-440',
+    alert: false,
     tasks: [
-      { start: 1, end: 4, color: "gray" },
-    ],
-  },
+      { start: 2, end: 6, color: 'gray' },
+      { start: 3, end: 6, color: 'blue' }
+    ]
+  }
 ];
 
-export default data;
+export default mockData;

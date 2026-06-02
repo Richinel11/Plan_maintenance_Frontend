@@ -22,6 +22,7 @@ import Tableaux_De_Bord from './pages/op_saisie/Plannings/TableauxDeBord/Tableau
 import Creer_Travail from "./pages/op_saisie/Creer_Travail/Nouveau_Travail";
 import Dashboard_Plan from './pages/G-Plan/Dashboard/Dashboard';
 import Gantt from './pages/G-Plan/Gantt-Diag/Interface';
+import Calendar from './pages/G-Plan/Calendar/CalendarView';
 function App() {
     return (
         <div className="app-container">
@@ -65,6 +66,7 @@ function App() {
                         {/* Contenus pour G-Plan */}
                         <Route path="Dashboard_Plan" element={<Dashboard_Plan />} />
                         <Route path="Gantt" element={<Gantt />} />
+                        <Route path="Calendar" element={<Calendar />} />
                     </Route>
                 </Routes>
             </Router>

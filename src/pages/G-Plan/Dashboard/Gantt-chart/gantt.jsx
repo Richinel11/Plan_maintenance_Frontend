@@ -1,113 +1,95 @@
 import React, { useEffect, useState } from 'react';
 import "./gantt.css";
-import mockData from "../data/ganttData"; 
-import { GrFormPrevious, GrFormNext } from "react-icons/gr"; 
+import { GrFormPrevious, GrFormNext } from "react-icons/gr";
+import Cookies from 'js-cookie';
 
 const days = ["LUN", "MAR", "MER", "JEU", "VEN", "SAM", "DIM"];
 
 export default function GanttChart() {
-  const [allData, setAllData] = useState([]);
-  const [currentWeek, setCurrentWeek] = useState(42);
+  const [plannings, setPlannings] = useState([]);
+  const [allTravaux, setAllTravaux] = useState([]); // To show inside modal
+  const [currentWeek, setCurrentWeek] = useState(22);
+  const [loading, setLoading] = useState(true);
+  const [selectedPlanning, setSelectedPlanning] = useState(null);
+  const [error, setError] = useState(null);
 
+  const accessToken = Cookies.get('accessToken');
+
+  // Fetch both Plannings and Travaux
   useEffect(() => {
-    setAllData(mockData);
-  }, []);
+    if (!accessToken) {
+      setError("Vous devez vous reconnecter.");
+      setLoading(false);
+      return;
+    }
 
-  // my connection to the db
+    const fetchData = async () => {
+      try {
+        const [planningRes, travauxRes] = await Promise.all([
+          fetch("http://localhost:8000/plannings/", {
+            headers: { 'Authorization': `Bearer ${accessToken}` }
+          }),
+          fetch("http://localhost:8000/travaux/", {
+            headers: { 'Authorization': `Bearer ${accessToken}` }
+          })
+        ]);
 
-  useEffect(() => {
-  fetch("http://localhost:8000/tasks")
-    .then(res => res.json())
-    .then(data => {
-      setAllData(data);
-    })
-    .catch(err => console.error(err));
-}, []);
+        if (!planningRes.ok || !travauxRes.ok) throw new Error("Erreur de chargement");
 
+        const planningsData = await planningRes.json();
+        const travauxData = await travauxRes.json();
+
+        setPlannings(planningsData);
+        setAllTravaux(travauxData);
+        setError(null);
+      } catch (err) {
+        console.error(err);
+        setError("Impossible de charger les données.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [accessToken]);
+
+  // Group Travaux by Planning
+  const getTravauxForPlanning = (planningId) => {
+    return allTravaux.filter(t => t.planning?.id === planningId);
+  };
+
+  // Week navigation
   const goToPreviousWeek = () => setCurrentWeek(w => w - 1);
   const goToNextWeek = () => setCurrentWeek(w => w + 1);
 
   const getWeekHeader = (week) => {
-    const baseDate = new Date(2024, 9, 16); // Semaine 42 = 16 Oct
+    const baseDate = new Date(2026, 4, 25);
     const startDate = new Date(baseDate);
-    startDate.setDate(startDate.getDate() + (week - 42) * 7);
-    
+    startDate.setDate(startDate.getDate() + (week - 22) * 7);
     const endDate = new Date(startDate);
     endDate.setDate(endDate.getDate() + 6);
 
     return `Semaine ${week} (${startDate.toLocaleDateString('fr-FR', {day:'numeric', month:'short'})} - ${endDate.toLocaleDateString('fr-FR', {day:'numeric', month:'short'})})`;
   };
 
+  // Filter and group Plannings for current week
+  const filteredPlannings = plannings.filter(planning => {
+    if (!planning.date_creation) return false;
+    const pStart = new Date(planning.date_creation);
+    const weekStart = new Date(2026, 4, 25);
+    weekStart.setDate(weekStart.getDate() + (currentWeek - 22) * 7);
+    const weekEnd = new Date(weekStart);
+    weekEnd.setDate(weekEnd.getDate() + 6);
 
-      function assignTaskLanes(tasks) {
-      const lanes = [];
+    return pStart <= weekEnd;
+  });
 
-      return tasks.map(task => {
-        let assignedLane = 0;
+  if (loading) return <div className="gantt-container">Chargement des Plannings...</div>;
 
-        // Find first available lane
-        while (true) {
-          const lane = lanes[assignedLane];
-
-          if (!lane) {
-            lanes[assignedLane] = [task];
-            break;
-          }
-
-          // Check overlap
-          const overlaps = lane.some(existingTask => {
-            return (
-              task.start < existingTask.end &&
-              task.end > existingTask.start
-            );
-          });
-
-          if (!overlaps) {
-            lane.push(task);
-            break;
-          }
-
-          assignedLane++;
-        }
-
-        return {
-          ...task,
-          lane: assignedLane
-        };
-      });
-    }
-
-
-  // ==================== FILTERING LOGIC ====================
-  const filteredData = allData.map(resource => {
-    const filteredTasks = resource.tasks.filter(task => {
-      // Case 1: Task uses numbers (your current mockData)
-      if (typeof task.start === 'number' && typeof task.end === 'number') {
-        return true; // show all for now with mock data
-      }
-
-      // Case 2: Task uses real dates (when backend is connected)
-      if (task.startDate && task.endDate) {
-        const taskStart = new Date(task.startDate);
-        const taskEnd = new Date(task.endDate);
-        const weekStart = new Date(2024, 9, 16);
-        weekStart.setDate(weekStart.getDate() + (currentWeek - 42) * 7);
-        const weekEnd = new Date(weekStart);
-        weekEnd.setDate(weekEnd.getDate() + 6);
-
-        return taskEnd >= weekStart && taskStart <= weekEnd;
-      }
-      return false;
-    });
-
-    return { ...resource, tasks: filteredTasks };
-  }).filter(resource => resource.tasks.length > 0);
-
-  // ==================== RENDER ====================
   return (
     <div className="gantt-container">
       <div className="gantt-header">
-        <h3>Aperçu Gantt Hebdomadaire</h3>
+        <h3>Aperçu Gantt Hebdomadaire - Plannings</h3>
         <div className="week">
           <GrFormPrevious onClick={goToPreviousWeek} style={{ cursor: 'pointer' }} />
           <span>{getWeekHeader(currentWeek)}</span>
@@ -116,62 +98,71 @@ export default function GanttChart() {
       </div>
 
       <div className="gantt-days">
-        <div className="resource-label">RESSOURCE</div>
+        <div className="resource-label">RESSOURCE (Entité Métier)</div>
         {days.map((day) => <div key={day}>{day}</div>)}
       </div>
 
-      {filteredData.map((row, i) => (
-        <div className="gantt-row" key={i}>
-          <div className="resource">{row.name}</div>
+      {filteredPlannings.map((planning, i) => {
+        const resource = planning.entite_metier?.name || "Sans entité";
 
-            <div
-              className="timeline"
-              style={{
-                height: `${
-                  (Math.max(...assignTaskLanes(row.tasks).map(t => t.lane)) + 1) * 40
-                }px`
-              }}
-            >
-            {assignTaskLanes(row.tasks).map((task, j) => {
-              // Position logic for number-based tasks (mock)
-              if (typeof task.start === 'number') {
-                return (
-                  <div
-                    key={j}
-                    className={`task ${task.color}`}
-                    style={{
-                      left: `${(task.start / 7) * 100}%`,
-                      width: `${((task.end - task.start) / 7) * 100}%`,
-                      top: `${task.lane * 35}px`,
-                    }}
-                  />
-                );
-              }
+        return (
+          <div className="gantt-row" key={i} onClick={() => setSelectedPlanning(planning)}>
+            <div className="resource">{resource}</div>
+            <div className="timeline" style={{ height: "60px" }}>
+              <div
+                className="task task-blue"
+                style={{
+                  left: "5%",
+                  width: "85%",
+                  top: "12px",
+                  cursor: "pointer"
+                }}
+                title={planning.nom}
+              >
+                <span className="task-name">{planning.nom}</span>
+              </div>
+            </div>
+          </div>
+        );
+      })}
 
-              // Position logic for real dates (backend)
-              const weekStart = new Date(2024, 9, 16);
-              weekStart.setDate(weekStart.getDate() + (currentWeek - 42) * 7);
-              
-              const taskStart = new Date(task.startDate);
-              const daysOffset = Math.max(0, Math.floor((taskStart - weekStart) / (86400000)));
-              const duration = Math.ceil((new Date(task.endDate) - taskStart) / 86400000);
+      {/* Planning Detail Modal with Travaux List */}
+      {selectedPlanning && (
+        <div className="modal-overlay" onClick={() => setSelectedPlanning(null)}>
+          <div className="modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: "700px" }}>
+            <h3>Planning : {selectedPlanning.nom}</h3>
+            <p><strong>Entité :</strong> {selectedPlanning.entite_metier?.name}</p>
+            <p><strong>Code :</strong> {selectedPlanning.code}</p>
 
-              return (
-                <div
-                  key={j}
-                  className={`task ${task.color}`}
-                  style={{
-                    left: `${(daysOffset / 7) * 100}%`,
-                    width: `${(Math.min(duration, 7) / 7) * 100}%`,
-                    top: `${task.lane * 35}px`,
-                  }}
-                  title={task.name}
-                />
-              );
-            })}
+            <h4>Travaux associés ({getTravauxForPlanning(selectedPlanning.id).length})</h4>
+            
+            <div style={{ maxHeight: "400px", overflowY: "auto" }}>
+              {getTravauxForPlanning(selectedPlanning.id).map(t => (
+                <div key={t.id} style={{ padding: "10px", borderBottom: "1px solid #ddd" }}>
+                  <strong>{t.consistance_travaux}</strong> - {t.statut_travaux}
+                  <br />
+                  <small>
+                    {new Date(t.heure_debut_planifie).toLocaleDateString('fr-FR')} → 
+                    {new Date(t.heure_fin_planifie).toLocaleDateString('fr-FR')}
+                  </small>
+                </div>
+              ))}
+            </div>
+
+            <button onClick={() => setSelectedPlanning(null)} className="close-btn">Fermer</button>
           </div>
         </div>
-      ))}
+      )}
+
+      {error && (
+        <div className="modal-overlay" onClick={() => setError(null)}>
+          <div className="modal-content error-modal">
+            <h3>⚠️ Erreur</h3>
+            <p>{error}</p>
+            <button onClick={() => setError(null)} className="close-btn">OK</button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

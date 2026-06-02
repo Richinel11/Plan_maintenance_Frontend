@@ -16,12 +16,94 @@ export default function TopControls({
   entities,
   statuses,
 
-  currentWeek,
-  setCurrentWeek,
+  currentDate,
+  setCurrentDate,
 
   onAnalyze
 }) {
  
+const MONTHS = [
+  "Janvier",
+  "Février",
+  "Mars",
+  "Avril",
+  "Mai",
+  "Juin",
+  "Juillet",
+  "Août",
+  "Septembre",
+  "Octobre",
+  "Novembre",
+  "Décembre",
+];
+
+const startOfWeek = (date) => {
+
+  const d = new Date(date);
+
+  const day = d.getDay();
+
+  const diff =
+    d.getDate() -
+    day +
+    (day === 0 ? -6 : 1);
+
+  return new Date(d.setDate(diff));
+};
+
+const getPeriodLabel = () => {
+
+  if (view === "mois") {
+
+    return `${
+      MONTHS[currentDate.getMonth()]
+    } ${currentDate.getFullYear()}`;
+  }
+
+  const start = startOfWeek(currentDate);
+
+  const end = new Date(start);
+
+  end.setDate(start.getDate() + 6);
+
+  return `${start.getDate()} ${
+    MONTHS[start.getMonth()]
+  } - ${end.getDate()} ${
+    MONTHS[end.getMonth()]
+  }`;
+};
+
+const previousPeriod = () => {
+
+  const d = new Date(currentDate);
+
+  if (view === "semaine") {
+
+    d.setDate(d.getDate() - 7);
+
+  } else {
+
+    d.setMonth(d.getMonth() - 1);
+  }
+
+  setCurrentDate(d);
+};
+
+const nextPeriod = () => {
+
+  const d = new Date(currentDate);
+
+  if (view === "semaine") {
+
+    d.setDate(d.getDate() + 7);
+
+  } else {
+
+    d.setMonth(d.getMonth() + 1);
+  }
+
+  setCurrentDate(d);
+};
 
   return (
     <div className="controls-container">
@@ -86,20 +168,21 @@ export default function TopControls({
         </div>
 
         <div className="week-nav">
-          {/* <button>{"‹"}</button>
-          <span>Sem. 42 (Oct)</span>
-          <button>{"›"}</button> */}
-         <GrFormPrevious
-            onClick={() => setCurrentWeek(w => w - 1)}
-            style={{ cursor: "pointer" }}
+
+          <GrFormPrevious
+            onClick={previousPeriod}
+            className="nav-icon"
           />
 
-          <span>Sem. {currentWeek}</span>
+          <span className="week-label">
+            {getPeriodLabel()}
+          </span>
 
-           <GrFormNext
-              onClick={() => setCurrentWeek(w => w + 1)}
-              style={{ cursor: "pointer" }}
-            />
+          <GrFormNext
+            onClick={nextPeriod}
+            className="nav-icon"
+          />
+
         </div>
 
       </div>

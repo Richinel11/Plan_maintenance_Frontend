@@ -2,7 +2,7 @@ import TopControl from "./topcontrol/Topcontrol";
 import Detail from "./details/AdvancedGantt";
 import React, { useEffect, useState } from "react";
 
-import mockData from "./details/data/ganttAdvancedData";
+// import mockData from "./details/data/ganttAdvancedData";
 
 
 // const InterfaceGantt = () => {
@@ -24,7 +24,7 @@ export default function PlanningDashboard() {
   const [view, setView] = useState("semaine");
   const [selectedEntity, setSelectedEntity] = useState("");
   const [selectedStatus, setSelectedStatus] = useState("");
-  const [currentWeek, setCurrentWeek] = useState(42);
+  const [currentDate, setCurrentDate] = useState(new Date());
 
 
   // =========================
@@ -32,7 +32,7 @@ export default function PlanningDashboard() {
   // =========================
   const [entities, setEntities] = useState([]);
   const [statuses, setStatuses] = useState([]);
-  const [ganttData, setGanttData] = useState([]);
+  const [ganttData] = useState([]);
 
   // =========================
   // FETCH DROPDOWN VALUES
@@ -63,7 +63,7 @@ export default function PlanningDashboard() {
       selectedEntity,
       selectedStatus,
       view,
-      currentWeek
+      currentDate
     });
 
     // BACKEND LATER:
@@ -89,8 +89,8 @@ export default function PlanningDashboard() {
         entities={entities}
         statuses={statuses}
 
-        currentWeek={currentWeek}
-        setCurrentWeek={setCurrentWeek}
+        currentDate={currentDate}
+        setCurrentDate={setCurrentDate}
 
         onAnalyze={handleAnalyze}
       />
@@ -98,7 +98,7 @@ export default function PlanningDashboard() {
       <Detail
         data={ganttData}
         view={view}
-        currentWeek={currentWeek}
+        currentDate={currentDate}
       />
 
     </div>

@@ -32,17 +32,21 @@
 
 /* layout */
 .gantt {
-  display: grid;
-  grid-template-columns: 260px 1fr;
+  display: flex;
   background: white;
   border-radius: 10px;
   overflow: hidden;
+  max-width: 100%;
+  border: 1px solid #e5e7eb;
 }
 
-/* sidebar */
 .sidebar {
-  background: #f9fafb;
+background: #f9fafb;
   border-right: 1px solid #e5e7eb;
+  width: 280px;
+  flex-shrink: 0;
+  overflow-y: hidden;           /* Will be controlled by sync */
+  padding-bottom: 20px;
 }
 
 .sidebar-header {
@@ -83,47 +87,67 @@
 .badge.trp { background: #dbeafe; color: #1e3a8a; }
 .badge.dst { background: #e5e7eb; }
 
-/* timeline */
-.timeline {
-  position: relative;
+/* Timeline content */
+.timeline-container {
+  overflow: auto;
+  flex: 1;
+  max-height: 700px;           /* Adjust as needed */
 }
 
-/* days */
+.timeline {
+  position: relative;
+  min-width: 100%;
+}
+
+/* Days */
 .days {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(5, minmax(140px, 1fr));
   border-bottom: 1px solid #eee;
+  position: sticky;
+  top: 0;
+  background: white;
+  z-index: 10;
 }
 
 .day {
-  padding: 10px;
-  font-size: 12px;
+  padding: 12px 8px;
+  font-size: 12.5px;
   text-align: center;
   border-left: 1px solid #eee;
+  font-weight: 500;
 }
 
-/* rows */
+/* Rows */
 .row {
   position: relative;
-  height: 60px;
+  min-height: 70px;
   border-bottom: 1px solid #f1f1f1;
+  padding: 8px 0;
 }
 
-/* tasks */
+/* Tasks */
 .task {
   position: absolute;
-  top: 18px;
-  height: 22px;
+  height: 26px;
   border-radius: 6px;
   color: white;
   font-size: 11px;
   display: flex;
   align-items: center;
-  padding: 0 8px;
+  padding: 0 10px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  overflow: hidden;
+  white-space: nowrap;
+  z-index: 2;
+  max-width: 100%;
 }
 
-/* colors */
+/* Color classes */
 .task.green { background: #84cc16; }
 .task.blue { background: #2563eb; }
 .task.gray { background: #64748b; }
-.task.light-green { background: #bbf7d0; color: #065f46; }
+.task.light-green { 
+  background: #86efac; 
+  color: #166534; 
+}
