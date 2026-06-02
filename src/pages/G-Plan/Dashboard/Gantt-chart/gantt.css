@@ -55,18 +55,32 @@
 .timeline {
   position: relative;
   height: 30px;           /* slightly taller */
-  padding: 4px;           /* 🔥 inner spacing */
+  top: 4px;           /* 🔥 inner spacing */
   background: #f3f4f6;
   border-radius: 6px;
 }
 
 /* tasks */
+.task-blue   { background: #3b82f6; color: white; }
+.task-green  { background: #22c55e; color: white; }
+.task-orange { background: #f59e0b; color: white; }
+.task-red    { background: #ef4444; color: white; }
+.task-gray   { background: #6b7280; color: white; }
+
 .task {
   position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  height: 12px;
-  border-radius: 8px;
+  height: 36px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  padding: 0 8px;
+  font-size: 12px;
+  overflow: hidden;
+  white-space: nowrap;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}
+.task-name {
+  font-weight: 500;
 }
 
 /* colors */
@@ -82,4 +96,44 @@
   .gantt-row {
     grid-template-columns: 100px repeat(7, 1fr);
   }
+}
+
+/* Modal Styles */
+.modal-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background: white;
+  padding: 25px;
+  border-radius: 8px;
+  width: 90%;
+  max-width: 500px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+}
+
+.modal-content h3 { margin-top: 0; color: #1e40af; }
+.modal-content p { margin: 10px 0; }
+
+.close-btn {
+  margin-top: 15px;
+  padding: 10px 20px;
+  background: #ef4444;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.no-data {
+  text-align: center;
+  padding: 50px;
+  color: #666;
+  font-style: italic;
 }

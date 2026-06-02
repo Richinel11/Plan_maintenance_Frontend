@@ -1,0 +1,260 @@
+.fc {
+  font-family: Inter, sans-serif;
+}
+
+.fc-theme-standard td,
+.fc-theme-standard th {
+  border-color: #eef2f7;
+}
+
+.fc .fc-scrollgrid {
+  border: 1px solid #eef2f7;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+/* Main toolbar */
+.fc .fc-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px !important;
+}
+
+/* Title */
+.fc .fc-toolbar-title {
+    font-size: 34px;
+    font-weight: 700;
+    color: #1f2937;
+}
+
+/* Toolbar sections */
+.fc .fc-toolbar-chunk {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.fc .fc-button {
+    background: #f3f4f6 !important;
+    border: none !important;
+    color: #6b7280 !important;
+    box-shadow: none !important;
+    border-radius: 8px !important;
+    /* padding: 8px 16px !important;
+    font-size: 13px !important; */
+}
+
+.fc .fc-button-active {
+    background: white !important;
+    color: #111827 !important;
+    border: 1px solid #d1d5db !important;
+    border-radius: 10px;
+    /* font-weight: 600; */
+}
+
+.fc .fc-button-today{
+    background-color: #6b7280;
+}
+
+.fc .fc-today-button {
+    background: white !important;
+    border: 1px solid #d1d5db !important;
+    /* color: #374151 !important; */
+}
+
+.fc .fc-prev-button,
+.fc .fc-next-button {
+    background: white !important;
+    border: 1px solid #d1d5db !important;
+    width: 36px;
+    /* height: 36px; */
+}
+
+.fc .fc-enregistrer-button {
+    background: #2563eb !important;
+    color: white !important;
+    border: none !important;
+    padding: 5px auto !important;
+}
+
+.fc .fc-enregistrer-button:hover {
+    background: #1d4ed8 !important;
+    
+}
+
+.fc .fc-scrollgrid {
+    border: 1px solid #eef2f7;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.fc-daygrid-day-number {
+    color: #374151;
+    font-weight: 500;
+    padding: 8px !important;
+}
+
+/* Day Header styling (SUN, MON, TUE...) */
+.fc .fc-col-header-cell {
+  background: transparent !important;
+  padding: 16px 0 !important;
+  border-bottom: 1px solid #f3f4f6 !important;
+}
+
+.fc .fc-col-header-cell-cushion {
+  color: #6b7280 !important;
+  font-size: 11px !important;
+  font-weight: 600 !important;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+
+/* CRITICAL: Move day numbers to the TOP-LEFT */
+.fc .fc-daygrid-day-top {
+  flex-direction: row !important; 
+  justify-content: flex-start !important;
+}
+
+.fc-daygrid-day-number {
+  color: #1f2937;
+  font-size: 14px;
+  font-weight: 500;
+  padding: 10px 0 0 10px !important;
+}
+
+/* Current Day Highlight (e.g., Day 5 in your image) */
+.fc-day-today {
+  background: #f8fafc !important; 
+}
+.fc-day-today .fc-daygrid-day-number {
+  color: #2563eb !important; /* Blue active number */
+  font-weight: 700;
+}
+
+/* --- Custom Event Badge Styling --- */
+.fc-daygrid-event-harness {
+  margin: 2px 6px !important;
+}
+
+.fc-daygrid-event {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+}
+
+.custom-calendar-event {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border-radius: 6px;
+  width: 100%;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.event-icon {
+  font-size: 13px;
+  display: inline-flex;
+  align-items: center;
+}
+
+/* Event Color Variations */
+.event-production {
+  background-color: #eff6ff !important;
+  color: #2563eb !important;
+}
+
+.event-logistics {
+  background-color: #ecfdf5 !important;
+  color: #10b981 !important;
+}
+
+.event-conflict, .event-overlap {
+  background-color: #fef2f2 !important;
+  color: #ef4444 !important;
+  border: 1px solid #fee2e2;
+}
+
+.event-batch {
+  background-color: #e0e7ff !important;
+  color: #4f46e5 !important;
+}
+
+.event-default {
+  background-color: #f3f4f6 !important;
+  color: #374151 !important;
+}
+
+.filter-bar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 18px;
+}
+
+.filter span {
+    color: #6b7280;
+    font-size: 14px;
+}
+.filter-container {
+    margin-bottom: 16px;
+}
+
+.filter-pill {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    background: #f3f4f6;
+    border-radius: 9999px;
+
+    padding: 6px 12px;
+}
+
+.filter-pill select {
+    border: none;
+    background: transparent;
+    outline: none;
+    cursor: pointer;
+}
+
+.production-option {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #3b82f6;
+    /* flex-shrink: 0; */
+}
+
+.register {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 16px;
+}
+
+.register button {
+    background: #2563eb;
+    border: none;
+    border-radius: 6px;
+    padding: 10px 20px;
+    color: white;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+option{
+    border-radius: 10px;
+    padding: 10px auto;
+    /* background-color: #10b981; */
+}
+
