@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useEffect } from "react";
+import React, { useMemo, useState, useEffect, useCallback, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { getCurrentUser } from "../../../services/Authservice";
 import { toast } from "sonner";
@@ -7,11 +7,12 @@ import FileInput from "../Importer_Plannings/importation";
 import readExcel from "./readFile";
 
 import "./Planning.css";
+import "./TableauxDeBord/Tableaux.css";
 import PlanningForm from "../Creer_Travail/components/PlanningForm";
 import SearchBar from "../components/Filter_search/search";
 import Filter from "./filterCards/filter";
 import useServiceRole from "../../../pages/ComponentsRole/ServiceRole";
-import { createPlanning, createTravail, getPlanningById, getTravaux } from "../../../API/planningService";
+import { createPlanning, createTravail, updateTravail, deleteTravail, getPlanningById, getTravaux, getCentrales } from "../../../API/planningService";
 import { mapPlanningPayload } from "../../../utils/planningMapper";
 import Etape2 from "../Creer_Travail/Etape2/etape2";
 import Etape3 from "../Creer_Travail/etape3/etape3";
@@ -19,6 +20,12 @@ import Recap from "../Creer_Travail/Recap/recap";
 import {
   getReferences,
   getTypesActivite,
+  getUnites,
+  getChargesConsignation,
+  createReference,
+  getTypesReferentiel,
+  createReferentielItem,
+  getReferenceById,
 } from "../../../services/referencetielService";
 import { getEntites } from "../../../services/userService";
 
@@ -91,60 +98,120 @@ const getFieldsForService = (service) => {
   }
 };
 
-// Helper : Mappe un objet Travail du backend vers une ligne de tableau (tableau 1D)
+// Retourne la valeur d'un ReferentielItem pour un type donné (ex: "Segment", "Ouvrage").
+// Les items sont stockés dans travail.reference.items (sérialisé par ReferenceSerializer).
+// Types disponibles : "Segment", "Ouvrage", "Poste", "Départ" (voir seed_referentiel.py).
+const getRefItem = (travail, typeNom) => {
+  const items = travail.reference?.items;
+  if (!Array.isArray(items)) return "";
+  const item = items.find(i => i.type?.nom === typeNom);
+  return item?.valeur || "";
+};
+
+// Helper : Mappe un objet Travail du backend vers une ligne de tableau (tableau 1D).
+//
+// RÈGLE IMPORTANTE : chaque case doit toujours retourner une CHAÎNE de caractères.
+// Ne jamais laisser un objet imbriqué comme valeur de retour — React ne peut pas
+// rendre un objet directement dans un <td> et plante avec :
+//   "Objects are not valid as a React child"
 const mapTravailToExcelRow = (travail, fields) => {
   return fields.map((field) => {
     switch (field) {
+
       case "Reference":
-        return travail.reference?.valeur || travail.reference || "";
+        // reference est un objet {id, valeur, items, ...} → extraire .valeur
+        return travail.reference?.valeur || "";
+
       case "Segments":
-        return travail.segment || "";
+        // Le segment géographique est un ReferentielItem de type "Segment" dans la référence.
+        // travail.segment contient la catégorie métier (DISTRIBUTION/TRANSPORT/PRODUCTION),
+        // pas le segment réseau — on ne l'utilise qu'en dernier recours.
+        return getRefItem(travail, "Segment") || travail.segment || "";
+
       case "Ouvrages":
-        return travail.ouvrage?.nom || travail.ouvrage || travail.troncons_consignes || "";
+        return getRefItem(travail, "Ouvrage") || travail.troncons_consignes || "";
+
       case "Poste":
-        return travail.poste?.nom || travail.poste || "";
+        return getRefItem(travail, "Poste") || "";
+
       case "Type_de_travaux":
-        return travail.type_travaux?.nom || travail.type_travaux || "";
+        return travail.type_travaux?.libelle || "";
+
       case "Unite_demanderesse":
-        return travail.unite_demanderesse?.name || travail.unite_demanderesse || "";
+        return travail.unite_demanderesse?.nom || "";
+
       case "Consistances_Des_Travaux":
         return travail.consistance_travaux || "";
+
       case "Charges_de_consignation":
-        return travail.charge_consignation?.nom || travail.charge_consignation || "";
+        if (!travail.charge_consignation) return "";
+        const cc = travail.charge_consignation;
+        return cc.username || `${cc.first_name || ""} ${cc.last_name || ""}`.trim() || "";
+
       case "Debut_planifiee":
-        return travail.heure_debut_planifie ? new Date(travail.heure_debut_planifie).toLocaleDateString("fr-FR") : "";
+        return travail.heure_debut_planifie
+          ? new Date(travail.heure_debut_planifie).toLocaleDateString("fr-FR")
+          : "";
+
       case "Duree":
-        return travail.duree || "";
+        return travail.duree != null ? String(travail.duree) : "";
+
       case "Fin_planifiee":
-        return travail.heure_fin_planifie ? new Date(travail.heure_fin_planifie).toLocaleDateString("fr-FR") : "";
+        return travail.heure_fin_planifie
+          ? new Date(travail.heure_fin_planifie).toLocaleDateString("fr-FR")
+          : "";
+
       case "Date_programmee":
         return travail.date_programmee || "";
+
       case "Jour_avant_travaux":
-        return travail.jour_avant_travaux || "";
+        // Le champ s'appelle nombre_jours_avant_travaux dans le sérialiseur Django.
+        return travail.nombre_jours_avant_travaux != null ? String(travail.nombre_jours_avant_travaux) : "";
+
       case "Prevision_puissance_sollicite":
-        return travail.prevision_puissance_sollicitee || "";
+        return travail.prevision_puissance_sollicitee != null
+          ? String(travail.prevision_puissance_sollicitee)
+          : "";
+
       case "Prevision_puissance_interrompue":
-        return travail.prevision_puissance_interrompue || "";
+        return travail.prevision_puissance_interrompue != null
+          ? String(travail.prevision_puissance_interrompue)
+          : "";
+
       case "Prevision_ENF":
-        return travail.prevision_ENF || "";
+        return travail.prevision_enf_mwh != null ? String(travail.prevision_enf_mwh) : "";
+
       case "Centrale_thermique":
-        return travail.centrale_thermique_sollicitee?.name || travail.centrale_thermique_sollicitee || "";
+        return travail.centrale_thermique_sollicitee?.valeur || "";
+
       case "Qte_de_fuel":
-        return travail.qte_fuel_sollicitee || "";
+        return travail.qte_fuel_sollicitee != null ? String(travail.qte_fuel_sollicitee) : "";
+
       case "Observations":
         return travail.observations || "";
+
       case "Departs":
-        return travail.depart?.nom || travail.depart || "";
+        // Le départ est un ReferentielItem de type "Départ" dans la référence.
+        return getRefItem(travail, "Départ") || "";
+
       case "Types_de_reseau":
         return travail.type_reseau || "";
+
       case "Troncons":
-        return travail.troncon?.nom || travail.troncon || "";
+        // Tronçons consignés : champ texte libre sur le modèle Travail.
+        return travail.troncons_consignes || "";
+
       case "Localites_impactees":
         return travail.localites_impactees || "";
+
       case "Moyens_mis_en_oeuvre":
         return travail.moyens_mis_en_oeuvre || "";
+
       case "Disponibilite_mecanique":
-        return travail.disponibilite_mecanique_mw || "";
+        return travail.disponibilite_mecanique_mw != null
+          ? String(travail.disponibilite_mecanique_mw)
+          : "";
+
       default:
         return "";
     }
@@ -176,15 +243,46 @@ const ExcelDisplay = () => {
   /* ENTITES METIER */
   const [entites, setEntites] = useState([]);
 
+  /* UTILISATEURS — Chargés de consignation */
+  const [users, setUsers] = useState([]);
+
   /* REFERENTIEL DATA */
   const [references, setReferences] = useState([]);
   const [unites, setUnites] = useState([]);
   const [typesActivite, setTypesActivite] = useState([]);
+  const [centrales, setCentrales] = useState([]);
 
   /* SUBMISSION PROGRESS */
   const [isSubmissionModalOpen, setIsSubmissionModalOpen] = useState(false);
   const [submissionProgress, setSubmissionProgress] = useState(0);
   const [submissionStatus, setSubmissionStatus] = useState("");
+
+  /* MODE ÉDITION TRAVAIL */
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [editingTravailId, setEditingTravailId] = useState(null);
+
+  /* PAGINATION */
+  const ITEMS_PER_PAGE = 15;
+  const [currentPage, setCurrentPage] = useState(1);
+
+  /* WARNINGS — Références introuvables */
+  const [rowWarnings, setRowWarnings] = useState([]);
+  const [activeWarningIdx, setActiveWarningIdx] = useState(0);
+  const [warningModal, setWarningModal] = useState(null);
+  const [warningTab, setWarningTab] = useState("select");
+  const [refSearch, setRefSearch] = useState("");
+  const [selectedRefId, setSelectedRefId] = useState("");
+  const [newRefValeur, setNewRefValeur] = useState("");
+  const [newRefEntiteId, setNewRefEntiteId] = useState("");
+  const [savingRef, setSavingRef] = useState(false);
+
+  /* TYPES RÉFÉRENTIEL — pour créer les items (Segment, Ouvrage, Poste, Départ) */
+  const [typesReferentiel, setTypesReferentiel] = useState([]);
+  const [newItemSegment, setNewItemSegment] = useState("");
+  const [newItemOuvrage, setNewItemOuvrage] = useState("");
+  const [newItemPoste, setNewItemPoste] = useState("");
+  const [newItemDepart, setNewItemDepart] = useState("");
+  const rowRefs = useRef({});
 
   const step = addStep;
   const filteredFields = fields ? fields.filter(f => f.step === step) : [];
@@ -217,20 +315,64 @@ const ExcelDisplay = () => {
         const user = getCurrentUser();
         const entiteMetierId = user?.entite_metier?.id;
 
-        const [refs, tps, units, ents] = await Promise.all([
-          getReferences(), 
+        const [refs, tps, units, ents, centralesData, chargesData, typesRef] = await Promise.all([
+          getReferences(),
           getTypesActivite(),
-          entiteMetierId ? getReferences(entiteMetierId) : Promise.resolve([]),
-          getEntites()
+          getUnites(),
+          getEntites(),
+          getCentrales(),
+          getChargesConsignation(),
+          getTypesReferentiel(),
         ]);
-        setReferences(refs || []);
-        setTypesActivite(tps || []);
-        setUnites(units || []);
-        setEntites(ents || []);
+        setReferences(Array.isArray(refs) ? refs : (refs?.results || []));
+        setTypesActivite(Array.isArray(tps) ? tps : (tps?.results || []));
+        setUnites(Array.isArray(units) ? units : (units?.results || []));
+        setEntites(Array.isArray(ents) ? ents : (ents?.results || []));
+        setCentrales(Array.isArray(centralesData) ? centralesData : (centralesData?.results || []));
+        setUsers(Array.isArray(chargesData) ? chargesData : (chargesData?.results || chargesData?.data || []));
+        setTypesReferentiel(Array.isArray(typesRef) ? typesRef : (typesRef?.results || []));
       } catch (err) { console.error("Referentiel load error", err); }
     };
     fetchData();
   }, []);
+
+  /* CALCUL AUTO — Fin planifiée et Jours avant travaux (copie exacte de ProgressBar.jsx) */
+  useEffect(() => {
+    let updates = {};
+
+    if (planningFormData.Debut_planifiee && planningFormData.Duree) {
+      const start = new Date(planningFormData.Debut_planifiee);
+      const end = new Date(start.getTime() + planningFormData.Duree * 60 * 60 * 1000);
+      const endStr = end.toLocaleString("fr-FR", {
+        day: "2-digit", month: "2-digit", year: "numeric",
+        hour: "2-digit", minute: "2-digit",
+      });
+      if (planningFormData.Fin_planifiee !== endStr) {
+        updates.Fin_planifiee = endStr;
+      }
+    }
+
+    if (planningFormData.Debut_planifiee && planningFormData.Date_programmee) {
+      const start = new Date(planningFormData.Debut_planifiee);
+      const programmed = new Date(planningFormData.Date_programmee);
+      start.setHours(0, 0, 0, 0);
+      programmed.setHours(0, 0, 0, 0);
+      const diffDays = Math.ceil((start.getTime() - programmed.getTime()) / (1000 * 60 * 60 * 24));
+      if (planningFormData.Jour_avant_travaux !== diffDays) {
+        updates.Jour_avant_travaux = diffDays;
+      }
+    }
+
+    if (Object.keys(updates).length > 0) {
+      setPlanningFormData((prev) => ({ ...prev, ...updates }));
+    }
+  }, [
+    planningFormData.Debut_planifiee,
+    planningFormData.Duree,
+    planningFormData.Date_programmee,
+    planningFormData.Fin_planifiee,
+    planningFormData.Jour_avant_travaux,
+  ]);
 
   /* EFFECT POUR LE CHARGEMENT DU PLANNING EXISTANT SI ID PRESENT DANS L'URL */
   useEffect(() => {
@@ -239,19 +381,38 @@ const ExcelDisplay = () => {
     const loadExistingPlanning = async () => {
       try {
         setLoadingPlanning(true);
-        const planning = await getPlanningById(id);
+
+        // Les deux appels sont indépendants : on les lance en parallèle
+        // pour diviser le temps d'attente par ~2.
+        const [planning, listTravaux] = await Promise.all([
+          getPlanningById(id),
+          getTravaux(id),
+        ]);
+
         setPlanningDetail(planning);
 
-        const planningService = planning.service || planning.segment?.toLowerCase() || "transport";
-        setService(planningService.toLowerCase());
+        // Déduire le service depuis entite_metier.name (ex: "Distribution" → "distribution").
+        const planningService = (
+            planning.entite_metier?.name?.toLowerCase()
+            || planning.service
+            || planning.segment?.toLowerCase()
+            || "transport"
+        );
+        setService(planningService);
         setFileName(planning.nom || planning.name || "");
+        // Double sécurité : si entite_metier est null mais qu'il y a des travaux,
+        // on utilise le segment du premier travail pour déterminer les colonnes.
+        const serviceFromTravaux = listTravaux[0]?.segment?.toLowerCase();
+        const finalService = planningService !== "transport"
+            ? planningService
+            : (serviceFromTravaux || planningService);
 
-        const listTravaux = await getTravaux(id);
-        const fieldsForService = getFieldsForService(planningService);
+        const fieldsForService = getFieldsForService(finalService);
 
         const mappedRows = listTravaux.map((t) => {
           const row = mapTravailToExcelRow(t, fieldsForService);
           row.__id = t.id;
+          row.__travail = t; // Objet complet pour pré-remplir le formulaire d'édition
           return row;
         });
 
@@ -269,8 +430,176 @@ const ExcelDisplay = () => {
   }, [id, setService]);
 
 
-  /* AUTO GENERATE REFERENCE — now derived from Reference items, no standalone lookup needed */
+  /* =========================================================
+      WARNINGS — Calcul et navigation
+  ========================================================= */
 
+  const norm = useCallback((s) =>
+    String(s).trim().replace(/\s+/g, " ").toLowerCase(), []);
+
+  // Normalise un header pour comparer sans accent ni casse.
+  // Permet de matcher "Reference" ET "Référence" (label Excel avec accent).
+  const normHeader = useCallback((h) =>
+    String(h).toLowerCase()
+      .replace(/[éèêë]/g, "e").replace(/[àâ]/g, "a")
+      .replace(/[îï]/g, "i").replace(/[ôö]/g, "o")
+      .replace(/[ùûü]/g, "u").replace(/ç/g, "c")
+      .trim()
+  , []);
+
+  // Calcule la liste des warnings : une cellule "Reference" est en warning si sa
+  // valeur ne correspond à aucune Reference en base (comparaison normalisée).
+  const computeWarnings = useCallback((dataRows, hdrs, refs) => {
+    if (!Array.isArray(refs) || refs.length === 0 || !Array.isArray(hdrs)) return [];
+    // Cherche la colonne "Référence" ou "Reference" sans tenir compte des accents.
+    const refColIdx = hdrs.findIndex(h => normHeader(h) === "reference");
+    if (refColIdx === -1) return [];
+
+    const warns = [];
+    dataRows.forEach((row, rowIndex) => {
+      if (!Array.isArray(row)) return;
+      const cellValue = row[refColIdx];
+      if (!cellValue || String(cellValue).trim() === "") return;
+
+      const normalizedCell = norm(cellValue);
+      const found = refs.find(r =>
+        norm(r.valeur) === normalizedCell ||
+        norm(r.valeur).startsWith(normalizedCell) ||
+        normalizedCell.startsWith(norm(r.valeur))
+      );
+      if (!found) {
+        warns.push({ rowIndex, colIndex: refColIdx, value: String(cellValue) });
+      }
+    });
+    return warns;
+  }, [norm, normHeader]);
+
+  // Navigation entre warnings — scroll vers la ligne cible.
+  const navWarning = useCallback((direction) => {
+    if (rowWarnings.length === 0) return;
+    const newIdx = (activeWarningIdx + direction + rowWarnings.length) % rowWarnings.length;
+    setActiveWarningIdx(newIdx);
+    const target = rowWarnings[newIdx];
+    rowRefs.current[target.rowIndex]?.scrollIntoView({ behavior: "smooth", block: "center" });
+  }, [activeWarningIdx, rowWarnings]);
+
+  // Ouvrir le modal de résolution pour un warning donné.
+  const openWarningModal = useCallback((warning) => {
+    setWarningModal(warning);
+    setWarningTab("select");
+    setRefSearch("");
+    setSelectedRefId("");
+    setNewRefValeur(warning.value);
+    const defaultEntite = entites.find(e => e.name.toLowerCase() === service);
+    setNewRefEntiteId(defaultEntite?.id || "");
+
+    // Lire les valeurs directement depuis la ligne du tableau.
+    // excelData[0] = headers, excelData[warning.rowIndex + 1] = la ligne en warning.
+    const hdrs = excelData[0] || [];
+    const row  = excelData[warning.rowIndex + 1] || [];
+
+    // Cherche l'index d'une colonne parmi plusieurs noms possibles (insensible à la casse
+    // et aux underscores/espaces). Retourne la valeur de la cellule ou "".
+    const getColValue = (candidates) => {
+      const norm = (s) => String(s).toLowerCase().replace(/_/g, " ").trim();
+      for (const name of candidates) {
+        const idx = hdrs.findIndex(h => norm(h) === norm(name));
+        if (idx !== -1 && row[idx]) return String(row[idx]);
+      }
+      return "";
+    };
+
+    setNewItemSegment(getColValue(["Segments", "Segment"]));
+    setNewItemOuvrage(getColValue(["Ouvrages", "Ouvrage"]));
+    setNewItemPoste(getColValue(["Poste", "Postes"]));
+    setNewItemDepart(getColValue(["Departs", "Départs", "Depart", "Départ"]));
+  }, [entites, service, excelData]);
+
+  // Appliquer une référence existante sélectionnée.
+  // rows[rowIndex] = excelData[rowIndex + 1] (les headers sont à l'index 0).
+  // On utilise rowIndex+1 directement pour éviter une dépendance sur `rows`
+  // qui est défini plus bas dans le composant (useMemo).
+  const applyExistingRef = useCallback(() => {
+    if (!selectedRefId || !warningModal) return;
+    const ref = references.find(r => r.id === selectedRefId);
+    if (!ref) return;
+
+    const excelRowIndex = warningModal.rowIndex + 1;
+    if (excelRowIndex >= excelData.length) return;
+
+    const updated = [...excelData];
+    const newRow = [...updated[excelRowIndex]];
+    newRow[warningModal.colIndex] = ref.valeur;
+    updated[excelRowIndex] = newRow;
+    setExcelData(updated);
+    setWarningModal(null);
+  }, [selectedRefId, warningModal, references, excelData]);
+
+  // Créer une nouvelle référence puis l'appliquer à la cellule.
+  const createAndApplyRef = useCallback(async () => {
+    if (!newRefValeur.trim() || !warningModal) return;
+    setSavingRef(true);
+    try {
+      // 1. Créer la Reference
+      const newRef = await createReference({
+        valeur: newRefValeur.trim(),
+        entite_metier_id: newRefEntiteId || null,
+      });
+
+      // 2. Créer les items renseignés (Segment, Ouvrage, Poste, Départ)
+      const findType = (nom) =>
+        typesReferentiel.find(t => t.nom.toLowerCase() === nom.toLowerCase());
+
+      const itemsToCreate = [
+        { valeur: newItemSegment, nom: "Segment" },
+        { valeur: newItemOuvrage, nom: "Ouvrage" },
+        { valeur: newItemPoste,   nom: "Poste" },
+        { valeur: newItemDepart,  nom: "Départ" },
+      ].filter(item => item.valeur.trim());
+
+      for (const item of itemsToCreate) {
+        const type = findType(item.nom);
+        if (type) {
+          await createReferentielItem({
+            valeur: item.valeur.trim(),
+            reference_id: newRef.id,
+            type_id: type.id,
+          });
+        }
+      }
+
+      // 3. Recharger la référence complète (avec ses items) avant de l'ajouter à la liste
+      const fullRef = await getReferenceById(newRef.id);
+      setReferences(prev => [...prev, fullRef]);
+
+      // 4. Appliquer la valeur dans la cellule du tableau
+      const excelRowIndex = warningModal.rowIndex + 1;
+      if (excelRowIndex < excelData.length) {
+        const updated = [...excelData];
+        const newRow = [...updated[excelRowIndex]];
+        newRow[warningModal.colIndex] = fullRef.valeur;
+        updated[excelRowIndex] = newRow;
+        setExcelData(updated);
+      }
+
+      const nbItems = itemsToCreate.length;
+      toast.success(`Référence créée avec ${nbItems} item${nbItems > 1 ? "s" : ""}.`);
+      setWarningModal(null);
+    } catch (err) {
+      toast.error("Impossible de créer la référence : " + (err?.response?.data?.valeur?.[0] || err.message));
+    } finally {
+      setSavingRef(false);
+    }
+  }, [newRefValeur, newRefEntiteId, warningModal, excelData, newItemSegment, newItemOuvrage, newItemPoste, newItemDepart, typesReferentiel]);
+
+/* OPTIONS STABLES — memoïsées pour éviter que SearchableSelect
+   se réinitialise à chaque re-render de Planning.jsx */
+const planningFormOptions = useMemo(() => ({
+  ...options,
+  Unite_demanderesse: unites,
+  Charges_de_consignation: users,
+  Centrale_thermique: centrales,
+}), [options, unites, users, centrales]);
 
 const handleOpenAddModal = () => {
   setPlanningFormData({
@@ -311,10 +640,7 @@ const addSteps = [
         onChange={handlePlanningChange}
         service={service}
         fields={fields}
-        options={{
-          ...options,
-          Unite_demanderesse: unites,
-        }}
+        options={planningFormOptions}
         references={references}
         onReferenceChange={(val) => {
           const selectedRef = references.find(r => r.id === Number(val));
@@ -350,7 +676,7 @@ const addSteps = [
         formData={planningFormData}
         onChange={handlePlanningChange}
         fields={fields}
-        options={options}
+        options={planningFormOptions}
       />
     ),
   },
@@ -361,12 +687,57 @@ const addSteps = [
   },
 ];
 
+// Étapes pour l'édition : calquées sur ProgressBar.jsx (le vrai formulaire de création).
+// ProgressBar utilise PlanningForm → Etape3 directement (Etape2 n'existe pas dans ce flux).
+// On supprime aussi le Récapitulatif (inutile en édition).
+const editSteps = [
+  {
+    title: "Identification & Organisation",
+    content: (
+      <PlanningForm
+        formData={planningFormData}
+        onChange={handlePlanningChange}
+        service={service}
+        fields={fields}
+        options={planningFormOptions}
+        references={references}
+        onReferenceChange={(val) => {
+          const selectedRef = references.find(r => r.id === Number(val));
+          if (selectedRef) {
+            handlePlanningChange("reference_id", val);
+            handlePlanningChange("ouvrage_id", selectedRef.ouvrage_id);
+            handlePlanningChange("poste_id", selectedRef.poste_id);
+            handlePlanningChange("depart_id", selectedRef.depart_id);
+            handlePlanningChange("troncon_id", selectedRef.troncon_id);
+          }
+        }}
+        typesActivite={typesActivite}
+      />
+    ),
+  },
+  {
+    title: "Programmation & Impact",
+    content: (
+      <Etape3
+        formData={planningFormData}
+        onChange={handlePlanningChange}
+        fields={fields}
+        options={planningFormOptions}
+      />
+    ),
+  },
+];
+
+// Étapes actives selon le mode (création ou édition).
+const activeSteps = isEditMode ? editSteps : addSteps;
+
 const nextStep = () => {
-  setAddStep((prev) => Math.min(prev + 1, addSteps.length - 1));
+  setAddStep((prev) => Math.min(prev + 1, activeSteps.length - 1));
 };
 
 const prevStep = () => {
   setAddStep((prev) => Math.max(prev - 1, 0));
+
 };
   /* ---------------- IMPORT ---------------- */
 
@@ -410,15 +781,35 @@ const prevStep = () => {
     if (!searchTerm.trim()) {
       return rows;
     }
-
     return rows.filter((row) =>
       Array.isArray(row) && row.some((cell) =>
-        String(cell)
-          .toLowerCase()
-          .includes(searchTerm.toLowerCase())
+        String(cell).toLowerCase().includes(searchTerm.toLowerCase())
       )
     );
   }, [rows, searchTerm]);
+
+  // Reset de page quand la recherche ou les données changent.
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, excelData]);
+
+  // Lignes affichées sur la page courante.
+  const totalPages = Math.ceil(filteredRows.length / ITEMS_PER_PAGE);
+  const paginatedRows = useMemo(() => {
+    const start = (currentPage - 1) * ITEMS_PER_PAGE;
+    return filteredRows.slice(start, start + ITEMS_PER_PAGE);
+  }, [filteredRows, currentPage]);
+
+  // Recalcule les warnings APRÈS la définition de rows et headers.
+  useEffect(() => {
+    if (!showImport && rows.length > 0 && references.length > 0) {
+      const warns = computeWarnings(rows, headers, references);
+      setRowWarnings(warns);
+      setActiveWarningIdx(0);
+    } else {
+      setRowWarnings([]);
+    }
+  }, [rows, references, showImport, computeWarnings, headers]);
 
   /* ---------------- EDIT ---------------- */
 
@@ -464,6 +855,140 @@ const prevStep = () => {
         label: "Annuler",
         onClick: () => {}
       }
+    });
+  };
+
+  /* ----------------------------------------------------------------
+      MODE VISUALISATION — Modifier / Supprimer un travail en base
+  ---------------------------------------------------------------- */
+
+  // Ouvrir le formulaire multi-étapes pré-rempli pour modifier un travail existant.
+  const handleEditRowDetail = (row) => {
+    const t = row.__travail;
+    if (!t) { toast.error("Données du travail introuvables."); return; }
+
+    // Pré-remplissage du formulaire depuis le travail Django.
+    // Les IDs FK (reference_id, type_travaux_id…) permettent aux dropdowns
+    // de pré-sélectionner la bonne valeur.
+    setPlanningFormData({
+      Reference:                  t.reference?.valeur || "",
+      reference_id:               t.reference?.id || null,
+      ouvrage_id:                 null,
+      poste_id:                   null,
+      depart_id:                  null,
+      troncon_id:                 null,
+
+      Segments:                   getRefItem(t, "Segment") || t.segment || "",
+      Ouvrages:                   getRefItem(t, "Ouvrage") || t.troncons_consignes || "",
+      Poste:                      getRefItem(t, "Poste")   || "",
+      Departs:                    getRefItem(t, "Départ")  || "",
+      Troncons:                   t.troncons_consignes     || "",
+
+      Unite_demanderesse:         t.unite_demanderesse?.nom  || "",
+      unite_demanderesse_id:      t.unite_demanderesse?.id   || null,
+
+      Type_de_travaux:            t.type_travaux?.libelle    || "",
+      type_travaux_id:            t.type_travaux?.id         || null,
+
+      Types_de_reseau:            t.type_reseau              || "",
+      Consistances_Des_Travaux:   t.consistance_travaux      || "",
+      Localites_impactees:        t.localites_impactees      || "",
+      Moyens_mis_en_oeuvre:       t.moyens_mis_en_oeuvre     || "",
+      charge_consignation_id:     t.charge_consignation?.id  || null,
+      Obervations:                t.observations             || "",
+
+      Debut_planifiee:            t.heure_debut_planifie     ? t.heure_debut_planifie.substring(0, 16) : "",
+      Duree:                      t.duree != null ? String(t.duree) : "",
+      Date_programmee:            t.date_programmee          ? t.date_programmee.substring(0, 10) : "",
+
+      // Transport
+      Prevision_puissance_sollicite:    t.prevision_puissance_sollicitee  != null ? String(t.prevision_puissance_sollicitee)  : "",
+      Prevision_puissance_interrompue:  t.prevision_puissance_interrompue != null ? String(t.prevision_puissance_interrompue) : "",
+      Prevision_ENF:                    t.prevision_enf_mwh               != null ? String(t.prevision_enf_mwh)               : "",
+      Centrale_thermique:               t.centrale_thermique_sollicitee?.id  || null,
+      Qte_de_fuel:                      t.qte_fuel_sollicitee             != null ? String(t.qte_fuel_sollicitee)             : "",
+
+      // Production
+      Disponibilite_mecanique:    t.disponibilite_mecanique_mw != null ? String(t.disponibilite_mecanique_mw) : "",
+
+      service,
+    });
+
+    setIsEditMode(true);
+    setEditingTravailId(row.__id);
+    setAddStep(0);
+    setIsPlanningModalOpen(true);
+  };
+
+  // Sauvegarder via PATCH /travaux/<id>/ depuis le formulaire multi-étapes.
+  const handleSavePlanningEdit = async () => {
+    if (!editingTravailId) return;
+
+    // Construire le payload depuis planningFormData, puis retirer planning_id
+    // (non nécessaire pour un PATCH — le travail est déjà rattaché au planning).
+    const payload = mapPlanningPayload({ ...planningFormData, service });
+    delete payload.planning_id;
+
+    try {
+      const response = await updateTravail(editingTravailId, payload);
+      const updatedTravail = response.data;
+
+      // Recalculer la ligne du tableau depuis les données fraîches retournées par le backend.
+      const fieldsForService = getFieldsForService(service);
+      const newRow = mapTravailToExcelRow(updatedTravail, fieldsForService);
+      newRow.__id = updatedTravail.id;
+      newRow.__travail = updatedTravail;
+
+      // Remplacer l'ancienne ligne dans excelData.
+      const targetRow = rows.find(r => r.__id === editingTravailId);
+      const excelRowIndex = excelData.indexOf(targetRow);
+      if (excelRowIndex !== -1) {
+        const updated = [...excelData];
+        updated[excelRowIndex] = newRow;
+        setExcelData(updated);
+      }
+
+      toast.success("Travail mis à jour avec succès.");
+      setIsPlanningModalOpen(false);
+      setIsEditMode(false);
+      setEditingTravailId(null);
+    } catch (err) {
+      const detail = err?.response?.data;
+      const msg = typeof detail === "object"
+        ? Object.entries(detail).map(([k, v]) => `${k}: ${v}`).join(" | ")
+        : err.message;
+      toast.error("Erreur : " + msg);
+    }
+  };
+
+  // Supprimer un travail via DELETE /travaux/<id>/ avec confirmation.
+  const handleDeleteRowDetail = (row) => {
+    const travailId = row.__id;
+    if (!travailId) {
+      toast.error("Identifiant du travail introuvable.");
+      return;
+    }
+
+    toast.warning("Supprimer ce travail ?", {
+      description: "Cette action est irréversible.",
+      duration: 6000,
+      action: {
+        label: "Confirmer",
+        onClick: async () => {
+          try {
+            await deleteTravail(travailId);
+            // Retirer la ligne du tableau local.
+            const excelRowIndex = excelData.indexOf(row);
+            if (excelRowIndex !== -1) {
+              setExcelData(excelData.filter((_, i) => i !== excelRowIndex));
+            }
+            toast.success("Travail supprimé.");
+          } catch (err) {
+            toast.error("Suppression impossible : " + (err?.response?.data?.detail || err.message));
+          }
+        }
+      },
+      cancel: { label: "Annuler", onClick: () => {} }
     });
   };
 
@@ -555,6 +1080,57 @@ const handleAddPlanningRow = () => {
             service: service
           };
 
+          // ── Résolution label → ID pour les champs FK ──────────────────────────
+          // Le fichier Excel contient des libellés textuels, pas des UUIDs.
+          // On cherche dans les listes chargées au montage pour obtenir les vrais IDs.
+
+          // Référence : "DISTRIBUTION-MAINTENANCE POSTES_..." → reference.id
+          // La comparaison normalise les espaces et ignore la casse pour être robuste
+          // aux variations de formatage (espaces multiples, espaces insécables, casse).
+          const refLabel = rowObject["Référence"] || rowObject["Reference"];
+          if (refLabel && references.length > 0) {
+            const norm = (s) =>
+              String(s).trim().replace(/[ \s]+/g, " ").toLowerCase();
+            const normalizedLabel = norm(refLabel);
+
+            // 1er essai : correspondance exacte normalisée
+            let matchedRef = references.find(
+              r => norm(r.valeur) === normalizedLabel
+            );
+
+            // 2ème essai : la valeur DB commence par ce que l'utilisateur a écrit
+            // (utile si la référence Excel est un sous-ensemble de la valeur complète en base)
+            if (!matchedRef) {
+              matchedRef = references.find(
+                r => norm(r.valeur).startsWith(normalizedLabel)
+                  || normalizedLabel.startsWith(norm(r.valeur))
+              );
+            }
+
+            if (matchedRef) rowObject.reference_id = matchedRef.id;
+          }
+
+          // Unité demanderesse : "Unité Douala" → unite.id
+          const uniteLabel = rowObject["Unité demanderesse"] || rowObject["Unite_demanderesse"];
+          if (uniteLabel && unites.length > 0) {
+            const matchedUnite = unites.find(u => u.nom === String(uniteLabel).trim());
+            if (matchedUnite) rowObject.unite_demanderesse_id = matchedUnite.id;
+          }
+
+          // Type de travaux : "Maintenance" → typeActivite.id
+          const typeLabel = rowObject["Type de travaux"] || rowObject["Type_de_travaux"];
+          if (typeLabel && typesActivite.length > 0) {
+            const matchedType = typesActivite.find(t => t.libelle === String(typeLabel).trim());
+            if (matchedType) rowObject.type_travaux_id = matchedType.id;
+          }
+
+          // Centrale thermique : "Centrale A" → centrale.id
+          const centraleLabel = rowObject["Centrale thermique"] || rowObject["Centrale_thermique"];
+          if (centraleLabel && centrales.length > 0) {
+            const matchedCentrale = centrales.find(c => c.valeur === String(centraleLabel).trim());
+            if (matchedCentrale) rowObject.centrale_thermique_sollicitee_id = matchedCentrale.id;
+          }
+
           const payload = mapPlanningPayload(rowObject);
           payload.planning_id = planningId;
 
@@ -629,12 +1205,11 @@ const handleAddPlanningRow = () => {
       {showImport && (
         <div className={fade}>
           <FileInput
-            onFileSelect={
-              handleFileSelect
-            }
-            onContinue={
-              handleContinue
-            }
+            onFileSelect={handleFileSelect}
+            onContinue={handleContinue}
+            service={service}
+            setService={setService}
+            references={references}
           />
         </div>
       )}
@@ -705,6 +1280,26 @@ const handleAddPlanningRow = () => {
           {/* FILTRES — avant la recherche avancée */}
           <Filter />
 
+          {/* BANNIÈRE DE WARNINGS */}
+          {rowWarnings.length > 0 && (
+            <div className="warning-banner">
+              <div className="warning-banner-left">
+                <span>⚠️</span>
+                <span className="warning-badge">{rowWarnings.length}</span>
+                <span>
+                  référence{rowWarnings.length > 1 ? "s" : ""} introuvable{rowWarnings.length > 1 ? "s" : ""} dans le référentiel
+                </span>
+              </div>
+              <div className="warning-nav">
+                <button className="warning-nav-btn" onClick={() => navWarning(-1)} title="Warning précédent">↑</button>
+                <span className="warning-nav-label">
+                  {activeWarningIdx + 1} / {rowWarnings.length}
+                </span>
+                <button className="warning-nav-btn" onClick={() => navWarning(1)} title="Warning suivant">↓</button>
+              </div>
+            </div>
+          )}
+
           {/* ADD BUTTON (caché en mode visualisation) */}
 
           {!id && (
@@ -734,64 +1329,90 @@ const handleAddPlanningRow = () => {
                   {headers.map((h, i) => (
                     <th key={i}>{h.replace(/_/g, " ")}</th>
                   ))}
-                  {!id && <th>Actions</th>}
+                  <th>Actions</th>
                 </tr>
               </thead>
 
               <tbody>
 
-                {filteredRows.map(
-                  (row, rowIndex) => (
-                    <tr key={rowIndex}>
+                {paginatedRows.map((row, filteredIdx) => {
+                  // Retrouver l'index réel dans rows (avant filtre de recherche et pagination)
+                  const realRowIndex = rows.indexOf(row);
+                  const rowWarning = rowWarnings.find(w => w.rowIndex === realRowIndex);
+                  const isActiveWarning = rowWarning && rowWarnings[activeWarningIdx]?.rowIndex === realRowIndex;
 
-                      {Array.isArray(row) && row.map(
-                        (
-                          cell,
-                          cellIndex
-                        ) => (
-                          <td
-                            key={
-                              cellIndex
-                            }
-                          >
-                            {cell}
+                  return (
+                    <tr
+                      key={filteredIdx}
+                      ref={el => { rowRefs.current[realRowIndex] = el; }}
+                      className={isActiveWarning ? "row-active-warning" : ""}
+                    >
+                      {Array.isArray(row) && row.map((cell, cellIndex) => {
+                        const hasWarning = rowWarning && rowWarning.colIndex === cellIndex;
+                        return (
+                          <td key={cellIndex} className={hasWarning ? "cell-with-warning" : ""}>
+                            {hasWarning ? (
+                              <div className="cell-warning-content">
+                                <span>{cell}</span>
+                                <button
+                                  className="cell-warning-btn"
+                                  title={`Référence introuvable — cliquez pour corriger`}
+                                  onClick={() => openWarningModal(rowWarning)}
+                                >
+                                  ⚠️
+                                </button>
+                              </div>
+                            ) : cell}
                           </td>
-                        )
-                      )}
+                        );
+                      })}
 
-                      {!id && (
-                        <td className="action-cell">
-
-                          <button
-                            type="button"
-                            className="edit-btn"
-                            onClick={() =>
-                              handleEditRow(
-                                rowIndex
-                              )
-                            }
-                          >
-                            ✏️
-                          </button>
-
-                          <button
-                            type="button"
-                            className="delete-btn"
-                            onClick={() =>
-                              handleDeleteRow(
-                                rowIndex
-                              )
-                            }
-                          >
-                            🗑
-                          </button>
-
-                        </td>
-                      )}
-
+                      <td className="action-cell">
+                        {id ? (
+                          // Mode visualisation : handlers backend (PATCH / DELETE)
+                          <>
+                            <button
+                              type="button"
+                              className="edit-btn"
+                              title="Modifier ce travail"
+                              onClick={() => handleEditRowDetail(row)}
+                            >
+                              ✏️
+                            </button>
+                            <button
+                              type="button"
+                              className="delete-btn"
+                              title="Supprimer ce travail"
+                              onClick={() => handleDeleteRowDetail(row)}
+                            >
+                              🗑
+                            </button>
+                          </>
+                        ) : (
+                          // Mode création : handlers locaux (état React uniquement)
+                          <>
+                            <button
+                              type="button"
+                              className="edit-btn"
+                              title="Modifier cette ligne"
+                              onClick={() => handleEditRow(filteredIdx)}
+                            >
+                              ✏️
+                            </button>
+                            <button
+                              type="button"
+                              className="delete-btn"
+                              title="Supprimer cette ligne"
+                              onClick={() => handleDeleteRow(filteredIdx)}
+                            >
+                              🗑
+                            </button>
+                          </>
+                        )}
+                      </td>
                     </tr>
-                  )
-                )}
+                  );
+                })}
 
               </tbody>
 
@@ -799,6 +1420,44 @@ const handleAddPlanningRow = () => {
 
           </div>
 
+          {/* PAGINATION */}
+          {totalPages > 1 && (
+            <>
+              <div className="tableaux-pagination">
+                <button
+                  className="pagination-btn"
+                  disabled={currentPage === 1}
+                  onClick={() => setCurrentPage(p => p - 1)}
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                    <polyline points="15 18 9 12 15 6"/>
+                  </svg>
+                  Précédent
+                </button>
+
+                <span className="pagination-info">
+                  Page {currentPage} / {totalPages}
+                </span>
+
+                <button
+                  className="pagination-btn"
+                  disabled={currentPage === totalPages}
+                  onClick={() => setCurrentPage(p => p + 1)}
+                >
+                  Suivant
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                    <polyline points="9 18 15 12 9 6"/>
+                  </svg>
+                </button>
+              </div>
+
+              <div className="pagination-total">
+                {filteredRows.length} travail{filteredRows.length > 1 ? "x" : ""}
+                {searchTerm && ` correspondant à "${searchTerm}"`}
+                {" "}— affichage de {(currentPage - 1) * ITEMS_PER_PAGE + 1} à {Math.min(currentPage * ITEMS_PER_PAGE, filteredRows.length)}
+              </div>
+            </>
+          )}
 
           {/* FOOTER */}
 
@@ -905,11 +1564,7 @@ const handleAddPlanningRow = () => {
                 Annuler
               </button>
 
-              <button
-                onClick={
-                  handleSaveEdit
-                }
-              >
+              <button onClick={handleSaveEdit}>
                 Sauvegarder
               </button>
 
@@ -938,53 +1593,79 @@ const handleAddPlanningRow = () => {
     }}
   >
     <div
-      className="modal-grid"
       style={{
         background: "#fff",
-        padding: "20px",
-        borderRadius: "10px",
+        borderRadius: "12px",
         width: "85%",
-        maxHeight: "90vh",
-        overflowY: "auto",
+        maxWidth: "760px",
+        height: "88vh",
+        display: "flex",
+        flexDirection: "column",
+        overflow: "hidden",
+        boxShadow: "0 20px 60px rgba(0,0,0,0.2)",
       }}
     >
-      {/* HEADER STEP */}
-      <h2>
-        Étape {addStep + 1} / {addSteps.length} — {addSteps[addStep].title}
-      </h2>
-
-      {/* CONTENT */}
-      <div style={{ marginTop: 20 }}>
-        {addSteps[addStep].content}
+      {/* HEADER — toujours visible */}
+      <div style={{ padding: "20px 24px 16px", borderBottom: "1px solid #e2e8f0", flexShrink: 0 }}>
+        <p style={{ margin: "0 0 4px", fontSize: "12px", fontWeight: "600", color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.05em" }}>
+          Étape {addStep + 1} / {activeSteps.length}
+        </p>
+        <h2 style={{ margin: 0, fontSize: "18px", fontWeight: "700", color: "#1e293b" }}>
+          {isEditMode ? "Modifier — " : ""}{activeSteps[addStep]?.title}
+        </h2>
       </div>
 
-      {/* FOOTER BUTTONS */}
+      {/* CONTENU — défile seul */}
+      <div style={{ flex: 1, overflowY: "auto", padding: "20px 24px" }}>
+        {activeSteps[addStep]?.content}
+      </div>
+
+      {/* FOOTER — toujours visible */}
       <div
-        className="modal-actions"
         style={{
+          padding: "14px 24px",
+          borderTop: "1px solid #e2e8f0",
+          flexShrink: 0,
           display: "flex",
           justifyContent: "space-between",
-          marginTop: 20,
+          alignItems: "center",
+          background: "#f8fafc",
         }}
       >
-        <button onClick={() => setIsPlanningModalOpen(false)}>
+        <button
+          style={{ padding: "8px 16px", borderRadius: "8px", border: "1px solid #cbd5e1", background: "#fff", cursor: "pointer", fontSize: "14px", color: "#64748b" }}
+          onClick={() => {
+            setIsPlanningModalOpen(false);
+            setIsEditMode(false);
+            setEditingTravailId(null);
+          }}
+        >
           Annuler
         </button>
 
         <div style={{ display: "flex", gap: 10 }}>
           {addStep > 0 && (
-            <button onClick={prevStep}>
-              Précédent
+            <button
+              style={{ padding: "8px 16px", borderRadius: "8px", border: "1px solid #cbd5e1", background: "#fff", cursor: "pointer", fontSize: "14px" }}
+              onClick={prevStep}
+            >
+              ← Précédent
             </button>
           )}
 
-          {addStep < addSteps.length - 1 ? (
-            <button onClick={nextStep}>
-              Suivant
+          {addStep < activeSteps.length - 1 ? (
+            <button
+              style={{ padding: "8px 20px", borderRadius: "8px", border: "none", background: "#1B75BB", color: "#fff", cursor: "pointer", fontSize: "14px", fontWeight: "600" }}
+              onClick={nextStep}
+            >
+              Suivant →
             </button>
           ) : (
-            <button onClick={handleAddPlanningRow}>
-              Ajouter
+            <button
+              style={{ padding: "8px 20px", borderRadius: "8px", border: "none", background: "#16a34a", color: "#fff", cursor: "pointer", fontSize: "14px", fontWeight: "600" }}
+              onClick={isEditMode ? handleSavePlanningEdit : handleAddPlanningRow}
+            >
+              {isEditMode ? "Sauvegarder" : "Ajouter"}
             </button>
           )}
         </div>
@@ -992,6 +1673,159 @@ const handleAddPlanningRow = () => {
     </div>
   </div>
 )}
+
+      {/* ================================================================
+          MODAL DE RÉSOLUTION DE WARNING (référence introuvable)
+      ================================================================ */}
+      {warningModal && (
+        <div className="modal-overlay" style={{ zIndex: 10001 }}>
+          <div className="warning-modal">
+
+            {/* Header */}
+            <div className="warning-modal-header">
+              <div className="warning-modal-title">
+                <span>⚠️</span>
+                <span>Référence introuvable</span>
+              </div>
+              <div className="warning-modal-subtitle">
+                Valeur actuelle : <strong>{warningModal.value}</strong>
+              </div>
+            </div>
+
+            {/* Onglets */}
+            <div className="warning-tabs">
+              <button
+                className={`warning-tab-btn ${warningTab === "select" ? "active" : ""}`}
+                onClick={() => setWarningTab("select")}
+              >
+                Sélectionner une référence existante
+              </button>
+              <button
+                className={`warning-tab-btn ${warningTab === "create" ? "active" : ""}`}
+                onClick={() => setWarningTab("create")}
+              >
+                Créer une nouvelle référence
+              </button>
+            </div>
+
+            {/* Corps */}
+            <div className="warning-modal-body">
+
+              {warningTab === "select" && (
+                <>
+                  <input
+                    className="warning-search-input"
+                    placeholder="Rechercher une référence..."
+                    value={refSearch}
+                    onChange={e => setRefSearch(e.target.value)}
+                    autoFocus
+                  />
+                  <div className="warning-ref-list">
+                    {(() => {
+                      // Filtre par entité métier du service courant, puis par recherche texte.
+                      const filtered = references
+                        .filter(r =>
+                          r.entite_metier?.name?.toLowerCase() === service.toLowerCase()
+                        )
+                        .filter(r => norm(r.valeur).includes(norm(refSearch)))
+                        .slice(0, 60);
+
+                      if (filtered.length === 0) return (
+                        <div style={{ padding: "16px", color: "#94a3b8", textAlign: "center", fontSize: "13px" }}>
+                          Aucune référence pour <strong>{service}</strong>
+                          {refSearch && ` correspondant à "${refSearch}"`}
+                        </div>
+                      );
+
+                      return filtered.map(r => (
+                        <div
+                          key={r.id}
+                          className={`warning-ref-option ${selectedRefId === r.id ? "selected" : ""}`}
+                          onClick={() => setSelectedRefId(r.id)}
+                        >
+                          {r.valeur}
+                        </div>
+                      ));
+                    })()}
+                  </div>
+                </>
+              )}
+
+              {warningTab === "create" && (
+                <>
+                  <div className="warning-form-group">
+                    <label>Valeur de la référence *</label>
+                    <input
+                      value={newRefValeur}
+                      onChange={e => setNewRefValeur(e.target.value)}
+                      placeholder="Ex: DISTRIBUTION-MAINTENANCE POSTES_..."
+                      autoFocus
+                    />
+                  </div>
+                  <div className="warning-form-group">
+                    <label>Entité métier</label>
+                    <select
+                      value={newRefEntiteId}
+                      onChange={e => setNewRefEntiteId(e.target.value)}
+                    >
+                      <option value="">— Aucune —</option>
+                      {entites.map(e => (
+                        <option key={e.id} value={e.id}>{e.name}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div style={{ margin: "14px 0 8px", fontSize: "11px", fontWeight: "700", color: "#64748b", textTransform: "uppercase", letterSpacing: "0.05em", borderTop: "1px solid #e2e8f0", paddingTop: "12px", display: "flex", alignItems: "center", gap: "6px" }}>
+                    Items détectés depuis le tableau
+                    <span style={{ fontSize: "10px", fontWeight: "400", color: "#94a3b8", textTransform: "none" }}>— colonnes manquantes ignorées</span>
+                  </div>
+                  {[
+                    { label: "Segment", value: newItemSegment },
+                    { label: "Ouvrage", value: newItemOuvrage },
+                    { label: "Poste",   value: newItemPoste   },
+                    ...(service === "distribution" ? [{ label: "Départ", value: newItemDepart }] : []),
+                  ].map(({ label, value }) => (
+                    <div key={label} className="warning-form-group" style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "6px" }}>
+                      <span style={{ minWidth: "64px", fontSize: "12px", fontWeight: "600", color: "#475569" }}>{label}</span>
+                      <div style={{
+                        flex: 1, padding: "6px 10px", borderRadius: "6px", fontSize: "13px",
+                        background: value ? "#f0fdf4" : "#f8fafc",
+                        border: `1px solid ${value ? "#bbf7d0" : "#e2e8f0"}`,
+                        color: value ? "#166534" : "#94a3b8",
+                        fontStyle: value ? "normal" : "italic",
+                      }}>
+                        {value || "— colonne absente, item non créé —"}
+                      </div>
+                    </div>
+                  ))}
+                </>
+              )}
+            </div>
+
+            {/* Footer */}
+            <div className="warning-modal-footer">
+              <button
+                className="warning-btn-cancel"
+                onClick={() => setWarningModal(null)}
+              >
+                Annuler
+              </button>
+              <button
+                className="warning-btn-confirm"
+                disabled={
+                  savingRef ||
+                  (warningTab === "select" && !selectedRefId) ||
+                  (warningTab === "create" && !newRefValeur.trim())
+                }
+                onClick={warningTab === "select" ? applyExistingRef : createAndApplyRef}
+              >
+                {savingRef ? "Enregistrement..." : warningTab === "select" ? "Appliquer" : "Créer et appliquer"}
+              </button>
+            </div>
+
+          </div>
+        </div>
+      )}
 
       {/* SUBMISSION PROGRESS MODAL */}
       {isSubmissionModalOpen && (

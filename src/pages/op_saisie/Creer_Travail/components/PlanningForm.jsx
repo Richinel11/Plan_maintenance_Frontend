@@ -686,11 +686,9 @@ export default function PlanningForm({
                 );
                 if (found) {
                   const lbl =
-                    `${found.first_name || ""} ${found.last_name || ""}`.trim() ||
                     found.username ||
-                    found.nom ||
-                    found.valeur ||
-                    "";
+                    `${found.first_name || ""} ${found.last_name || ""}`.trim() ||
+                    found.nom || found.valeur || "";
                   onChange("Charges_de_consignation_label", lbl);
                 }
               }}

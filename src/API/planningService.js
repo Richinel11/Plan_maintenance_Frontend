@@ -156,6 +156,27 @@ export const createTravail = (data) => {
 };
 
 /**
+ * Met à jour partiellement un travail existant.
+ * Correspond à : PATCH /travaux/<id>/
+ *
+ * @param {string} travailId - UUID du travail
+ * @param {Object} data      - Champs à modifier (mise à jour partielle)
+ */
+export const updateTravail = (travailId, data) => {
+  return api.patch(`/travaux/${travailId}/`, data);
+};
+
+/**
+ * Supprime un travail par son UUID.
+ * Correspond à : DELETE /travaux/<id>/
+ *
+ * @param {string} travailId - UUID du travail
+ */
+export const deleteTravail = (travailId) => {
+  return api.delete(`/travaux/${travailId}/`);
+};
+
+/**
  * Crée plusieurs plannings en parallèle (mode batch).
  *
  * @param {Array<Object>} payloads - Tableau de données de plannings

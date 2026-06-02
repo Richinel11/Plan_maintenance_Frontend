@@ -1,13 +1,34 @@
 import api from "../API/axiosInstance";
 
 /* REFERENCES */
+// N'ajoute le filtre entite_metier_id QUE si la valeur est définie et non nulle.
+// Sans cette garde, un entiteMetierId=undefined produisait la chaîne littérale
+// "undefined" dans l'URL → ValidationError Django côté backend.
 export const getReferences = async (entiteMetierId) => {
-  const response = await api.get(`references/?entite_metier_id=${entiteMetierId}`);
+  const url = entiteMetierId
+    ? `references/?entite_metier_id=${entiteMetierId}`
+    : `references/`;
+  const response = await api.get(url);
   return response.data;
 };
 
 export const getReferenceById = async (id) => {
   const response = await api.get(`/references/${id}/`);
+  return response.data;
+};
+
+export const createReference = async ({ valeur, entite_metier_id }) => {
+  const response = await api.post("references/", { valeur, entite_metier_id });
+  return response.data;
+};
+
+export const getTypesReferentiel = async () => {
+  const response = await api.get("types/");
+  return response.data?.results || response.data || [];
+};
+
+export const createReferentielItem = async ({ valeur, reference_id, type_id }) => {
+  const response = await api.post("items/", { valeur, reference: reference_id, type_id });
   return response.data;
 };
 
@@ -47,9 +68,13 @@ export const getChargesConsignation = async (entiteMetierId = null) => {
   }
 };
 
+// Même protection que getReferences : évite d'envoyer entite_metier_id=undefined.
 export const getUnites = async (entiteMetierId) => {
   try {
-    const response = await api.get(`/users/unites-demanderesses/?entite_metier_id=${entiteMetierId}`);
+    const url = entiteMetierId
+      ? `/users/unites-demanderesses/?entite_metier_id=${entiteMetierId}`
+      : `/users/unites-demanderesses/`;
+    const response = await api.get(url);
     return response.data;
   } catch {
     console.warn("Unites endpoint not available, returning empty array");

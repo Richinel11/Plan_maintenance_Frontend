@@ -577,6 +577,291 @@ main,
 }
 
 /* =============================================
+   SYSTÈME DE WARNINGS — Références introuvables
+============================================= */
+
+/* Bannière de comptage en haut du tableau */
+.warning-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #fffbeb;
+  border: 1.5px solid #f59e0b;
+  border-radius: 10px;
+  padding: 10px 18px;
+  margin-bottom: 12px;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.warning-banner-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 600;
+  font-size: 14px;
+  color: #92400e;
+}
+
+.warning-badge {
+  background: #f59e0b;
+  color: white;
+  border-radius: 99px;
+  padding: 2px 10px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.warning-nav {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.warning-nav-btn {
+  background: white;
+  border: 1.5px solid #f59e0b;
+  color: #92400e;
+  border-radius: 8px;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 700;
+  transition: background 0.15s;
+}
+
+.warning-nav-btn:hover {
+  background: #fef3c7;
+}
+
+.warning-nav-label {
+  font-size: 13px;
+  color: #92400e;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+/* Cellule avec un warning */
+.cell-with-warning {
+  background: #fff8e1 !important;
+  position: relative;
+}
+
+.cell-warning-content {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.cell-warning-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 2px 4px;
+  border-radius: 4px;
+  font-size: 15px;
+  line-height: 1;
+  flex-shrink: 0;
+  transition: transform 0.15s;
+}
+
+.cell-warning-btn:hover {
+  transform: scale(1.2);
+}
+
+/* Ligne avec un warning actif (navigué) */
+.row-active-warning td {
+  outline: 2px solid #f59e0b;
+  outline-offset: -1px;
+}
+
+/* =============================================
+   MODAL DE RÉSOLUTION DE WARNING
+============================================= */
+
+.warning-modal {
+  background: white;
+  border-radius: 16px;
+  width: 560px;
+  max-width: 95vw;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+  animation: overlayFadeIn 0.2s ease;
+}
+
+.warning-modal-header {
+  padding: 20px 24px 0;
+  border-bottom: 1px solid #f1f5f9;
+  padding-bottom: 16px;
+}
+
+.warning-modal-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 16px;
+  font-weight: 700;
+  color: #1e293b;
+  margin-bottom: 6px;
+}
+
+.warning-modal-subtitle {
+  font-size: 13px;
+  color: #64748b;
+  background: #fff8e1;
+  border: 1px solid #fcd34d;
+  border-radius: 8px;
+  padding: 8px 12px;
+  word-break: break-all;
+}
+
+/* Onglets */
+.warning-tabs {
+  display: flex;
+  border-bottom: 2px solid #e2e8f0;
+  margin: 0 24px;
+  margin-top: 16px;
+  gap: 0;
+}
+
+.warning-tab-btn {
+  background: none;
+  border: none;
+  padding: 10px 20px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #94a3b8;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
+  transition: color 0.15s, border-color 0.15s;
+}
+
+.warning-tab-btn.active {
+  color: #f59e0b;
+  border-bottom-color: #f59e0b;
+}
+
+.warning-tab-btn:hover:not(.active) {
+  color: #475569;
+}
+
+/* Corps des onglets */
+.warning-modal-body {
+  padding: 20px 24px;
+}
+
+.warning-ref-list {
+  max-height: 280px;
+  overflow-y: auto;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 10px;
+}
+
+.warning-ref-option {
+  padding: 10px 14px;
+  cursor: pointer;
+  font-size: 13px;
+  color: #1e293b;
+  border-bottom: 1px solid #f1f5f9;
+  transition: background 0.1s;
+  word-break: break-all;
+}
+
+.warning-ref-option:last-child { border-bottom: none; }
+
+.warning-ref-option:hover { background: #f0f7ff; }
+
+.warning-ref-option.selected {
+  background: #dbeafe;
+  color: #1d4ed8;
+  font-weight: 600;
+}
+
+.warning-search-input {
+  width: 100%;
+  padding: 9px 12px;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 13px;
+  margin-bottom: 10px;
+  box-sizing: border-box;
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.warning-search-input:focus { border-color: #f59e0b; }
+
+.warning-form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 14px;
+}
+
+.warning-form-group label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #374151;
+}
+
+.warning-form-group input,
+.warning-form-group select {
+  padding: 9px 12px;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 13px;
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.warning-form-group input:focus,
+.warning-form-group select:focus { border-color: #f59e0b; }
+
+.warning-modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 16px 24px;
+  border-top: 1px solid #f1f5f9;
+}
+
+.warning-btn-cancel {
+  background: white;
+  border: 1.5px solid #d1d9e6;
+  color: #475569;
+  padding: 9px 20px;
+  border-radius: 9px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 0.15s;
+}
+
+.warning-btn-cancel:hover { border-color: #94a3b8; }
+
+.warning-btn-confirm {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  border: none;
+  color: white;
+  padding: 9px 20px;
+  border-radius: 9px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(245,158,11,0.35);
+  transition: opacity 0.15s, transform 0.15s;
+}
+
+.warning-btn-confirm:hover { opacity: 0.9; transform: translateY(-1px); }
+.warning-btn-confirm:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+/* =============================================
    RESPONSIVE
 ============================================= */
 

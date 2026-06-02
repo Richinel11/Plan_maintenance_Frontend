@@ -87,10 +87,9 @@ const UserModal = ({ isOpen, onClose, user, roles, entites, onSuccess }) => {
                     first_name: formData.first_name,
                     last_name: formData.last_name,
                     email: formData.email,
-                    entite_metier: formData.entite_metier,
+                    entite_metier_id: formData.entite_metier,
                     region: formData.region,
                     is_ldap: formData.is_ldap,
-
                 };
                 await updateUser(user.id, payload);
                 const payload2 = {

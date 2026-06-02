@@ -137,24 +137,29 @@ const WorkflowDetail = () => {
       from_step: form.from_step,
       to_step: form.to_step,
       can_go_back: form.can_go_back,
-      // n'envoyer go_back_step que si le retour arrière est activé
-      go_back_step: form.can_go_back ? (form.go_back_step || null) : null,
+      go_back_to: form.can_go_back ? (form.go_back_step || null) : null,
       comment_required: form.comment_required,
       role: form.role,
     };
     try {
       if (selectedTransition?.id) {
-        // Mode édition
         await updateTransition(payload, id, selectedTransition.id);
       } else {
-        // Mode création
         await createTransition(payload, id);
       }
       setSelectedTransition(null);
       await loadWorkflowData();
       toast.success(selectedTransition?.id ? "Transition modifiée avec succès." : "Transition créée avec succès.");
     } catch (err) {
-      toast.error(selectedTransition?.id ? "Erreur lors de la modification de la transition." : "Erreur lors de la création de la transition.");
+      const apiError = err.response?.data;
+      if (apiError && typeof apiError === 'object') {
+        const messages = Object.entries(apiError)
+          .map(([key, val]) => `${key} : ${Array.isArray(val) ? val.join(', ') : val}`)
+          .join(' | ');
+        toast.error(messages);
+      } else {
+        toast.error(err.message || "Erreur lors de l'enregistrement de la transition.");
+      }
     } finally {
       setSavingModal(false);
     }
@@ -297,11 +302,28 @@ const WorkflowDetail = () => {
                 </tr>
               ) : (
                 transitions.map(t => {
+                  /*
+                   * Données de la transition retournées par WorkflowTransitionSerializer :
+                   *
+                   *  - t.from_step  : objet Step { id, name, code, ... }
+                   *  - t.to_step    : objet Step { id, name, code, ... }
+                   *  - t.go_back_to : objet Step { id, name, ... } ou null
+                   *                   ⚠️ Ce champ s'appelle "go_back_to" (nom du FK dans le modèle),
+                   *                      PAS "go_back_step" — erreur corrigée ici.
+                   *  - t.role_info  : objet { id, nom, code_role } récupéré via WorkflowValidation
+                   *                   ⚠️ Le rôle n'est pas sur WorkflowTransition directement,
+                   *                      il est calculé côté backend dans get_role_info().
+                   */
                   const fromStep = t.from_step;
-                  const toStep = t.to_step;
-                  const r = roles.find(role => String(role.id) === String(t.role) || String(role.code_role) === String(t.role));
-                  const roleName = t.role_name || (r ? r.nom : (t.role ? `#${t.role}` : '—'));
-                  // console.log("steps", steps)
+                  const toStep   = t.to_step;
+
+                  // go_back_to est un objet Step imbriqué (ou null si can_go_back=false).
+                  // On accède directement à .name, sans chercher dans la liste locale.
+                  const goBackStep = t.go_back_to;
+
+                  // role_info est calculé côté backend via WorkflowValidation.
+                  // Il contient { id, nom, code_role } ou null si aucune validation liée.
+                  const roleName = t.role_info?.nom || '—';
 
                   return (
                     <tr key={t.id}>
@@ -321,9 +343,10 @@ const WorkflowDetail = () => {
                           ? (
                             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
                               <span className="material-symbols-outlined wfd-check-sober">check</span>
-                              {t.go_back_step && (
+                              {/* Affiche le nom de l'étape de retour si elle existe */}
+                              {goBackStep && (
                                 <span style={{ fontSize: '10px', color: '#F59E0B', fontWeight: 600 }}>
-                                  → {steps.find(s => String(s.id) === String(t.go_back_step))?.name || `#${t.go_back_step}`}
+                                  → {goBackStep.name || goBackStep.nom}
                                 </span>
                               )}
                             </div>

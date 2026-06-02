@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import * as XLSX from "xlsx";
 import {
   Upload,
@@ -12,12 +12,23 @@ import {
 import "./importation.css";
 import useServiceRole from "../../ComponentsRole/ServiceRole";
 
-const FileInput = ({ onFileSelect, onContinue }) => {
+// service et setService sont passés depuis Planning.jsx pour partager l'état.
+// Si non fournis (usage isolé), on utilise le hook local comme fallback.
+const FileInput = ({ onFileSelect, onContinue, service: serviceProp, setService: setServiceProp, references = [] }) => {
 
-  const {
-    service,
-    fields,
-  } = useServiceRole();
+  const hook = useServiceRole();
+
+  // Synchronise le hook interne avec la prop reçue de Planning.jsx.
+  // Sans ça, hook.fields resterait sur "transport" même si serviceProp change.
+  useEffect(() => {
+    if (serviceProp !== undefined && serviceProp !== hook.service) {
+      hook.setService(serviceProp);
+    }
+  }, [serviceProp]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const service    = serviceProp    ?? hook.service;
+  const setService = setServiceProp ?? hook.setService;
+  const { fields } = hook;
 
   const [fileName, setFileName] = useState("");
   const [fileSelected, setFileSelected] = useState(false);
@@ -30,6 +41,7 @@ const FileInput = ({ onFileSelect, onContinue }) => {
   ========================= */
 
   const [errors, setErrors] = useState([]);
+  const [warnings, setWarnings] = useState([]);
   const [showErrors, setShowErrors] = useState(false);
 
   /* =========================================================
@@ -43,47 +55,47 @@ const FileInput = ({ onFileSelect, onContinue }) => {
       Reference: {
         label: "Référence",
         type: "Texte",
-        pattern: /^[A-Za-z0-9À-ÿ\s\-_/().]+$/u,
-        example: "REF-01",
-        maxLength: 50,
+        pattern: /^[A-Za-z0-9À-ÿ°\s\-_/().,:]+$/u,
+        example: "DISTRIBUTION-MAINTENANCE POSTES_BRGM_POSTE SOURCE_HTA_TRANSFO 90/15kV N°1_RAME 15kV N°1",
+        maxLength: 300,
       },
 
       Segments: {
         label: "Segments",
         type: "Texte",
-        pattern: /^[\wÀ-ÿ\s\-_/().]+$/u,
-        example: "Segment A",
+        pattern: /^[\wÀ-ÿ°\s\-_/().,;:]+$/u,
+        example: "DISTRIBUTION-MAINTENANCE POSTES",
         maxLength: 100,
       },
 
       Ouvrages: {
         label: "Ouvrages",
         type: "Texte",
-        pattern: /^[\wÀ-ÿ\s\-_/().]+$/u,
-        example: "déployer",
+        pattern: /^[\wÀ-ÿ°\s\-_/().,;:]+$/u,
+        example: "BRGM_POSTE SOURCE_HTA",
         maxLength: 100,
       },
 
       Poste: {
         label: "Poste",
         type: "Texte",
-        pattern: /^[\wÀ-ÿ\s\-_/().]+$/u,
-        example: "Poste Central",
+        pattern: /^[\wÀ-ÿ°\s\-_/().,;:]+$/u,
+        example: "TRANSFO 90/15kV N°1",
         maxLength: 100,
       },
 
       Departs: {
         label: "Départs",
         type: "Texte",
-        pattern: /^[\wÀ-ÿ\s\-_/().]+$/u,
-        example: "Départ Nord",
+        pattern: /^[\wÀ-ÿ°\s\-_/().,;:]+$/u,
+        example: "RAME 15kV N°1",
         maxLength: 100,
       },
 
       Unite_demanderesse: {
         label: "Unité demanderesse",
         type: "Texte",
-        pattern: /^[\wÀ-ÿ\s\-_/().]+$/u,
+        pattern: /^[\wÀ-ÿ°\s\-_/().,;:]+$/u,
         example: "Unité Douala",
         maxLength: 100,
       },
@@ -91,7 +103,7 @@ const FileInput = ({ onFileSelect, onContinue }) => {
       Type_de_travaux: {
         label: "Type de travaux",
         type: "Texte",
-        pattern: /^[\wÀ-ÿ\s\-_/().]+$/u,
+        pattern: /^[\wÀ-ÿ°\s\-_/().,;:]+$/u,
         example: "Maintenance",
         maxLength: 100,
       },
@@ -99,7 +111,7 @@ const FileInput = ({ onFileSelect, onContinue }) => {
       Types_de_travaux: {
         label: "Types de travaux",
         type: "Texte",
-        pattern: /^[\wÀ-ÿ\s\-_/().]+$/u,
+        pattern: /^[\wÀ-ÿ°\s\-_/().,;:]+$/u,
         example: "Inspection",
         maxLength: 100,
       },
@@ -107,7 +119,7 @@ const FileInput = ({ onFileSelect, onContinue }) => {
       Types_de_reseau: {
         label: "Types de réseau",
         type: "Texte",
-        pattern: /^[\wÀ-ÿ\s\-_/().]+$/u,
+        pattern: /^[\wÀ-ÿ°\s\-_/().,;:]+$/u,
         example: "HTA",
         maxLength: 100,
       },
@@ -115,7 +127,7 @@ const FileInput = ({ onFileSelect, onContinue }) => {
       Troncons: {
         label: "Tronçons",
         type: "Texte",
-        pattern: /^[\wÀ-ÿ\s\-_/().]+$/u,
+        pattern: /^[\wÀ-ÿ°\s\-_/().,;:]+$/u,
         example: "Tronçon 01",
         maxLength: 100,
       },
@@ -123,7 +135,7 @@ const FileInput = ({ onFileSelect, onContinue }) => {
       Consistances_Des_Travaux: {
         label: "Consistance des travaux",
         type: "Texte",
-        pattern: /^[\wÀ-ÿ\s\-_/().]+$/u,
+        pattern: /^[\wÀ-ÿ°\s\-_/().,;:]+$/u,
         example: "Travaux prévus",
         maxLength: 255,
       },
@@ -131,7 +143,7 @@ const FileInput = ({ onFileSelect, onContinue }) => {
       Charges_de_consignation: {
         label: "Charges de consignation",
         type: "Texte",
-        pattern: /^[\wÀ-ÿ\s\-_/().]+$/u,
+        pattern: /^[\wÀ-ÿ°\s\-_/().,;:]+$/u,
         example: "Charge A",
         maxLength: 100,
       },
@@ -139,7 +151,7 @@ const FileInput = ({ onFileSelect, onContinue }) => {
       Charges_de_consignations: {
         label: "Charges de consignations",
         type: "Texte",
-        pattern: /^[\wÀ-ÿ\s\-_/().]+$/u,
+        pattern: /^[\wÀ-ÿ°\s\-_/().,;:]+$/u,
         example: "Charge B",
         maxLength: 100,
       },
@@ -147,7 +159,7 @@ const FileInput = ({ onFileSelect, onContinue }) => {
       Disponibilite_mecanique: {
         label: "Disponibilité mécanique",
         type: "Texte",
-        pattern: /^[\wÀ-ÿ\s\-_/().]+$/u,
+        pattern: /^[\wÀ-ÿ°\s\-_/().,;:]+$/u,
         example: "Disponible",
         maxLength: 100,
       },
@@ -221,7 +233,7 @@ const FileInput = ({ onFileSelect, onContinue }) => {
       Centrale_thermique: {
         label: "Centrale thermique",
         type: "Texte",
-        pattern: /^[\wÀ-ÿ\s\-_/().]+$/u,
+        pattern: /^[\wÀ-ÿ°\s\-_/().,;:]+$/u,
         example: "Centrale A",
         maxLength: 100,
       },
@@ -246,7 +258,7 @@ const FileInput = ({ onFileSelect, onContinue }) => {
       Localites_impactees: {
         label: "Localités impactées",
         type: "Texte",
-        pattern: /^[\wÀ-ÿ\s\-_/().]+$/u,
+        pattern: /^[\wÀ-ÿ°\s\-_/().,;:]+$/u,
         example: "Douala",
         maxLength: 100,
       },
@@ -254,7 +266,7 @@ const FileInput = ({ onFileSelect, onContinue }) => {
       Moyens_mis_en_oeuvre: {
         label: "Moyens mis en oeuvre",
         type: "Texte",
-        pattern: /^[\wÀ-ÿ\s\-_/().]+$/u,
+        pattern: /^[\wÀ-ÿ°\s\-_/().,;:]+$/u,
         example: "Camion",
         maxLength: 100,
       },
@@ -550,91 +562,57 @@ const downloadTemplate = () => {
 
 if (col.type === "Date") {
 
-  let dateValue = value;
+  // Accepte : objet Date JS (XLSX cellDates), ISO, DD/MM/YYYY [HH:mm]
+  // On normalise la valeur avant de valider.
+  let parsedDate = null;
 
-  /* EXCEL SERIAL DATE */
+  if (value instanceof Date) {
+    // Cas 1 : objet Date JS (produit par cellDates: true)
+    parsedDate = isNaN(value.getTime()) ? null : value;
 
-  if (typeof value === "number") {
+  } else if (typeof value === "number") {
+    // Cas 2 : nombre série Excel (ne devrait plus arriver avec cellDates: true)
+    try {
+      const excelDate = XLSX.SSF.parse_date_code(value);
+      if (excelDate) {
+        parsedDate = new Date(excelDate.y, excelDate.m - 1, excelDate.d);
+      }
+    } catch (_) {}
 
-    const excelDate =
-      XLSX.SSF.parse_date_code(value);
-
-    if (excelDate) {
-
-      const yyyy = excelDate.y;
-
-      const mm = String(
-        excelDate.m
-      ).padStart(2, "0");
-
-      const dd = String(
-        excelDate.d
-      ).padStart(2, "0");
-
-      dateValue =
-        `${yyyy}-${mm}-${dd}`;
+  } else {
+    // Cas 3 : chaîne — format ISO ou français
+    const str = String(value).trim();
+    // ISO : YYYY-MM-DD ou YYYY-MM-DDTHH:mm
+    if (/^\d{4}-\d{2}-\d{2}/.test(str)) {
+      parsedDate = new Date(str);
+    }
+    // Français : DD/MM/YYYY ou DD/MM/YYYY HH:mm
+    const frMatch = str.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+    if (frMatch) {
+      parsedDate = new Date(`${frMatch[3]}-${frMatch[2].padStart(2,'0')}-${frMatch[1].padStart(2,'0')}`);
     }
   }
 
-  dateValue =
-    dateValue.toString().trim();
-
-  /* FORMAT STRICT */
-
-  if (
-    !/^\d{4}-\d{2}-\d{2}$/.test(
-      dateValue
-    )
-  ) {
-
+  /* DATE INVALIDE */
+  if (!parsedDate || isNaN(parsedDate.getTime())) {
     validationErrors.push({
       line,
       column: col.label,
-      message:
-        "Format de date invalide",
-      solution:
-        "Format attendu : YYYY-MM-DD",
+      message: "Date invalide ou non reconnue",
+      solution: "Formats acceptés : YYYY-MM-DD, DD/MM/YYYY, ou cellule date Excel",
     });
-
     continue;
   }
 
-  /* DATE VALIDE */
-
-  const parsedDate =
-    new Date(dateValue);
-
-  if (
-    parsedDate.toString() ===
-    "Invalid Date"
-  ) {
-
-    validationErrors.push({
-      line,
-      column: col.label,
-      message: "Date invalide",
-      solution:
-        "Exemple : 2026-05-01",
-    });
-
-    continue;
-  }
-
-  /* DATE PASSEE */
-
+  /* DATE PASSÉE */
   const today = new Date();
-
   today.setHours(0, 0, 0, 0);
-
   if (parsedDate < today) {
-
     validationErrors.push({
       line,
       column: col.label,
-      message:
-        "Date passée interdite",
-      solution:
-        "Utiliser une date future",
+      message: "Date passée interdite",
+      solution: "Utiliser une date future",
     });
   }
 }
@@ -665,6 +643,42 @@ if (col.type === "Date") {
     }
 
     return validationErrors;
+  };
+
+  // Normalise une chaîne pour la comparaison : trim + espaces multiples + minuscules.
+  const normRef = (s) =>
+    String(s).trim().replace(/[ \s]+/g, " ").toLowerCase();
+
+  // Vérifie chaque ligne : la valeur "Référence" existe-t-elle en base ?
+  // Retourne des avertissements (non bloquants) pour les références introuvables.
+  const checkReferences = (jsonData) => {
+    if (references.length === 0) return [];
+    const refWarnings = [];
+
+    jsonData.forEach((row, i) => {
+      const refValue = row["Référence"];
+      if (!refValue) return;
+
+      const normalizedLabel = normRef(refValue);
+      const found = references.find(
+        r =>
+          normRef(r.valeur) === normalizedLabel ||
+          normRef(r.valeur).startsWith(normalizedLabel) ||
+          normalizedLabel.startsWith(normRef(r.valeur))
+      );
+
+      if (!found) {
+        refWarnings.push({
+          line: i + 2,
+          column: "Référence",
+          message: `"${refValue}" introuvable dans le référentiel`,
+          solution:
+            "Cette référence n'existe pas en base — elle sera ignorée. Vérifiez l'orthographe ou ajoutez-la au référentiel.",
+        });
+      }
+    });
+
+    return refWarnings;
   };
 
   /* =========================================================
@@ -707,7 +721,9 @@ if (col.type === "Date") {
 
     const data = await file.arrayBuffer();
 
-    const workbook = XLSX.read(data);
+    // cellDates: true → les dates Excel sont converties en objets Date JS
+    // (cohérent avec readFile.jsx)
+    const workbook = XLSX.read(data, { cellDates: true });
 
     const sheet =
       workbook.Sheets[
@@ -717,18 +733,25 @@ if (col.type === "Date") {
     const json =
       XLSX.utils.sheet_to_json(sheet);
 
-    const validationErrors =
-      validateExcel(json);
+    const validationErrors = validateExcel(json);
 
+    // Les erreurs bloquent l'import.
     if (validationErrors.length > 0) {
-
       setErrors(validationErrors);
+      setWarnings([]);
       setShowErrors(true);
-
       setFileSelected(false);
       setFileName("");
-
       return;
+    }
+
+    // Les avertissements (références introuvables) sont affichés mais n'bloquent pas.
+    const refWarnings = checkReferences(json);
+    if (refWarnings.length > 0) {
+      setWarnings(refWarnings);
+      setErrors([]);
+      setShowErrors(true);
+      // On laisse fileSelected = true → l'utilisateur peut continuer malgré les avertissements.
     }
 
     onFileSelect?.(file);
@@ -776,18 +799,13 @@ if (col.type === "Date") {
             <div className="error-header">
 
               <div className="error-title">
-
-                <AlertTriangle color="red" />
-
-                <h2>Erreurs détectées</h2>
-
+                <AlertTriangle color={errors.length > 0 ? "red" : "orange"} />
+                <h2>{errors.length > 0 ? "Erreurs détectées" : "Avertissements"}</h2>
               </div>
 
               <button
                 className="close-modal-btn"
-                onClick={() =>
-                  setShowErrors(false)
-                }
+                onClick={() => setShowErrors(false)}
               >
                 <X size={20} />
               </button>
@@ -796,35 +814,39 @@ if (col.type === "Date") {
 
             <div className="error-body">
 
+              {/* Erreurs bloquantes */}
               {errors.map((err, index) => (
-
-                <div
-                  className="error-item"
-                  key={index}
-                >
-
-                  <div>
-                    <strong>Ligne :</strong>{" "}
-                    {err.line}
-                  </div>
-
-                  <div>
-                    <strong>Colonne :</strong>{" "}
-                    {err.column}
-                  </div>
-
-                  <div>
-                    <strong>Erreur :</strong>{" "}
-                    {err.message}
-                  </div>
-
-                  <div>
-                    <strong>Solution :</strong>{" "}
-                    {err.solution}
-                  </div>
-
+                <div className="error-item" key={`err-${index}`}>
+                  <div><strong>Ligne :</strong> {err.line}</div>
+                  <div><strong>Colonne :</strong> {err.column}</div>
+                  <div><strong>Erreur :</strong> {err.message}</div>
+                  <div><strong>Solution :</strong> {err.solution}</div>
                 </div>
               ))}
+
+              {/* Avertissements non bloquants (références introuvables) */}
+              {warnings.length > 0 && (
+                <>
+                  {errors.length > 0 && (
+                    <hr style={{ margin: "12px 0", border: "1px solid #fcd34d" }} />
+                  )}
+                  <p style={{ color: "#b45309", fontWeight: 600, marginBottom: 8 }}>
+                    ⚠️ {warnings.length} référence(s) introuvable(s) — l'import peut continuer mais ces lignes seront sans référence liée.
+                  </p>
+                  {warnings.map((w, index) => (
+                    <div
+                      className="error-item"
+                      key={`warn-${index}`}
+                      style={{ borderLeft: "4px solid #f59e0b", background: "#fffbeb" }}
+                    >
+                      <div><strong>Ligne :</strong> {w.line}</div>
+                      <div><strong>Colonne :</strong> {w.column}</div>
+                      <div><strong>Valeur :</strong> {w.message}</div>
+                      <div><strong>Info :</strong> {w.solution}</div>
+                    </div>
+                  ))}
+                </>
+              )}
 
             </div>
 
@@ -839,10 +861,37 @@ if (col.type === "Date") {
           Importer un planning
         </h1>
 
-        <p className="import-subtitle">
-          Service détecté :{" "}
-          <strong>{service.toUpperCase()}</strong>
-        </p>
+        {/* Sélecteur de service — détermine les colonnes, le template et la validation */}
+        <div className="import-service-selector" style={{ marginTop: "12px", display: "flex", alignItems: "center", gap: "12px" }}>
+          <label style={{ fontWeight: 600, color: "#374151", fontSize: "14px" }}>
+            Entité métier :
+          </label>
+          <select
+            value={service}
+            onChange={(e) => {
+              setService(e.target.value);
+              // Réinitialiser le fichier si on change de service
+              setFileSelected(false);
+              setFileName("");
+              setFileType("");
+              setErrors([]);
+            }}
+            style={{
+              padding: "6px 12px",
+              borderRadius: "8px",
+              border: "1.5px solid #1B75BB",
+              color: "#1B75BB",
+              fontWeight: 700,
+              fontSize: "14px",
+              background: "#f0f7ff",
+              cursor: "pointer",
+            }}
+          >
+            <option value="transport">Transport</option>
+            <option value="distribution">Distribution</option>
+            <option value="production">Production</option>
+          </select>
+        </div>
 
       </div>
 
