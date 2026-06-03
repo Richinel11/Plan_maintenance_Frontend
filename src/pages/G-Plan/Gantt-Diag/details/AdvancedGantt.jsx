@@ -1,162 +1,266 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useState } from "react";
 import "./AdvancedGantt.css";
-import mockData from "./data/ganttAdvancedData";
+import { FaExclamationTriangle, FaLightbulb, FaBolt, FaBell } from "react-icons/fa";
+import { MdLocationOn, MdSearch } from "react-icons/md";
+import { BsCheckCircleFill } from "react-icons/bs";
+import { RiCloseCircleLine } from "react-icons/ri";
+import { AiOutlineTool } from "react-icons/ai";
 
-export default function AdvancedGantt({ currentDate, view }) {
-  const [ganttData, setGanttData] = useState([]);
-  const sidebarRef = useRef(null);
-  const timelineRef = useRef(null);
+const availabilitySlots = [
+  {
+    id: "transport",
+    date: "2023-10-13",
+    localite: "Paris 15e",
+    ouvrage: "PLANIFIÉ",
+    disponibilite: "Libre",
+    label: "Transport — Maintenance Transformateur T1",
+  },
+  {
+    id: "distribution",
+    date: "2023-10-13",
+    localite: "Paris 15e",
+    ouvrage: "PLANIFIÉ",
+    disponibilite: "Libre",
+    label: "Distribution — Élagage Ligne HTA-44",
+  },
+  {
+    id: "transmission",
+    date: "2023-10-14",
+    localite: "Paris 15e",
+    ouvrage: "PLANIFIÉ",
+    disponibilite: "Libre",
+    label: "Transmission — Contrôle Ligne THT-12",
+  },
+];
 
-  const MONTHS = ["Jan", "Fév", "Mars", "Avr", "Mai", "Juin", "Juil", "Août", "Sep", "Oct", "Nov", "Déc"];
-  const DAYS = ["Dim", "Lun", "Mar", "Mer", "Jeu", "Ven", "Sam"];
+const activityCards = {
+  transport: {
+    id: "transport",
+    headerClass: "transport",
+    typeLabel: "TRANSPORT",
+    icon: <FaBolt />,
+    title: "Maintenance Transformateur T1",
+    reference: "TR-2024-0892",
+    periode: "07:00 – 12:00 (5h)",
+    chevauchement: "08:00 - 12:00",
+    impact: "Poste source Delta (Partiel)",
+    imgClass: "transport-img",
+  },
+  distribution: {
+    id: "distribution",
+    headerClass: "distribution",
+    typeLabel: "DISTRIBUTION",
+    icon: <FaBell />,
+    title: "Élagage Ligne HTA-44",
+    reference: "DI-2024-1145",
+    periode: "08:00 – 13:00 (5h)",
+    chevauchement: "08:00 - 12:00",
+    impact: "1 240 Usagers (Zone B)",
+    imgClass: "distribution-img",
+  },
+  transmission: {
+    id: "transmission",
+    headerClass: "transmission",
+    typeLabel: "TRANSMISSION",
+    icon: <FaBolt />,
+    title: "Contrôle Ligne THT-12",
+    reference: "TX-2024-0341",
+    periode: "09:00 – 14:00 (5h)",
+    chevauchement: "09:00 - 12:00",
+    impact: "Zone Nord (Partiel)",
+    imgClass: "transmission-img",
+  },
+};
 
-  const startOfWeek = (date) => {
-    const d = new Date(date);
-    const day = d.getDay();
-    const diff = d.getDate() - day + (day === 0 ? -6 : 1);
-    return new Date(d.setDate(diff));
+export default function AdvancedGantt() {
+  const [checkedSlots, setCheckedSlots] = useState([]);
+  const [selectedEntite, setSelectedEntite] = useState("");
+  const [selectedDate, setSelectedDate] = useState("");
+  const [selectedType, setSelectedType] = useState("");
+
+  const toggleSlot = (id) => {
+    setCheckedSlots((prev) =>
+      prev.includes(id) ? prev.filter((s) => s !== id) : [...prev, id]
+    );
   };
 
-  useEffect(() => {
-    setGanttData(mockData);
-  }, []);
-
-  let generatedDays = [];
-  let totalColumns = 5;
-
-  if (view === "semaine") {
-    const start = startOfWeek(currentDate);
-    for (let i = 1; i <= 5; i++) {
-      const d = new Date(start);
-      d.setDate(start.getDate() + i);
-      generatedDays.push(`${DAYS[d.getDay()]} ${d.getDate()} ${MONTHS[d.getMonth()]}`);
-    }
-  } else {
-    const year = currentDate.getFullYear();
-    const month = currentDate.getMonth();
-    const totalDays = new Date(year, month + 1, 0).getDate();
-    totalColumns = totalDays;
-    for (let i = 1; i <= totalDays; i++) {
-      generatedDays.push(`${i} ${MONTHS[month]}`);
-    }
-  }
-
-  // Sync vertical scrolling
-  const handleScroll = (e) => {
-    if (sidebarRef.current && timelineRef.current) {
-      sidebarRef.current.scrollTop = e.target.scrollTop;
-      timelineRef.current.scrollTop = e.target.scrollTop;
-    }
-  };
+  const visibleCards = checkedSlots.map((id) => activityCards[id]);
 
   return (
-    <div className="gantt-wrapper">
-      <div className="legend">
-        <span className="dot green"></span> PRODUCTION
-        <span className="dot blue"></span> TRANSPORT
-        <span className="dot gray"></span> DISTRIBUTION
-        <span className="dot red"></span> CONFLIT DETECTE
+    <div className="ag-page">
+
+      {/* 1 ── Alert Banner ── */}
+      <div className="ag-alert-banner">
+        <FaExclamationTriangle className="ag-alert-icon" />
+        <div className="ag-alert-content">
+          <h3>Diagnostic : Alerte de Co-activité</h3>
+          <p>
+            Un <span className="ag-highlight">chevauchement de 4 heures</span> a été
+            détecté au le poste source Delta. Les protocoles de sécurité interdisent
+            l'intervention simultanée de Transport et Distribution sur ce segment.
+          </p>
+        </div>
       </div>
 
-      <div className="gantt">
-        {/* FIXED WIDTH SIDEBAR */}
-        <div className="sidebar" ref={sidebarRef}>
-          <div className="sidebar-header">TRAVAUX & ENTITÉS</div>
-          {ganttData.map((item) => (
-            <div className={`sidebar-item ${item.alert ? "alert" : ""}`} key={item.id}>
-              <div className="title">
-                {item.name}
-                <span className={`badge ${item.type.toLowerCase()}`}>{item.type}</span>
+      {/* 2 ── Availability Checker ── */}
+      <div className="ag-availability">
+        <div className="ag-avail-header">
+          <MdLocationOn className="ag-avail-icon" />
+          <h3>Vérification de Disponibilité Alternative</h3>
+        </div>
+
+        <div className="ag-avail-filters">
+          <select
+            className="ag-select"
+            value={selectedEntite}
+            onChange={(e) => setSelectedEntite(e.target.value)}
+          >
+            <option value="">Toutes les entités</option>
+            <option value="production">Production</option>
+            <option value="transport">Transport</option>
+            <option value="distribution">Distribution</option>
+          </select>
+
+          <input
+            type="date"
+            className="ag-input"
+            value={selectedDate}
+            onChange={(e) => setSelectedDate(e.target.value)}
+          />
+
+          <select
+            className="ag-select"
+            value={selectedType}
+            onChange={(e) => setSelectedType(e.target.value)}
+          >
+            <option value="">Tous les types</option>
+            <option value="p1">P1 — Urgent (après coupure)</option>
+            <option value="p2">P2 — Non urgent (1 à 7 jours)</option>
+            <option value="p3">P3 — Non urgent (7j à 1 mois)</option>
+            <option value="p4">P4 — Non urgent (1 mois à 1 trimestre)</option>
+          </select>
+
+          <button className="ag-search-btn">
+            <MdSearch size={15} /> Rechercher des Créneaux
+          </button>
+        </div>
+
+        <table className="ag-table">
+          <thead>
+            <tr>
+              <th></th>
+              <th>DATE/HEURE</th>
+              <th>LOCALITÉ</th>
+              <th>OUVRAGE</th>
+              <th>DISPONIBILITÉ</th>
+            </tr>
+          </thead>
+          <tbody>
+            {availabilitySlots.map((slot) => (
+              <tr
+                key={slot.id}
+                className={checkedSlots.includes(slot.id) ? "ag-row-checked" : ""}
+                onClick={() => toggleSlot(slot.id)}
+                style={{ cursor: "pointer" }}
+              >
+                <td>
+                  <input
+                    type="checkbox"
+                    checked={checkedSlots.includes(slot.id)}
+                    onChange={() => toggleSlot(slot.id)}
+                    className="ag-checkbox"
+                    onClick={(e) => e.stopPropagation()}
+                  />
+                </td>
+                <td>{slot.date}</td>
+                <td>{slot.localite}</td>
+                <td><span className="ag-planifie">{slot.ouvrage}</span></td>
+                <td><span className="ag-libre">{slot.disponibilite}</span></td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+
+        {checkedSlots.length === 0 && (
+          <p className="ag-helper-text">
+            Cochez une ou plusieurs lignes pour voir les activités correspondantes.
+          </p>
+        )}
+      </div>
+
+      {/* 3 ── Dynamic Activity Cards ── */}
+      {visibleCards.length > 0 && (
+        <div className={`ag-tasks-row cards-${visibleCards.length}`}>
+          {visibleCards.map((card) => (
+            <div className="ag-task-card" key={card.id}>
+              <div className={`ag-task-header ${card.headerClass}`}>
+                <span className="ag-task-type">{card.typeLabel}</span>
+                {card.icon}
               </div>
-              <div className="ref">REF : {item.ref}</div>
+              <h3 className="ag-task-title">{card.title}</h3>
+              <div className="ag-task-info">
+                <div className="ag-info-row">
+                  <span className="ag-info-label">Référence</span>
+                  <span className="ag-info-value">{card.reference}</span>
+                </div>
+                <div className="ag-info-row">
+                  <span className="ag-info-label">Période</span>
+                  <span className="ag-info-value">{card.periode}</span>
+                </div>
+                <div className="ag-info-row">
+                  <span className="ag-info-label">Chevauchement</span>
+                  <span className="ag-info-value conflict">{card.chevauchement}</span>
+                </div>
+                <div className="ag-info-row">
+                  <span className="ag-info-label">Impact Clients</span>
+                  <span className="ag-info-value">{card.impact}</span>
+                </div>
+              </div>
+              <div className={`ag-task-image ${card.imgClass}`}></div>
             </div>
           ))}
         </div>
+      )}
 
-        {/* SCROLLABLE TIMELINE AREA */}
-        <div className="timeline-container" onScroll={handleScroll} ref={timelineRef}>
-          <div className="timeline">
-            {/* Days Header */}
-            <div className="days" style={{ gridTemplateColumns: `repeat(${totalColumns}, minmax(140px, 1fr))` }}>
-              {generatedDays.map((d, i) => (
-                <div key={i} className="day">{d}</div>
-              ))}
-            </div>
-
-            {/* Task Rows */}
-            {ganttData.map((row) => {
-              // 1. Sort tasks chronologically to ensure packing works perfectly
-              const sortedTasks = [...row.tasks].sort((a, b) => a.start - b.start);
-              
-              const lanes = []; // Keeps track of the end-day for tasks in each sub-lane
-              
-              // 2. Map tasks to calculate dynamic positioning and lanes
-              const processedTasks = sortedTasks.map((task) => {
-                // Check visibility bounds
-                const isVisible = task.start <= totalColumns && task.end >= 1;
-                
-                // Clamp start/end boundaries inside the visible timeline matrix grid
-                const clampedStart = Math.max(1, task.start);
-                const clampedEnd = Math.min(totalColumns, task.end);
-
-                let laneIndex = 0;
-                if (isVisible) {
-                  // Find the first lane where the previous task finished before this task starts
-                  const targetLane = lanes.findIndex((laneEnd) => task.start > laneEnd);
-                  
-                  if (targetLane !== -1) {
-                    laneIndex = targetLane;
-                    lanes[targetLane] = task.end; // update end tracker for this lane
-                  } else {
-                    laneIndex = lanes.length;
-                    lanes.push(task.end); // open a new sub-lane row
-                  }
-                }
-
-                return {
-                  ...task,
-                  clampedStart,
-                  clampedEnd,
-                  laneIndex,
-                  isVisible,
-                };
-              }).filter(t => t.isVisible); // Drop completely out-of-bounds tasks
-
-              const totalLanes = lanes.length || 1;
-
-              return (
-                <div 
-                  className="row" 
-                  key={row.id} 
-                  style={{ height: `${Math.max(70, totalLanes * 45)}px` }}
-                >
-                  {processedTasks.map((task, i) => {
-                    // Left position offset calculation adjusted for 1-indexed days
-                    const leftPercent = ((task.clampedStart - 1) / totalColumns) * 100;
-                    // Precise width calculation bounded securely inside totalColumns
-                    const widthPercent = ((task.clampedEnd - task.clampedStart + 1) / totalColumns) * 100;
-
-                    return (
-                      <div
-                        key={i}
-                        className={`task ${task.color}`}
-                        style={{
-                          left: `${leftPercent}%`,
-                          width: `${widthPercent}%`,
-                          top: `${15 + task.laneIndex * 35}px`,
-                          height: "26px",
-                        }}
-                      >
-                        Reference titre
-                      </div>
-                    );
-                  })}
-                </div>
-              );
-            })}
+      {/* 4 ── Suggestion ── */}
+      <div className="ag-suggestion">
+        <div className="ag-suggestion-header">
+          <div className="ag-suggestion-left">
+            <span className="ag-suggestion-badge">SUGGESTION</span>
+            <span className="ag-suggestion-subtitle">Solution d'optimisation</span>
           </div>
+          <FaLightbulb className="ag-suggestion-bulb" />
+        </div>
+        <h3 className="ag-suggestion-title">Décalage des Travaux Distribution (B)</h3>
+        <p className="ag-suggestion-desc">
+          En décalant le travail B de 08h00 à 13:00, nous supprimons le conflit sur le
+          poste Delta tout en conservant la même fenêtre de coupure pour les usagers finaux.
+        </p>
+        <div className="ag-suggestion-time">
+          <span className="ag-time-label">NOUVEL HORAIRE</span>
+          <span className="ag-time-value">08:00</span>
+          <span className="ag-arrow">→</span>
+          <span className="ag-time-value">13:00</span>
         </div>
       </div>
+
+      {/* 5 ── Action Buttons ── */}
+      <div className="ag-actions">
+        <div className="ag-actions-left">
+          <button className="ag-btn-validate">
+            <BsCheckCircleFill size={14} /> Valider la suggestion
+          </button>
+          <button className="ag-btn-adjust">
+            <AiOutlineTool size={14} /> Réajuster manuellement
+          </button>
+        </div>
+        <div className="ag-actions-right">
+          <button className="ag-btn-reject">
+            <RiCloseCircleLine size={16} /> Rejeter l'alerte
+          </button>
+        </div>
+      </div>
+
     </div>
   );
 }

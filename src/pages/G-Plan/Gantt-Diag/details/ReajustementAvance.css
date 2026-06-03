@@ -1,0 +1,845 @@
+/* ── Page wrapper ── */
+.ra-page {
+  padding: 24px;
+  background: #f4f6f8;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  font-family: Arial, sans-serif;
+}
+
+/* ── Breadcrumb ── */
+.ra-breadcrumb {
+  font-size: 12px;
+  font-weight: 700;
+  color: #6b7280;
+  letter-spacing: 0.5px;
+}
+
+.ra-breadcrumb-link {
+  color: #2563eb;
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.ra-breadcrumb-link:hover {
+  text-decoration: underline;
+}
+
+.ra-breadcrumb-sep {
+  color: #9ca3af;
+  margin: 0 6px;
+}
+
+.ra-breadcrumb-active {
+  color: #111827;
+  font-weight: 700;
+}
+
+/* ── Alert Banner ── */
+.ra-alert-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  background: #fef2f2;
+  border: 1.5px solid #fca5a5;
+  border-radius: 10px;
+  padding: 18px 22px;
+}
+
+.ra-alert-icon {
+  color: #ef4444;
+  font-size: 20px;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.ra-alert-content h3 {
+  margin: 0 0 5px;
+  font-size: 14px;
+  font-weight: 700;
+  color: #991b1b;
+}
+
+.ra-alert-content p {
+  margin: 0;
+  font-size: 13px;
+  color: #7f1d1d;
+  line-height: 1.6;
+}
+
+/* ── Main Wrapper ── */
+/* Left (calendar + pending) and right panel side by side */
+.ra-main-wrapper {
+  display: grid;
+  grid-template-columns: 1fr 260px;
+  gap: 16px;
+  align-items: start;
+}
+
+/* LEFT column */
+.ra-left-content {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* ── Weekly Calendar ── */
+.ra-calendar {
+  background: #ffffff;
+  border-radius: 10px;
+  padding: 18px;
+  box-shadow: 0 1px 4px rgba(0,0,0,.06);
+  overflow-x: auto;
+}
+
+.ra-cal-header {
+  display: grid;
+  grid-template-columns: 120px repeat(7, 1fr);
+  gap: 4px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #e5e7eb;
+  margin-bottom: 6px;
+}
+
+.ra-cal-asset-col {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.ra-col-label {
+  font-size: 10px;
+  font-weight: 700;
+  color: #6b7280;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.ra-cal-day-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+}
+
+.ra-day-label {
+  font-size: 10px;
+  font-weight: 700;
+  color: #6b7280;
+  text-transform: uppercase;
+}
+
+.ra-day-num {
+  font-size: 15px;
+  font-weight: 700;
+  color: #111827;
+}
+
+/* ── Calendar Rows ── */
+.ra-cal-row {
+  display: grid;
+  grid-template-columns: 120px repeat(7, 1fr);
+  gap: 4px;
+  border-bottom: 1px solid #f3f4f6;
+  padding: 10px 0;
+  align-items: center;
+}
+
+.ra-asset-name {
+  font-size: 13px;
+  font-weight: 700;
+  color: #111827;
+  display: block;
+}
+
+.ra-asset-type {
+  font-size: 10px;
+  color: #9ca3af;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  display: block;
+}
+
+.ra-cal-cell {
+  height: 36px;
+  display: flex;
+  align-items: center;
+}
+
+/* ── Task Pills ── */
+.ra-task-pill {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px;
+  padding: 4px 8px;
+  border-radius: 5px;
+  font-size: 10px;
+  font-weight: 700;
+  width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.ra-task-pill.blue {
+  background: #2563eb;
+  color: #ffffff;
+}
+
+.ra-task-pill.green {
+  background: #22c55e;
+  color: #ffffff;
+}
+
+.ra-task-pill.grey {
+  background: #e5e7eb;
+  color: #374151;
+}
+
+.ra-pill-alert-dot {
+  width: 6px;
+  height: 6px;
+  background: #ef4444;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+/* ── Pending Adjustments ── */
+.ra-pending-section {
+  background: #ffffff;
+  border-radius: 10px;
+  padding: 18px;
+  box-shadow: 0 1px 4px rgba(0,0,0,.06);
+}
+
+.ra-pending-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.ra-pending-header-icon {
+  color: #374151;
+  font-size: 15px;
+}
+
+.ra-pending-header h3 {
+  font-size: 12px;
+  font-weight: 700;
+  color: #374151;
+  margin: 0;
+  letter-spacing: 0.5px;
+}
+
+.ra-pending-cards {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 14px;
+}
+
+.ra-pending-card {
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.ra-pending-card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.ra-pending-badge {
+  background: #dbeafe;
+  color: #1d4ed8;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 5px;
+  letter-spacing: 0.3px;
+}
+
+.ra-pending-close {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #9ca3af;
+  padding: 2px;
+  display: flex;
+  align-items: center;
+  line-height: 1;
+}
+
+.ra-pending-close:hover {
+  color: #ef4444;
+}
+
+.ra-pending-location {
+  font-size: 16px;
+  font-weight: 700;
+  color: #111827;
+  margin: 0;
+}
+
+.ra-pending-dates {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.ra-date-col {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 7px;
+  padding: 8px 10px;
+}
+
+.ra-date-col.highlight {
+  background: #eff6ff;
+  border-color: #93c5fd;
+}
+
+.ra-date-label {
+  font-size: 9px;
+  font-weight: 700;
+  color: #9ca3af;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.ra-date-value {
+  font-size: 13px;
+  font-weight: 600;
+  color: #374151;
+}
+
+.ra-date-value.new {
+  color: #1d4ed8;
+  font-weight: 700;
+}
+
+/* Clickable suggestion link */
+.ra-suggestion-link {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  color: #2563eb;
+  font-weight: 500;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.ra-suggestion-link:hover {
+  text-decoration: underline;
+}
+
+.ra-btn-appliquer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background: #22c55e;
+  color: #ffffff;
+  border: none;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  width: 100%;
+  letter-spacing: 0.3px;
+}
+
+.ra-btn-appliquer:hover {
+  background: #16a34a;
+}
+
+/* ── RIGHT PANEL — full height spanning calendar + pending ── */
+.ra-right-panel {
+  background: #ffffff;
+  border-radius: 10px;
+  padding: 18px;
+  box-shadow: 0 1px 4px rgba(0,0,0,.06);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  /* stretch to match left column height */
+  align-self: stretch;
+}
+
+.ra-impact-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ra-impact-icon {
+  color: #2563eb;
+  font-size: 15px;
+}
+
+.ra-impact-title {
+  font-size: 11px;
+  font-weight: 700;
+  color: #111827;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.ra-impact-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.ra-impact-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #374151;
+}
+
+.ra-critical-badge {
+  background: #fef2f2;
+  color: #ef4444;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 5px;
+  letter-spacing: 0.5px;
+}
+
+.ra-conflict-number {
+  font-size: 40px;
+  font-weight: 700;
+  color: #111827;
+  line-height: 1;
+}
+
+.ra-conflict-bar {
+  height: 4px;
+  background: #ef4444;
+  border-radius: 2px;
+  width: 55%;
+}
+
+/* ── Score Box ── */
+.ra-score-box {
+  background: #f0fdf4;
+  border-radius: 8px;
+  padding: 14px;
+}
+
+.ra-score-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.ra-score-label {
+  font-size: 10px;
+  font-weight: 700;
+  color: #6b7280;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.ra-score-icon {
+  color: #22c55e;
+  font-size: 14px;
+}
+
+.ra-score-value {
+  font-size: 26px;
+  font-weight: 700;
+  color: #111827;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ra-score-tag {
+  font-size: 11px;
+  font-weight: 600;
+  color: #16a34a;
+  background: #dcfce7;
+  padding: 2px 8px;
+  border-radius: 5px;
+}
+
+.ra-score-desc {
+  font-size: 11px;
+  color: #6b7280;
+  margin: 6px 0 0;
+  line-height: 1.5;
+}
+
+/* ── Metrics ── */
+.ra-metrics {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.ra-metric-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.ra-metric-label {
+  font-size: 12px;
+  color: #6b7280;
+  font-weight: 500;
+}
+
+.ra-metric-value {
+  font-size: 13px;
+  font-weight: 700;
+  color: #111827;
+}
+
+.ra-metric-value.positive { color: #22c55e; }
+.ra-metric-value.negative { color: #ef4444; }
+.ra-metric-value.neutral  { color: #111827; }
+
+/* ── Right Panel Buttons ── */
+.ra-btn-valider-semaine {
+  background: #2563eb;
+  color: #ffffff;
+  border: none;
+  padding: 12px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  width: 100%;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.ra-btn-valider-semaine:hover { background: #1d4ed8; }
+
+.ra-btn-reinitialiser {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background: #ffffff;
+  color: #374151;
+  border: 1px solid #d1d5db;
+  padding: 10px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  width: 100%;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.ra-btn-reinitialiser:hover { background: #f9fafb; }
+
+/* ── System Status ── */
+.ra-system-status {
+  border-top: 1px solid #f3f4f6;
+  padding-top: 12px;
+  margin-top: auto;
+}
+
+.ra-status-label {
+  font-size: 10px;
+  font-weight: 700;
+  color: #9ca3af;
+  letter-spacing: 0.5px;
+  display: block;
+  margin-bottom: 6px;
+  text-transform: uppercase;
+}
+
+.ra-status-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.ra-status-dot {
+  width: 8px;
+  height: 8px;
+  background: #22c55e;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.ra-status-text {
+  font-size: 12px;
+  color: #374151;
+  font-weight: 600;
+}
+
+/* ── Configuration Individuelle ── */
+.ra-config-section {
+  background: #ffffff;
+  border-radius: 10px;
+  padding: 18px 22px;
+  box-shadow: 0 1px 4px rgba(0,0,0,.06);
+}
+
+.ra-config-title {
+  font-size: 11px;
+  font-weight: 700;
+  color: #6b7280;
+  letter-spacing: 1px;
+  margin: 0 0 14px;
+  text-transform: uppercase;
+}
+
+.ra-config-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 16px;
+  border-radius: 8px;
+  background: #f9fafb;
+  margin-bottom: 10px;
+  border: 1px solid #e5e7eb;
+}
+
+.ra-config-row.conflict {
+  background: #fff5f5;
+  border: 1px solid #fca5a5;
+}
+
+.ra-config-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+}
+
+.ra-config-icon {
+  width: 38px;
+  height: 38px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.icon-normal {
+  background: #eff6ff;
+  color: #2563eb;
+}
+
+.icon-conflict {
+  background: #fef2f2;
+  color: #ef4444;
+}
+
+.ra-config-category {
+  font-size: 10px;
+  font-weight: 700;
+  color: #9ca3af;
+  letter-spacing: 0.5px;
+  display: block;
+  text-transform: uppercase;
+}
+
+.ra-config-name {
+  font-size: 13px;
+  font-weight: 700;
+  color: #111827;
+  display: block;
+  margin-top: 2px;
+}
+
+.ra-config-right {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  flex-shrink: 0;
+}
+
+.ra-config-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.ra-field-label {
+  font-size: 10px;
+  font-weight: 700;
+  color: #9ca3af;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.ra-field-input {
+  width: 100px;
+  padding: 6px 8px;
+  border: 1px solid #e5e7eb;
+  border-radius: 7px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #374151;
+  background: #ffffff;
+}
+
+.ra-field-input.input-conflict {
+  border: 1.5px solid #ef4444;
+  background: #fff5f5;
+  color: #ef4444;
+  font-weight: 700;
+}
+
+/* ── Duration Counter ── */
+.ra-counter {
+  display: flex;
+  align-items: center;
+  border: 1px solid #e5e7eb;
+  border-radius: 7px;
+  overflow: hidden;
+  background: #ffffff;
+}
+
+.ra-counter-btn {
+  width: 30px;
+  height: 34px;
+  background: #f3f4f6;
+  border: none;
+  font-size: 16px;
+  font-weight: 700;
+  color: #374151;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ra-counter-btn:hover { background: #e5e7eb; }
+
+.ra-counter-value {
+  width: 36px;
+  text-align: center;
+  font-size: 14px;
+  font-weight: 700;
+  color: #111827;
+}
+
+.ra-status-ok {
+  color: #22c55e;
+  font-size: 22px;
+}
+
+.ra-status-conflict {
+  color: #ef4444;
+  font-size: 22px;
+}
+
+/* ── Conseil Box ── */
+.ra-conseil {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  border-radius: 8px;
+  padding: 14px 18px;
+}
+
+.ra-conseil-icon {
+  color: #2563eb;
+  font-size: 18px;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.ra-conseil p {
+  margin: 0;
+  font-size: 13px;
+  color: #1e40af;
+  line-height: 1.6;
+}
+
+.ra-conseil strong {
+  font-weight: 700;
+}
+
+/* ── Action Buttons ── */
+.ra-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.ra-btn-validate {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #2563eb;
+  color: #ffffff;
+  border: none;
+  padding: 12px 48px;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.ra-btn-validate:hover { background: #1d4ed8; }
+
+.ra-btn-cancel {
+  background: #ffffff;
+  color: #ef4444;
+  border: 1.5px solid #fca5a5;
+  padding: 12px 48px;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.ra-btn-cancel:hover { background: #fef2f2; }
+
+/* ── Responsive ── */
+@media (max-width: 1024px) {
+  .ra-main-wrapper {
+    grid-template-columns: 1fr;
+  }
+  .ra-right-panel {
+    align-self: auto;
+  }
+  .ra-pending-cards {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .ra-config-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  .ra-actions {
+    flex-direction: column;
+    gap: 12px;
+  }
+  .ra-btn-validate,
+  .ra-btn-cancel {
+    width: 100%;
+    justify-content: center;
+  }
+}

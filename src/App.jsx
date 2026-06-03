@@ -22,6 +22,10 @@ import Creer_Travail from "./pages/op_saisie/Creer_Travail/Nouveau_Travail";
 import Dashboard_Plan from './pages/G-Plan/Dashboard/Dashboard';
 import Gantt from './pages/G-Plan/Gantt-Diag/Interface';
 import Calendar from './pages/G-Plan/Calendar/CalendarView';
+import AdvancedGantt from './pages/G-Plan/Gantt-Diag/details/AdvancedGantt';
+import ReajustementManuel from './pages/G-Plan/Gantt-Diag/details/ReajustementManuel';
+import ReajustementAvance from './pages/G-Plan/Gantt-Diag/details/ReajustementAvance';
+
 function App() {
     return (
         <div className="app-container">
@@ -45,26 +49,26 @@ function App() {
                         <Route path="roles" element={<RoleManagement />} />
                         <Route path="permissions" element={<PermissionManagement />} />
 
-                        {/* Contenus OP-Saisie */}
                         {/* Routes Workflow */}
                         <Route path="workflow/historique" element={<WorkflowHistory />} />
                         <Route path="workflow/:id" element={<WorkflowDetail />} />
                         <Route path="workflow/Workflow/creer" element={<CreateGlobalWorkflow />} />
                         <Route path="planning-audit" element={<PlanningAudit />} />
                         <Route path="planning-audit/:planningId" element={<PlanningWorkflowDetail />} />
+
+                        {/* Contenus OP-Saisie */}
                         <Route path="OP-home" element={<OP_home />} />
                         <Route path="Planning" element={<Planning />} />
-                        {/* new */}
-                        <Route
-                            path="Planning/:id"
-                            element={<Planning />}
-                            />
+                        <Route path="Planning/:id" element={<Planning />} />
                         <Route path="CreerTravail" element={<Creer_Travail />} />
 
                         {/* Contenus pour G-Plan */}
-                        <Route path="Dashboard_Plan" element={<Dashboard_Plan />} />
+                        <Route path="dashboard-plan" element={<Dashboard_Plan />} />
                         <Route path="Gantt" element={<Gantt />} />
                         <Route path="Calendar" element={<Calendar />} />
+                        <Route path="advanced-gantt" element={<AdvancedGantt />} />
+                        <Route path="reajustement-manuel" element={<ReajustementManuel />} />
+                        <Route path="reajustement-avance" element={<ReajustementAvance />} />
                     </Route>
                 </Routes>
             </Router>
