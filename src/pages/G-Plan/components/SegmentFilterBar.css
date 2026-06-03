@@ -1,0 +1,70 @@
+.sfb-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 10px 16px;
+}
+
+.sfb-filters {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.sfb-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: #64748b;
+    margin-right: 4px;
+    white-space: nowrap;
+}
+
+.sfb-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 14px;
+    border-radius: 20px;
+    border: 1px solid #e2e8f0;
+    background: #f8fafc;
+    color: #64748b;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+}
+
+.sfb-btn:hover {
+    border-color: #94a3b8;
+    color: #1e293b;
+}
+
+.sfb-btn.active {
+    font-weight: 600;
+    border-color: currentColor;
+}
+
+.sfb-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.sfb-icon {
+    font-size: 12px;
+}
+
+.sfb-right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+}

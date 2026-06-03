@@ -66,8 +66,10 @@ const SelectRole = () => {
 
             Cookies.set('activeRole', code);
             Cookies.set('activeRoleName', name);
+            // console.log(`Rôle sélectionné : ${name} (code: ${name.toLowerCase().split(' ').join('_')})`);
 
-            const roleMenus = menuConfig[code] || menuConfig[code.toLowerCase()] || [];
+            const roleMenus = menuConfig[code] || menuConfig[name.toLowerCase().split(' ').join('_')] || [];
+            console.log("Menus pour le rôle sélectionné:", roleMenus);
             const landingPage = roleMenus.length > 0 ? roleMenus[0].path : '/dashboard/home';
             
             navigate(landingPage);

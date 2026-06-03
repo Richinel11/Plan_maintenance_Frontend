@@ -1,260 +1,675 @@
+/* ─────────────────────────────────────────────────────────────
+   WRAPPER
+───────────────────────────────────────────────────────────── */
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+.calendar-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.calendar-container {
+    background: #fff;
+    border-radius: 14px;
+    border: 1px solid #e2e8f0;
+    padding: 20px 24px 24px;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   BARRE DE CONTRÔLES (filtres + toggle vue)
+───────────────────────────────────────────────────────────── */
+.cal-controls {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+/* ── Toggle de vues ── */
+.cal-view-toggle {
+    display: flex;
+    background: #f1f5f9;
+    border-radius: 10px;
+    padding: 3px;
+    gap: 2px;
+    flex-shrink: 0;
+}
+
+.cal-view-btn {
+    padding: 6px 16px;
+    border-radius: 8px;
+    border: none;
+    background: transparent;
+    color: #64748b;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+}
+
+.cal-view-btn:hover {
+    color: #1e293b;
+}
+
+.cal-view-btn.active {
+    background: #fff;
+    color: #1B75BB;
+    font-weight: 600;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+}
+
+/* ── Masquer le conteneur calendrier sans le détruire ── */
+.cal-hidden {
+    display: none;
+}
+
+
+/* ─────────────────────────────────────────────────────────────
+   FULLCALENDAR — BASE
+───────────────────────────────────────────────────────────── */
 .fc {
-  font-family: Inter, sans-serif;
+    font-family: Inter, sans-serif;
 }
 
 .fc-theme-standard td,
 .fc-theme-standard th {
-  border-color: #eef2f7;
-}
-
-.fc .fc-scrollgrid {
-  border: 1px solid #eef2f7;
-  border-radius: 12px;
-  overflow: hidden;
-}
-
-/* Main toolbar */
-.fc .fc-toolbar {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 20px !important;
-}
-
-/* Title */
-.fc .fc-toolbar-title {
-    font-size: 34px;
-    font-weight: 700;
-    color: #1f2937;
-}
-
-/* Toolbar sections */
-.fc .fc-toolbar-chunk {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.fc .fc-button {
-    background: #f3f4f6 !important;
-    border: none !important;
-    color: #6b7280 !important;
-    box-shadow: none !important;
-    border-radius: 8px !important;
-    /* padding: 8px 16px !important;
-    font-size: 13px !important; */
-}
-
-.fc .fc-button-active {
-    background: white !important;
-    color: #111827 !important;
-    border: 1px solid #d1d5db !important;
-    border-radius: 10px;
-    /* font-weight: 600; */
-}
-
-.fc .fc-button-today{
-    background-color: #6b7280;
-}
-
-.fc .fc-today-button {
-    background: white !important;
-    border: 1px solid #d1d5db !important;
-    /* color: #374151 !important; */
-}
-
-.fc .fc-prev-button,
-.fc .fc-next-button {
-    background: white !important;
-    border: 1px solid #d1d5db !important;
-    width: 36px;
-    /* height: 36px; */
-}
-
-.fc .fc-enregistrer-button {
-    background: #2563eb !important;
-    color: white !important;
-    border: none !important;
-    padding: 5px auto !important;
-}
-
-.fc .fc-enregistrer-button:hover {
-    background: #1d4ed8 !important;
-    
+    border-color: #eef2f7;
 }
 
 .fc .fc-scrollgrid {
     border: 1px solid #eef2f7;
-    border-radius: 8px;
+    border-radius: 10px;
     overflow: hidden;
+}
+
+/* Titre */
+.fc .fc-toolbar-title {
+    font-size: 20px;
+    font-weight: 700;
+    color: #1e293b;
+}
+
+/* Toolbar */
+.fc .fc-toolbar {
+    margin-bottom: 18px !important;
+}
+
+.fc .fc-toolbar-chunk {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   BOUTONS TOOLBAR
+───────────────────────────────────────────────────────────── */
+.fc .fc-button {
+    background: #f1f5f9 !important;
+    border: 1px solid #e2e8f0 !important;
+    color: #64748b !important;
+    box-shadow: none !important;
+    border-radius: 8px !important;
+    font-size: 13px !important;
+    font-weight: 500 !important;
+    padding: 6px 12px !important;
+    transition: all 0.15s !important;
+}
+
+.fc .fc-button:hover {
+    background: #e2e8f0 !important;
+    color: #1e293b !important;
+}
+
+.fc .fc-button-active,
+.fc .fc-button:not(.fc-button-active):focus {
+    background: #1B75BB !important;
+    color: #fff !important;
+    border-color: #1B75BB !important;
+}
+
+.fc .fc-today-button {
+    background: #fff !important;
+    border: 1px solid #cbd5e1 !important;
+    color: #374151 !important;
+}
+
+.fc .fc-prev-button,
+.fc .fc-next-button {
+    background: #fff !important;
+    border: 1px solid #e2e8f0 !important;
+    width: 34px;
+    padding: 6px 8px !important;
+}
+
+.fc .fc-enregistrer-button {
+    background: #2563eb !important;
+    color: #fff !important;
+    border-color: #2563eb !important;
+    font-weight: 600 !important;
+}
+
+.fc .fc-enregistrer-button:hover {
+    background: #1d4ed8 !important;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   VUE MOIS (dayGridMonth)
+───────────────────────────────────────────────────────────── */
+.fc .fc-col-header-cell {
+    background: #f8fafc !important;
+    padding: 10px 0 !important;
+}
+
+.fc .fc-col-header-cell-cushion {
+    color: #64748b !important;
+    font-size: 11px !important;
+    font-weight: 700 !important;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+}
+
+.fc .fc-daygrid-day-top {
+    flex-direction: row !important;
+    justify-content: flex-start !important;
 }
 
 .fc-daygrid-day-number {
     color: #374151;
+    font-size: 13px;
     font-weight: 500;
-    padding: 8px !important;
+    padding: 8px 0 0 10px !important;
 }
 
-/* Day Header styling (SUN, MON, TUE...) */
-.fc .fc-col-header-cell {
-  background: transparent !important;
-  padding: 16px 0 !important;
-  border-bottom: 1px solid #f3f4f6 !important;
-}
-
-.fc .fc-col-header-cell-cushion {
-  color: #6b7280 !important;
-  font-size: 11px !important;
-  font-weight: 600 !important;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
-
-/* CRITICAL: Move day numbers to the TOP-LEFT */
-.fc .fc-daygrid-day-top {
-  flex-direction: row !important; 
-  justify-content: flex-start !important;
-}
-
-.fc-daygrid-day-number {
-  color: #1f2937;
-  font-size: 14px;
-  font-weight: 500;
-  padding: 10px 0 0 10px !important;
-}
-
-/* Current Day Highlight (e.g., Day 5 in your image) */
 .fc-day-today {
-  background: #f8fafc !important; 
+    background: #f0f9ff !important;
 }
+
 .fc-day-today .fc-daygrid-day-number {
-  color: #2563eb !important; /* Blue active number */
-  font-weight: 700;
+    color: #2563eb !important;
+    font-weight: 700;
 }
 
-/* --- Custom Event Badge Styling --- */
+/* ─────────────────────────────────────────────────────────────
+   VUE SEMAINE / JOUR (timeGrid)
+───────────────────────────────────────────────────────────── */
+
+/* Masquer la zone "toute la journée" */
+.fc .fc-timegrid-allday,
+.fc .fc-timegrid-allday-cushion {
+    display: none !important;
+}
+
+/* Hauteur des créneaux */
+.fc .fc-timegrid-slot       { height: 48px; }
+.fc .fc-timegrid-slot-minor { border-top-style: dashed; border-color: #f1f5f9; }
+
+/* Labels horaires */
+.fc .fc-timegrid-slot-label-cushion {
+    font-size: 11px;
+    font-weight: 600;
+    color: #94a3b8;
+    padding-right: 8px;
+}
+
+/* Ligne "maintenant" */
+.fc .fc-timegrid-now-indicator-line  { border-color: #ef4444; border-width: 2px; }
+.fc .fc-timegrid-now-indicator-arrow { border-top-color: #ef4444; border-bottom-color: #ef4444; }
+
+/* Conteneur event — reset du style par défaut FullCalendar */
+.fc .fc-timegrid-event {
+    border:        none        !important;
+    background:    transparent !important;
+    box-shadow:    none        !important;
+    border-radius: 0           !important;
+    margin:        1px 2px     !important;
+}
+
+.fc .fc-timegrid-event .fc-event-main {
+    padding:  0 !important;
+    overflow: hidden;
+    height:   100%;
+}
+
+/* ── Carte style Teams ── */
+.cal-tg-card {
+    height:        100%;
+    border-radius: 0 6px 6px 0;
+    padding:       4px 8px 4px 7px;
+    overflow:      hidden;
+    display:       flex;
+    flex-direction: column;
+    gap:           1px;
+    box-sizing:    border-box;
+    cursor:        pointer;
+    transition:    filter 0.15s;
+}
+
+.cal-tg-card:hover { filter: brightness(0.95); }
+
+.cal-tg-time {
+    font-size:      10px;
+    font-weight:    700;
+    opacity:        0.65;
+    white-space:    nowrap;
+    overflow:       hidden;
+    text-overflow:  ellipsis;
+    flex-shrink:    0;
+    letter-spacing: 0.02em;
+}
+
+.cal-tg-title {
+    font-size:    12px;
+    font-weight:  700;
+    line-height:  1.35;
+    overflow:     hidden;
+    display:      -webkit-box;
+    -webkit-line-clamp:  3;
+    -webkit-box-orient:  vertical;
+    word-break:   break-word;
+}
+
+.cal-tg-icon { margin-right: 3px; font-size: 11px; }
+
+.cal-tg-status {
+    font-size:     10px;
+    font-weight:   500;
+    opacity:       0.6;
+    white-space:   nowrap;
+    overflow:      hidden;
+    text-overflow: ellipsis;
+    flex-shrink:   0;
+    margin-top:    2px;
+}
+
+/* Événements très courts : titre seul sur 1 ligne */
+.fc-timegrid-event-short .cal-tg-time,
+.fc-timegrid-event-short .cal-tg-status { display: none; }
+
+.fc-timegrid-event-short .cal-tg-title {
+    -webkit-line-clamp: 1;
+    font-size: 11px;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   VUE LISTE (listMonth)
+───────────────────────────────────────────────────────────── */
+.fc .fc-list {
+    border: 1px solid #eef2f7;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.fc .fc-list-day-cushion {
+    background: #f8fafc !important;
+    padding: 8px 16px !important;
+    font-size: 12px;
+    font-weight: 700;
+    color: #475569;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.fc .fc-list-event:hover td {
+    background: #f8fafc !important;
+    cursor: pointer;
+}
+
+.fc .fc-list-event-title {
+    font-size: 13px;
+    font-weight: 500;
+    color: #1e293b;
+}
+
+.fc .fc-list-event-time {
+    font-size: 12px;
+    color: #64748b;
+    width: 110px;
+}
+
+.fc .fc-list-empty {
+    background: #fafafa;
+}
+
+.fc .fc-list-empty-cushion {
+    font-size: 14px;
+    color: #94a3b8;
+    padding: 40px;
+    text-align: center;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   ÉVÉNEMENTS CUSTOM
+───────────────────────────────────────────────────────────── */
+.fc-daygrid-event,
+.fc-timegrid-event {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+}
+
 .fc-daygrid-event-harness {
-  margin: 2px 6px !important;
+    margin: 2px 4px !important;
 }
 
-.fc-daygrid-event {
-  background: transparent !important;
-  border: none !important;
-  box-shadow: none !important;
-  padding: 0 !important;
+.cal-event {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 8px;
+    border-radius: 5px;
+    font-size: 11px;
+    font-weight: 600;
+    width: 100%;
+    overflow: hidden;
+    white-space: nowrap;
 }
 
-.custom-calendar-event {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 6px 10px;
-  border-radius: 6px;
-  width: 100%;
-  font-size: 12px;
-  font-weight: 600;
+.cal-event-icon {
+    font-size: 11px;
+    flex-shrink: 0;
 }
 
-.event-icon {
-  font-size: 13px;
-  display: inline-flex;
-  align-items: center;
+.cal-event-title {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    flex: 1;
 }
 
-/* Event Color Variations */
-.event-production {
-  background-color: #eff6ff !important;
-  color: #2563eb !important;
+.cal-event-badge {
+    font-size: 10px;
+    font-weight: 500;
+    opacity: 0.75;
+    flex-shrink: 0;
+    background: rgba(0,0,0,0.06);
+    padding: 1px 5px;
+    border-radius: 4px;
 }
 
-.event-logistics {
-  background-color: #ecfdf5 !important;
-  color: #10b981 !important;
+/* Vue liste FC — on n'utilise plus listMonth mais on garde le reset au cas où */
+.fc-list-event-title .cal-event {
+    background:  transparent !important;
+    border-left: none        !important;
+    padding:     0;
 }
 
-.event-conflict, .event-overlap {
-  background-color: #fef2f2 !important;
-  color: #ef4444 !important;
-  border: 1px solid #fee2e2;
+/* ─────────────────────────────────────────────────────────────
+   VUE LISTE CUSTOM
+───────────────────────────────────────────────────────────── */
+.list-card {
+    background: #fff;
+    border-radius: 20px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+    overflow: hidden;
 }
 
-.event-batch {
-  background-color: #e0e7ff !important;
-  color: #4f46e5 !important;
+/* En-tête */
+.list-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 22px 28px;
+    border-bottom: 1px solid #e5e7eb;
+    gap: 16px;
+    flex-wrap: wrap;
 }
 
-.event-default {
-  background-color: #f3f4f6 !important;
-  color: #374151 !important;
+.list-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: #111827;
+    margin: 0 0 2px;
 }
 
-.filter-bar {
+.list-subtitle {
+    font-size: 13px;
+    color: #9ca3af;
+    margin: 0;
+}
+
+.list-search-wrap {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.list-search-icon {
+    position: absolute;
+    left: 14px;
+    color: #9ca3af;
+    font-size: 18px;
+    pointer-events: none;
+}
+
+.list-search {
+    width: 320px;
+    height: 40px;
+    padding: 0 36px 0 42px;
+    border: none;
+    background: #f3f4f6;
+    border-radius: 9999px;
+    font-size: 14px;
+    outline: none;
+    transition: box-shadow 0.15s;
+}
+
+.list-search:focus {
+    box-shadow: 0 0 0 3px rgba(27, 117, 187, 0.15);
+}
+
+.list-search-clear {
+    position: absolute;
+    right: 12px;
+    background: none;
+    border: none;
+    color: #9ca3af;
+    cursor: pointer;
+    font-size: 13px;
+    line-height: 1;
+    padding: 2px 4px;
+    border-radius: 4px;
+}
+
+.list-search-clear:hover { color: #374151; }
+
+/* Scroll horizontal sur petits écrans */
+.list-table-wrap {
+    overflow-x: auto;
+}
+
+/* Tableau */
+.list-table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 800px;
+}
+
+.list-table th {
+    text-align: left;
+    padding: 12px 24px;
+    font-size: 11px;
+    font-weight: 700;
+    color: #6b7280;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    border-bottom: 1px solid #e5e7eb;
+    background: #f9fafb;
+    white-space: nowrap;
+}
+
+/* En-tête triable */
+.lv-th-sortable {
+    cursor: pointer;
+    user-select: none;
+    transition: background 0.1s;
+}
+
+.lv-th-sortable:hover { background: #f1f5f9 !important; }
+
+.lv-sort-icon {
+    margin-left: 4px;
+    font-style: normal;
+    font-size: 10px;
+}
+
+.lv-sort-icon.neutral { color: #d1d5db; }
+.lv-sort-icon.active  { color: #1B75BB; font-weight: 700; }
+
+/* Cellules */
+.list-table td {
+    padding: 14px 24px;
+    border-bottom: 1px solid #f3f4f6;
+    vertical-align: middle;
+    font-size: 13px;
+}
+
+.list-table tr:hover td { background: #f8fafc; }
+.list-table tr:last-child td { border-bottom: none; }
+
+/* Ligne en conflit */
+.lv-row-conflit td:first-child {
+    border-left: 3px solid #ef4444;
+}
+
+/* Colonne référence */
+.list-ref-cell { cursor: default; }
+
+.lv-ref-wrap {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.lv-indicator {
+    font-size: 13px;
+    flex-shrink: 0;
+    line-height: 1;
+}
+
+.list-ref {
+    font-weight: 600;
+    color: #0f172a;
+    font-size: 13px;
+}
+
+/* Colonne planning */
+.lv-planning {
+    color: #2563eb;
+    font-weight: 500;
+    font-size: 12px;
+    font-family: monospace;
+    white-space: nowrap;
+}
+
+/* Badge segment / statut */
+.list-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 10px;
+    border-radius: 9999px;
+    font-size: 11px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.list-badge-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+/* Date */
+.list-date {
+    color: #374151;
+    white-space: nowrap;
+    font-size: 12px;
+}
+
+/* État vide */
+.list-empty {
+    text-align: center;
+    padding: 52px;
+    color: #9ca3af;
+    font-size: 14px;
+}
+
+/* ── Footer ── */
+.list-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+    padding: 14px 24px;
+    border-top: 1px solid #e5e7eb;
+    background: #f9fafb;
+}
+
+/* Stats */
+.lv-stats {
     display: flex;
     align-items: center;
     gap: 10px;
-    margin-bottom: 18px;
+    flex-wrap: wrap;
 }
 
-.filter span {
-    color: #6b7280;
-    font-size: 14px;
-}
-.filter-container {
-    margin-bottom: 16px;
+.lv-stat-total {
+    font-size: 13px;
+    color: #475569;
+    font-weight: 500;
 }
 
-.filter-pill {
-    display: flex;
+.lv-stat-chip {
+    display: inline-flex;
     align-items: center;
-    gap: 8px;
-
-    background: #f3f4f6;
+    gap: 4px;
+    padding: 3px 10px;
     border-radius: 9999px;
-
-    padding: 6px 12px;
+    font-size: 12px;
+    font-weight: 600;
 }
 
-.filter-pill select {
-    border: none;
-    background: transparent;
-    outline: none;
-    cursor: pointer;
-}
+.lv-chip-conflit  { background: #fef2f2; color: #ef4444; }
+.lv-chip-harmonise{ background: #f5f3ff; color: #7c3aed; }
 
-.production-option {
+/* Pagination */
+.lv-pagination {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 10px;
 }
 
-.dot {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background: #3b82f6;
-    /* flex-shrink: 0; */
-}
-
-.register {
-    display: flex;
-    justify-content: flex-end;
-    margin-bottom: 16px;
-}
-
-.register button {
-    background: #2563eb;
-    border: none;
-    border-radius: 6px;
-    padding: 10px 20px;
-    color: white;
-    font-size: 14px;
+.lv-page-btn {
+    padding: 6px 14px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    background: #fff;
+    font-size: 13px;
+    color: #374151;
     cursor: pointer;
+    transition: all 0.15s;
+    font-weight: 500;
 }
 
-option{
-    border-radius: 10px;
-    padding: 10px auto;
-    /* background-color: #10b981; */
+.lv-page-btn:hover:not(:disabled) {
+    background: #f1f5f9;
+    border-color: #94a3b8;
 }
 
+.lv-page-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.lv-page-info {
+    font-size: 13px;
+    color: #64748b;
+    white-space: nowrap;
+}

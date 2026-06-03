@@ -14,9 +14,7 @@ import Filter from "./filterCards/filter";
 import useServiceRole from "../../../pages/ComponentsRole/ServiceRole";
 import { createPlanning, createTravail, updateTravail, deleteTravail, getPlanningById, getTravaux, getCentrales } from "../../../API/planningService";
 import { mapPlanningPayload } from "../../../utils/planningMapper";
-import Etape2 from "../Creer_Travail/Etape2/etape2";
 import Etape3 from "../Creer_Travail/etape3/etape3";
-import Recap from "../Creer_Travail/Recap/recap";
 import {
   getReferences,
   getTypesActivite,
@@ -222,7 +220,7 @@ const mapTravailToExcelRow = (travail, fields) => {
 const ExcelDisplay = () => {
   const navigate = useNavigate();
   const { id } = useParams();
-  const { service, setService, fields, options, referenceConfig } = useServiceRole();
+  const { service, setService, fields, options/*, referenceConfig*/ } = useServiceRole();
   const [addStep, setAddStep] = useState(0);
 
   const [fileName, setFileName] = useState("");
@@ -265,6 +263,13 @@ const ExcelDisplay = () => {
   const ITEMS_PER_PAGE = 15;
   const [currentPage, setCurrentPage] = useState(1);
 
+  /* FILTRES AVANCÉS */
+  const [filterType, setFilterType] = useState("");
+  const [filterReseau, setFilterReseau] = useState("");
+  const [filterStatut, setFilterStatut] = useState("");
+  const [filterDateFrom, setFilterDateFrom] = useState("");
+  const [filterDateTo, setFilterDateTo] = useState("");
+
   /* WARNINGS — Références introuvables */
   const [rowWarnings, setRowWarnings] = useState([]);
   const [activeWarningIdx, setActiveWarningIdx] = useState(0);
@@ -284,8 +289,8 @@ const ExcelDisplay = () => {
   const [newItemDepart, setNewItemDepart] = useState("");
   const rowRefs = useRef({});
 
-  const step = addStep;
-  const filteredFields = fields ? fields.filter(f => f.step === step) : [];
+  // const step = addStep;
+  // const filteredFields = fields ? fields.filter(f => f.step === step) : [];
   const [planningFormData, setPlanningFormData] = useState({
     Reference: "",
     reference_id: null,
@@ -312,8 +317,8 @@ const ExcelDisplay = () => {
   React.useEffect(() => {
     const fetchData = async () => {
       try {
-        const user = getCurrentUser();
-        const entiteMetierId = user?.entite_metier?.id;
+        // const user = getCurrentUser();
+        // const entiteMetierId = user?.entite_metier?.id;
 
         const [refs, tps, units, ents, centralesData, chargesData, typesRef] = await Promise.all([
           getReferences(),
@@ -601,6 +606,15 @@ const planningFormOptions = useMemo(() => ({
   Centrale_thermique: centrales,
 }), [options, unites, users, centrales]);
 
+/* RÉFÉRENCES FILTRÉES PAR ENTITÉ MÉTIER COURANTE — utilisées dans le modal d'ajout
+   pour n'afficher que les références du service en cours d'import. */
+const referencesForModal = useMemo(() => {
+  if (!service || !entites.length) return references;
+  const entite = entites.find(e => e.name.toLowerCase() === service.toLowerCase());
+  if (!entite) return references;
+  return references.filter(r => r.entite_metier?.id === entite.id);
+}, [references, service, entites]);
+
 const handleOpenAddModal = () => {
   setPlanningFormData({
     Reference: "",
@@ -609,7 +623,7 @@ const handleOpenAddModal = () => {
     poste_id: null,
     depart_id: null,
     troncon_id: null,
-    Segments: service.toUpperCase(),
+    Segments: "",
     Ouvrages: "",
     Poste: "",
     Departs: "",
@@ -641,9 +655,9 @@ const addSteps = [
         service={service}
         fields={fields}
         options={planningFormOptions}
-        references={references}
+        references={referencesForModal}
         onReferenceChange={(val) => {
-          const selectedRef = references.find(r => r.id === Number(val));
+          const selectedRef = referencesForModal.find(r => r.id === Number(val));
           if (selectedRef) {
             handlePlanningChange("reference_id", val);
             handlePlanningChange("ouvrage_id", selectedRef.ouvrage_id);
@@ -658,18 +672,6 @@ const addSteps = [
   },
 
   {
-    title: "Localisation & Consistance",
-    content: (
-      <Etape2
-        formData={planningFormData}
-        onChange={handlePlanningChange}
-        fields={fields}
-        options={options}
-      />
-    ),
-  },
-
-  {
     title: "Programmation & Impact",
     content: (
       <Etape3
@@ -679,11 +681,6 @@ const addSteps = [
         options={planningFormOptions}
       />
     ),
-  },
-
-  {
-    title: "Récapitulatif",
-    content: <Recap formData={planningFormData} />,
   },
 ];
 
@@ -775,23 +772,66 @@ const prevStep = () => {
       : (excelData.length === 1 && !showImport ? excelData : []);
   }, [excelData, showImport]);
 
-  /* ---------------- SEARCH ---------------- */
+  /* ---------------- SEARCH & FILTRES ---------------- */
 
   const filteredRows = useMemo(() => {
-    if (!searchTerm.trim()) {
-      return rows;
-    }
-    return rows.filter((row) =>
-      Array.isArray(row) && row.some((cell) =>
-        String(cell).toLowerCase().includes(searchTerm.toLowerCase())
-      )
-    );
-  }, [rows, searchTerm]);
+    return rows.filter((row) => {
+      if (!Array.isArray(row)) return false;
 
-  // Reset de page quand la recherche ou les données changent.
+      // ── Recherche texte ──
+      if (searchTerm.trim()) {
+        const matches = row.some((cell) =>
+          String(cell).toLowerCase().includes(searchTerm.toLowerCase())
+        );
+        if (!matches) return false;
+      }
+
+      // Helper : valeur d'une cellule par nom de colonne (mode import)
+      const getCell = (fieldName) => {
+        const idx = headers.findIndex(h => h === fieldName);
+        return idx !== -1 ? String(row[idx] || "").toLowerCase() : "";
+      };
+
+      // ── Type de travaux ──
+      if (filterType) {
+        const val = row.__travail
+          ? (row.__travail.type_travaux?.libelle || "").toLowerCase()
+          : getCell("Type_de_travaux");
+        if (!val.includes(filterType.toLowerCase())) return false;
+      }
+
+      // ── Type de réseau ──
+      if (filterReseau) {
+        const val = row.__travail
+          ? (row.__travail.type_reseau || "").toLowerCase()
+          : getCell("Types_de_reseau");
+        if (!val.includes(filterReseau.toLowerCase())) return false;
+      }
+
+      // ── Statut (mode visualisation uniquement) ──
+      if (filterStatut && row.__travail) {
+        const val = (row.__travail.statut_travaux || "").toLowerCase();
+        if (!val.includes(filterStatut.toLowerCase())) return false;
+      }
+
+      // ── Période (mode visualisation uniquement) ──
+      if ((filterDateFrom || filterDateTo) && row.__travail) {
+        const debutStr = row.__travail.heure_debut_planifie;
+        if (debutStr) {
+          const debut = new Date(debutStr);
+          if (filterDateFrom && debut < new Date(filterDateFrom)) return false;
+          if (filterDateTo && debut > new Date(filterDateTo + "T23:59:59")) return false;
+        }
+      }
+
+      return true;
+    });
+  }, [rows, searchTerm, filterType, filterReseau, filterStatut, filterDateFrom, filterDateTo, headers]);
+
+  // Reset de page quand la recherche ou les filtres changent.
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchTerm, excelData]);
+  }, [searchTerm, filterType, filterReseau, filterStatut, filterDateFrom, filterDateTo, excelData]);
 
   // Lignes affichées sur la page courante.
   const totalPages = Math.ceil(filteredRows.length / ITEMS_PER_PAGE);
@@ -994,9 +1034,45 @@ const prevStep = () => {
 
   /* ---------------- ADD ROW ---------------- */
 
+// Correspondance libellé Excel (template français) → clé planningFormData.
+// Nécessaire car les headers du fichier importé sont des libellés français
+// ("Référence", "Début planifiée"...) alors que planningFormData utilise
+// les clés internes ("Reference", "Debut_planifiee"...).
+const HEADER_TO_FORM_KEY = {
+  "Référence":                      "Reference",
+  "Segments":                       "Segments",
+  "Ouvrages":                       "Ouvrages",
+  "Poste":                          "Poste",
+  "Départs":                        "Departs",
+  "Unité demanderesse":             "Unite_demanderesse",
+  "Type de travaux":                "Type_de_travaux",
+  "Types de réseau":                "Types_de_reseau",
+  "Tronçons":                       "Troncons",
+  "Consistance des travaux":        "Consistances_Des_Travaux",
+  "Charges de consignation":        "Charges_de_consignation_label",
+  "Début planifiée":                "Debut_planifiee",
+  "Durée":                          "Duree",
+  "Fin planifiée":                  "Fin_planifiee",
+  "Date programmée":                "Date_programmee",
+  "Jour avant travaux":             "Jour_avant_travaux",
+  "Prévision puissance sollicitée": "Prevision_puissance_sollicite",
+  "Prévision puissance interrompue":"Prevision_puissance_interrompue",
+  "Prévision ENF":                  "Prevision_ENF",
+  "Centrale thermique":             "Centrale_thermique_label",
+  "Quantité fuel":                  "Qte_de_fuel",
+  "Observations":                   "Observations",
+  "Localités impactées":            "Localites_impactees",
+  "Moyens mis en oeuvre":           "Moyens_mis_en_oeuvre",
+  "Disponibilité mécanique":        "Disponibilite_mecanique",
+  // Clés internes (si headers viennent de getFieldsForService)
+  "Charges_de_consignation":        "Charges_de_consignation_label",
+  "Centrale_thermique":             "Centrale_thermique_label",
+};
+
 const handleAddPlanningRow = () => {
   const row = headers.map((header) => {
-    return planningFormData[header] ?? "";
+    const key = HEADER_TO_FORM_KEY[header] ?? header;
+    return planningFormData[key] ?? "";
   });
   
   // On attache l'objet complet comme "métadonnée" à la fin de la ligne
@@ -1277,8 +1353,15 @@ const handleAddPlanningRow = () => {
 
           </div>
 
-          {/* FILTRES — avant la recherche avancée */}
-          <Filter />
+          {/* FILTRES AVANCÉS */}
+          <Filter
+            filterType={filterType}       setFilterType={setFilterType}
+            filterReseau={filterReseau}   setFilterReseau={setFilterReseau}
+            filterStatut={filterStatut}   setFilterStatut={setFilterStatut}
+            filterDateFrom={filterDateFrom} setFilterDateFrom={setFilterDateFrom}
+            filterDateTo={filterDateTo}   setFilterDateTo={setFilterDateTo}
+            typesActivite={typesActivite}
+          />
 
           {/* BANNIÈRE DE WARNINGS */}
           {rowWarnings.length > 0 && (
@@ -1373,19 +1456,19 @@ const handleAddPlanningRow = () => {
                           <>
                             <button
                               type="button"
-                              className="edit-btn"
+                              className="action-btn edit-btn"
                               title="Modifier ce travail"
                               onClick={() => handleEditRowDetail(row)}
                             >
-                              ✏️
+                              <span className="material-symbols-outlined">edit</span>
                             </button>
                             <button
                               type="button"
-                              className="delete-btn"
+                              className="action-btn delete-btn"
                               title="Supprimer ce travail"
                               onClick={() => handleDeleteRowDetail(row)}
                             >
-                              🗑
+                              <span className="material-symbols-outlined">delete</span>
                             </button>
                           </>
                         ) : (
@@ -1393,19 +1476,19 @@ const handleAddPlanningRow = () => {
                           <>
                             <button
                               type="button"
-                              className="edit-btn"
+                              className="action-btn edit-btn"
                               title="Modifier cette ligne"
                               onClick={() => handleEditRow(filteredIdx)}
                             >
-                              ✏️
+                              <span className="material-symbols-outlined">edit</span>
                             </button>
                             <button
                               type="button"
-                              className="delete-btn"
+                              className="action-btn delete-btn"
                               title="Supprimer cette ligne"
                               onClick={() => handleDeleteRow(filteredIdx)}
                             >
-                              🗑
+                              <span className="material-symbols-outlined">delete</span>
                             </button>
                           </>
                         )}

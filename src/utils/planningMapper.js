@@ -137,7 +137,12 @@ export const mapPlanningPayload = (data) => {
     // Numbers
     duree: data.Duree ? parseInt(data.Duree) : (data.duree ? parseInt(data.duree) : (data["Durée"] ? parseInt(data["Durée"]) : null)),
     unite_duree: find(["unite_duree", "Unité de durée"]) || "HEURES",
-    disponibilite_mecanique_mw: clean(find(["disponibilite_mecanique_mw", "Disponibilite_mecanique", "Disponibilité mécanique"])),
+    disponibilite_mecanique_mw: (() => {
+      const val = find(["disponibilite_mecanique_mw", "Disponibilite_mecanique", "Disponibilité mécanique"]);
+      if (val === null || val === undefined || val === "") return null;
+      const num = parseFloat(String(val).replace(",", "."));
+      return isNaN(num) ? null : num;
+    })(),
     // Labels Excel avec accents ajoutés — sans eux le find() rate la clé du rowObject.
     prevision_puissance_sollicitee: clean(find([
       "prevision_puissance_sollicitee", "Prevision_puissance_sollicite",

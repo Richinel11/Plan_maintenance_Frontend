@@ -150,7 +150,14 @@ export default function MultiStepForm() {
         setReferences(referencesData?.results || referencesData || []);
         setTypesActivite(typesData?.results || typesData || []);
         // getPlannings retourne { results, count, next, previous } ou un tableau brut
-        setPlannings(planningsResponse?.results || planningsResponse || []);
+        const rawPlannings = planningsResponse?.results || planningsResponse || [];
+        const filteredPlannings = entitemetier_id
+          ? rawPlannings.filter(p => {
+              const pEntityId = p.entite_metier?.id ?? p.entite_metier;
+              return pEntityId === entitemetier_id;
+            })
+          : rawPlannings;
+        setPlannings(filteredPlannings);
         setChargesConsignation(chargesData?.results || chargesData?.data || chargesData || []);
         setUnitesDemanderesse(unitesData?.results || unitesData || []);
         setCentrales(centralesData?.results || centralesData || []);

@@ -47,6 +47,17 @@
   color: #b45309;
 }
 
+.ag-conflict-ref-badge {
+  display: inline-block;
+  background: #fef3c7;
+  border: 1px solid #fbbf24;
+  color: #92400e;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 6px;
+}
+
 /* ── 2. Availability ── */
 .ag-availability {
   background: #fff;

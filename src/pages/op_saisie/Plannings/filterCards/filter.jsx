@@ -1,6 +1,24 @@
 import './filter.css';
 
-const Filter = () => {
+const Filter = ({
+  filterType,     setFilterType,
+  filterReseau,   setFilterReseau,
+  filterStatut,   setFilterStatut,
+  filterDateFrom, setFilterDateFrom,
+  filterDateTo,   setFilterDateTo,
+  typesActivite = [],
+}) => {
+
+  const hasActiveFilter = filterType || filterReseau || filterStatut || filterDateFrom || filterDateTo;
+
+  const reset = () => {
+    setFilterType("");
+    setFilterReseau("");
+    setFilterStatut("");
+    setFilterDateFrom("");
+    setFilterDateTo("");
+  };
+
   return (
     <div className="filters">
 
@@ -13,11 +31,20 @@ const Filter = () => {
           Type de travaux
         </label>
         <div className="filter-select-wrapper">
-          <select defaultValue="">
+          <select value={filterType} onChange={e => setFilterType(e.target.value)}>
             <option value="">Tous les types</option>
-            <option value="maintenance">Maintenance</option>
-            <option value="renovation">Rénovation</option>
-            <option value="inspection">Inspection</option>
+            {typesActivite.length > 0
+              ? typesActivite.map(t => (
+                  <option key={t.id} value={t.libelle}>{t.libelle}</option>
+                ))
+              : (
+                <>
+                  <option value="maintenance">Maintenance</option>
+                  <option value="renovation">Rénovation</option>
+                  <option value="inspection">Inspection</option>
+                </>
+              )
+            }
           </select>
         </div>
       </div>
@@ -35,11 +62,11 @@ const Filter = () => {
           Type de réseau
         </label>
         <div className="filter-select-wrapper">
-          <select defaultValue="">
+          <select value={filterReseau} onChange={e => setFilterReseau(e.target.value)}>
             <option value="">Tous les réseaux</option>
-            <option value="hta">HTA</option>
-            <option value="htb">HTB</option>
-            <option value="bt">BT</option>
+            <option value="HTA">HTA</option>
+            <option value="HTB">HTB</option>
+            <option value="BT">BT</option>
           </select>
         </div>
       </div>
@@ -54,12 +81,14 @@ const Filter = () => {
           Statut
         </label>
         <div className="filter-select-wrapper">
-          <select defaultValue="">
+          <select value={filterStatut} onChange={e => setFilterStatut(e.target.value)}>
             <option value="">Tous les statuts</option>
-            <option value="planifie">Planifié</option>
-            <option value="en_cours">En cours</option>
-            <option value="termine">Terminé</option>
-            <option value="annule">Annulé</option>
+            <option value="BROUILLON">Brouillon</option>
+            <option value="SOUMIS">Soumis</option>
+            <option value="VALIDE">Validé</option>
+            <option value="EN_COURS">En cours</option>
+            <option value="TERMINE">Terminé</option>
+            <option value="REPORTE">Reporté</option>
           </select>
         </div>
       </div>
@@ -76,11 +105,40 @@ const Filter = () => {
           Période
         </label>
         <div className="filter-date-wrapper">
-          <input type="date" />
+          <input
+            type="date"
+            value={filterDateFrom}
+            onChange={e => setFilterDateFrom(e.target.value)}
+          />
           <span style={{ color: '#94a3b8', fontSize: '12px' }}>—</span>
-          <input type="date" />
+          <input
+            type="date"
+            value={filterDateTo}
+            onChange={e => setFilterDateTo(e.target.value)}
+          />
         </div>
       </div>
+
+      {/* RÉINITIALISER */}
+      {hasActiveFilter && (
+        <button
+          onClick={reset}
+          style={{
+            alignSelf: 'flex-end',
+            padding: '6px 12px',
+            fontSize: '12px',
+            fontWeight: '600',
+            color: '#ef4444',
+            background: '#fef2f2',
+            border: '1px solid #fca5a5',
+            borderRadius: '8px',
+            cursor: 'pointer',
+            whiteSpace: 'nowrap',
+          }}
+        >
+          Réinitialiser
+        </button>
+      )}
 
     </div>
   );

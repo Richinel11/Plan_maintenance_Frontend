@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import "./AdvancedGantt.css";
 import { FaExclamationTriangle, FaLightbulb, FaBolt, FaBell } from "react-icons/fa";
 import { MdLocationOn, MdSearch } from "react-icons/md";
@@ -73,6 +74,10 @@ const activityCards = {
 };
 
 export default function AdvancedGantt() {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const conflits = location.state?.conflits || [];
+
   const [checkedSlots, setCheckedSlots] = useState([]);
   const [selectedEntite, setSelectedEntite] = useState("");
   const [selectedDate, setSelectedDate] = useState("");
@@ -94,11 +99,26 @@ export default function AdvancedGantt() {
         <FaExclamationTriangle className="ag-alert-icon" />
         <div className="ag-alert-content">
           <h3>Diagnostic : Alerte de Co-activité</h3>
-          <p>
-            Un <span className="ag-highlight">chevauchement de 4 heures</span> a été
-            détecté au le poste source Delta. Les protocoles de sécurité interdisent
-            l'intervention simultanée de Transport et Distribution sur ce segment.
-          </p>
+          {conflits.length > 0 ? (
+            <div>
+              <p style={{ margin: '0 0 8px' }}>
+                <span className="ag-highlight">{conflits.length} travaux en chevauchement</span> ont été détectés.
+                Les protocoles de sécurité interdisent leur intervention simultanée sur ce segment.
+              </p>
+              <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                {conflits.map(c => (
+                  <span key={c.ref} className="ag-conflict-ref-badge">
+                    {c.ref} — {c.name}
+                  </span>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <p>
+              Un <span className="ag-highlight">chevauchement</span> a été détecté.
+              Les protocoles de sécurité interdisent l'intervention simultanée sur ce segment.
+            </p>
+          )}
         </div>
       </div>
 
@@ -250,7 +270,10 @@ export default function AdvancedGantt() {
           <button className="ag-btn-validate">
             <BsCheckCircleFill size={14} /> Valider la suggestion
           </button>
-          <button className="ag-btn-adjust">
+          <button
+            className="ag-btn-adjust"
+            onClick={() => navigate('/dashboard/reajustement-manuel', { state: { conflits } })}
+          >
             <AiOutlineTool size={14} /> Réajuster manuellement
           </button>
         </div>

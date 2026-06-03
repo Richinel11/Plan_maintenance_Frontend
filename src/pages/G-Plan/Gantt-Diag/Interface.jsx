@@ -1,5 +1,5 @@
 import TopControl from "./topcontrol/Topcontrol";
-import Detail from "./details/AdvancedGantt";
+import Detail from "./details/GanttTimeline";
 import React, { useEffect, useState } from "react";
 
 // import mockData from "./details/data/ganttAdvancedData";

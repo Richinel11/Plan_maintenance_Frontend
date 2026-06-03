@@ -135,8 +135,8 @@ const FileInput = ({ onFileSelect, onContinue, service: serviceProp, setService:
       Consistances_Des_Travaux: {
         label: "Consistance des travaux",
         type: "Texte",
-        pattern: /^[\wÀ-ÿ°\s\-_/().,;:]+$/u,
-        example: "Travaux prévus",
+        pattern: /^[^\n\r]+$/u,
+        example: "Entretien AT N°1 90/15kV - nettoyage et serrage connexions",
         maxLength: 255,
       },
 
@@ -158,10 +158,11 @@ const FileInput = ({ onFileSelect, onContinue, service: serviceProp, setService:
 
       Disponibilite_mecanique: {
         label: "Disponibilité mécanique",
-        type: "Texte",
-        pattern: /^[\wÀ-ÿ°\s\-_/().,;:]+$/u,
-        example: "Disponible",
-        maxLength: 100,
+        type: "Nombre",
+        format: /^\d+(\.\d+)?$/,
+        example: "150",
+        min: 0,
+        max: 999999,
       },
 
       Debut_planifiee: {
@@ -174,7 +175,7 @@ const FileInput = ({ onFileSelect, onContinue, service: serviceProp, setService:
       Duree: {
         label: "Durée",
         type: "Nombre",
-        format: /^\d{2}$/,
+        format: /^\d{1,2}$/,
         example: "01",
         min: 1,
         max: 99,
@@ -197,7 +198,7 @@ const FileInput = ({ onFileSelect, onContinue, service: serviceProp, setService:
       Jour_avant_travaux: {
         label: "Jour avant travaux",
         type: "Nombre",
-        format: /^\d{2}$/,
+        format: /^\d{1,2}$/,
         example: "05",
         min: 1,
         max: 31,
