@@ -21,6 +21,9 @@ import Planning from './pages/op_saisie/Plannings/Planning';
 import Creer_Travail from "./pages/op_saisie/Creer_Travail/Nouveau_Travail";
 import Dashboard_Plan from './pages/G-Plan/Dashboard/Dashboard';
 import Gantt from './pages/G-Plan/Gantt-Diag/Interface';
+import AdvancedGantt from './pages/G-Plan/Gantt-Diag/details/AdvancedGantt';
+import ReajustementManuel from './pages/G-Plan/Gantt-Diag/details/ReajustementManuel';
+import ReajustementAvance from './pages/G-Plan/Gantt-Diag/details/ReajustementAvance';
 function App() {
     return (
         <div className="app-container">
@@ -61,8 +64,11 @@ function App() {
                         <Route path="CreerTravail" element={<Creer_Travail />} />
 
                         {/* Contenus pour G-Plan */}
-                        <Route path="Dashboard_Plan" element={<Dashboard_Plan />} />
+                        <Route path="dashboard-plan" element={<Dashboard_Plan />} />
                         <Route path="Gantt" element={<Gantt />} />
+                        <Route path="advanced-gantt" element={<AdvancedGantt />} />
+                        <Route path="reajustement-manuel" element={<ReajustementManuel />} />
+                        <Route path="reajustement-avance" element={<ReajustementAvance />} />
                     </Route>
                 </Routes>
             </Router>
