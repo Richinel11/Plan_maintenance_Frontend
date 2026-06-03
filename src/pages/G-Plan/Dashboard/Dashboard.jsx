@@ -1,17 +1,14 @@
-import React from "react";
+import React, { useState } from "react";
 import "./Dashboard.css";
 import GanttChart from "./Gantt-chart/gantt";
 import Alerts from "./Alert/Alert";
 import { BsCheckCircle, BsSend } from "react-icons/bs";
 import { FaUserCog } from "react-icons/fa";
 import { GrLineChart } from "react-icons/gr";
-import Cookies from 'js-cookie';
-
-// Mock data for now (until you create real stats endpoint)
 
 
 export default function StatsCards() {
-  
+
 const [statsData, setStatsData] = useState([
     { id: 1, title: "Travaux ce mois", value: 0, change: "", type: "positive", icon: <FaUserCog /> },
     { id: 2, title: "Conflits non traités", value: 0, badge: "ATTENTION", type: "danger", icon: <GrLineChart /> },
@@ -22,7 +19,7 @@ const [statsData, setStatsData] = useState([
   return (
     <div className="Home">
       <div className="stats-container">
-        {mockedStatsData.map((item) => (
+        {statsData.map((item) => (
           <div className="card" key={item.id}>
             <div className="card-top">
               <div className="icon-box">{item.icon}</div>

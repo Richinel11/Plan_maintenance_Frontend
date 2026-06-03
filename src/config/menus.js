@@ -10,13 +10,10 @@ export const menuConfig = {
         { path: '/dashboard/Planning', name: 'Import', icon: 'upload_file' },
         { path: '/dashboard/CreerTravail', name: 'Nouveau Travail', icon: 'add_box' },
     ],
-    gest_planif: [
-        { path: '/dashboard/gantt', name: 'Diagramme Gantt', icon: 'bar_chart' },
-        { path: '/dashboard/calendrier', name: 'Calendrier', icon: 'calendar_month' },
-        { path: '/dashboard/alertes', name: 'Alertes Conflits', icon: 'warning' },
-        { path: '/dashboard/effectifs', name: 'Plannings Effectifs', icon: 'done_all' },
-        { path: '/dashboard/historique', name: 'Historique', icon: 'history' },
-        { path: '/dashboard/rapports', name: 'Rapports & KPI', icon: 'assessment' },
+    gestionnaire_de_planification: [
+        { path: '/dashboard/Dashboard_Plan', name: 'Accueil', icon: 'dashboard' },
+        { path: '/dashboard/Gantt', name: 'Diagramme Gantt', icon: 'bar_chart' },
+        { path: '/dashboard/Calendar', name: 'Calendrier', icon: 'calendar_month' },
     ],
     resp_exploit: [
         { path: '/dashboard/validations', name: 'Validation Plannings', icon: 'rule' },
@@ -46,6 +43,8 @@ export const menuConfig = {
     ]
 };
 
+console.log("Menu Configuration Loaded:", menuConfig['gest_planif']);
+
 // --- Mappings de compatibilité (Backend Django) ---
 // Codes legacy en minuscule
 menuConfig['op1'] = menuConfig['operateur_de_saisie'];
@@ -58,7 +57,10 @@ menuConfig['opérateur_de_saisie'] = menuConfig['operateur_de_saisie'];
 menuConfig['ADMIN'] = menuConfig['admin'];
 menuConfig['ADMINISTRATEUR'] = menuConfig['admin'];
 menuConfig['administrateur'] = menuConfig['admin'];
-menuConfig['GEST_PLANIF'] = menuConfig['gest_planif'];
+menuConfig['GESTIONNAIRE_PLANNING'] = menuConfig['gest_planif'];
+menuConfig['gestionnaire de planification'] = menuConfig['gest_planif'];
+menuConfig['gest_planification'] = menuConfig['gest_planif'];
+menuConfig['Gestionnaire_Planification'] = menuConfig['gest_planif'];
 menuConfig['RESP_EXPLOIT'] = menuConfig['resp_exploit'];
 menuConfig['CCR'] = menuConfig['ccr'];
 menuConfig['REG_AUDIT'] = menuConfig['reg_audit'];

@@ -33,10 +33,12 @@ const Sidebar = () => {
     // Le nom est normalisé : "operateur de saisie" → "operateur_de_saisie" → clé dans menus.js
     const activeRoleCode = Cookies.get('activeRole');     // Gardé uniquement pour l'affichage footer
     const activeRoleName = Cookies.get('activeRoleName'); // Source principale pour le menu
+    console.log("Sidebar Debug - Active Role Code:", activeRoleCode, "Active Role Name:", activeRoleName);
 
     let dynamicLinks = [];
     if (activeRoleName) {
         const menuKey = activeRoleName.toLowerCase().replace(/\s+/g, '_');
+        console.log("Sidebar Debug - Looking for menu with key:", menuKey);
         dynamicLinks = menuConfig[menuKey] || [];
     }
 
@@ -45,7 +47,7 @@ const Sidebar = () => {
     const toggleMenu = (name) => setOpenMenus(prev => ({ ...prev, [name]: !prev[name] }));
 
 
-
+    console.log("Sidebar Render - User:", fullName, "Active Role:", activeRoleName, "Menu Key:", activeRoleName ? activeRoleName.toLowerCase().replace(/\s+/g, '_') : 'N/A', "Links:", dynamicLinks);  
     return (
         <aside className="sidebar">
             {/* Logo de l'application */}
