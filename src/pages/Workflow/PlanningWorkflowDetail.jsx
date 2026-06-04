@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import api from '../../API/axiosInstance';
-import { getPlanningWorkflowHistory, getPlanningCurrentStep } from '../../services/workflowService';
+import { getPlanningById } from '../../services/planningService';
+import { getWorkflowById, getPlanningWorkflowHistory, getPlanningCurrentStep } from '../../services/workflowService';
 import './PlanningWorkflowDetail.css';
 
 /**
@@ -23,7 +23,7 @@ const PlanningWorkflowDetail = () => {
             setLoading(true);
             try {
                 // 1. Récupérer les détails du planning et son étape actuelle
-                const { data: planningData } = await api.get(`/plannings/${planningId}/`);
+                const planningData = await getPlanningById(planningId);
                 setPlanning(planningData);
                 
                 const stepData = await getPlanningCurrentStep(planningId);
@@ -36,8 +36,7 @@ const PlanningWorkflowDetail = () => {
                 // 3. Récupérer TOUTES les étapes du workflow pour le stepper
                 // On récupère le workflow lié au planning pour avoir ses étapes ordonnées
                 if (planningData.workflow && planningData.workflow.id) {
-                    const { data: workflowData } = await api.get(`/workflows/${planningData.workflow.id}/`);
-                    // On suppose que le backend renvoie les étapes dans l'ordre (par le champ 'number')
+                    const workflowData = await getWorkflowById(planningData.workflow.id);
                     setAllSteps(workflowData.steps || []);
                 }
             } catch (error) {

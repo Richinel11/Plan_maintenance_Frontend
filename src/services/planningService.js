@@ -1,11 +1,4 @@
-// src/API/planningService.js
-//
-// Ce fichier centralise tous les appels HTTP vers le backend Django
-// pour les ressources Planning et Travail.
-// Il utilise l'instance Axios configurée (axiosInstance.js) qui
-// gère automatiquement le token JWT dans les headers.
-//
-import api from "./axiosInstance";
+import api from "../API/axiosInstance";
 
 /* ============================================================
    PLANNINGS
@@ -16,9 +9,6 @@ import api from "./axiosInstance";
  *
  * @param {number} page - Numéro de page (défaut : 1)
  * @returns {{ results: [], count: number, next: string|null, previous: string|null }}
- *
- * En cas d'erreur serveur, retourne un objet vide compatible
- * pour éviter de bloquer l'affichage.
  */
 export const getPlannings = async (page = 1) => {
   try {
@@ -36,10 +26,8 @@ export const getPlannings = async (page = 1) => {
 /**
  * Récupère le détail complet d'un planning par son UUID.
  *
- * Correspond à : GET /plannings/<id>/
- *
  * @param {string} planningId - UUID du planning
- * @returns {Object} - Objet planning complet (nom, code, workflow, current_step, etc.)
+ * @returns {Object} - Objet planning complet
  * @throws {Error} - Si le planning n'existe pas (404) ou erreur serveur
  */
 export const getPlanningById = async (planningId) => {
@@ -48,9 +36,7 @@ export const getPlanningById = async (planningId) => {
 };
 
 /**
- * Récupère les plannings filtrés par segment métier.
- * NOTE : cette route filtre les TRAVAUX par segment, pas les plannings directement.
- * Elle utilise : GET /travaux/par_segment/?segment=<XXX>
+ * Récupère les travaux filtrés par segment métier.
  *
  * @param {string} segment - "DISTRIBUTION" | "TRANSPORT" | "PRODUCTION"
  * @param {number} page    - Numéro de page (défaut : 1)
@@ -58,9 +44,6 @@ export const getPlanningById = async (planningId) => {
  */
 export const getPlanningsBySegment = async (segment, page = 1) => {
   try {
-    // ⚠️ La route correcte est /travaux/par_segment/ (pas /plannings/par_segment/)
-    // Le backend ne propose pas de filtre par segment sur les plannings,
-    // mais sur les travaux. On adapte ici pour garder la compatibilité.
     const response = await api.get(
       `/travaux/par_segment/?segment=${segment}&page=${page}`
     );
@@ -74,10 +57,8 @@ export const getPlanningsBySegment = async (segment, page = 1) => {
 /**
  * Crée un nouveau planning.
  *
- * Correspond à : POST /plannings/
- *
  * @param {{ nom: string, entite_metier_id?: string }} data
- * @returns {AxiosResponse} - La réponse complète (response.data contient l'objet créé)
+ * @returns {AxiosResponse}
  */
 export const createPlanning = (data) => {
   return api.post("/plannings/", data);
@@ -86,9 +67,7 @@ export const createPlanning = (data) => {
 /**
  * Supprime un planning par son UUID.
  *
- * Correspond à : DELETE /plannings/<id>/
- *
- * @param {string} id - UUID du planning à supprimer
+ * @param {string} id - UUID du planning
  * @returns {AxiosResponse} - HTTP 204 No Content si succès
  */
 export const deletePlanning = (id) => {
@@ -100,35 +79,20 @@ export const deletePlanning = (id) => {
    ============================================================ */
 
 /**
- * Récupère la liste des travaux d'un planning précis.
+ * Récupère les travaux d'un planning.
  *
- * Utilise la nouvelle action backend :
- *   GET /plannings/<planningId>/travaux/
- *
- * Filtres optionnels :
- *   - statut  : "BROUILLON" | "SOUMIS" | "VALIDE" | "EN_COURS" | "TERMINE" | "REPORTE"
- *   - segment : "DISTRIBUTION" | "TRANSPORT" | "PRODUCTION"
- *
- * @param {string} planningId         - UUID du planning parent
- * @param {{ statut?: string, segment?: string }} filters - Filtres optionnels
- * @returns {Array} - Tableau des travaux du planning
- *
- * Exemple d'appel :
- *   const travaux = await getTravaux("3fa85f64-...", { statut: "SOUMIS" });
+ * @param {string} planningId
+ * @param {{ statut?: string, segment?: string }} filters
+ * @returns {Array}
  */
 export const getTravaux = async (planningId, filters = {}) => {
   try {
-    // Construction des query params optionnels (statut, segment)
     const params = new URLSearchParams();
     if (filters.statut)  params.append("statut",  filters.statut);
     if (filters.segment) params.append("segment", filters.segment);
 
     const query = params.toString() ? `?${params.toString()}` : "";
-
-    // Appel vers la route imbriquée : /plannings/<id>/travaux/
     const response = await api.get(`/plannings/${planningId}/travaux/${query}`);
-
-    // Le backend retourne directement un tableau (pas paginé ici)
     return response.data;
   } catch (err) {
     console.error(
@@ -140,16 +104,10 @@ export const getTravaux = async (planningId, filters = {}) => {
 };
 
 /**
- * Crée un nouveau travail et le rattache à un planning.
+ * Crée un nouveau travail.
  *
- * Correspond à : POST /travaux/
- *
- * Le payload doit contenir au minimum :
- *   - planning_id : UUID du planning parent
- *   - segment     : "DISTRIBUTION" | "TRANSPORT" | "PRODUCTION"
- *
- * @param {Object} data - Données du travail
- * @returns {AxiosResponse} - La réponse complète (response.data contient le travail créé)
+ * @param {Object} data
+ * @returns {AxiosResponse}
  */
 export const createTravail = (data) => {
   return api.post("/travaux/", data);
@@ -157,10 +115,9 @@ export const createTravail = (data) => {
 
 /**
  * Met à jour partiellement un travail existant.
- * Correspond à : PATCH /travaux/<id>/
  *
- * @param {string} travailId - UUID du travail
- * @param {Object} data      - Champs à modifier (mise à jour partielle)
+ * @param {string} travailId
+ * @param {Object} data
  */
 export const updateTravail = (travailId, data) => {
   return api.patch(`/travaux/${travailId}/`, data);
@@ -168,9 +125,8 @@ export const updateTravail = (travailId, data) => {
 
 /**
  * Supprime un travail par son UUID.
- * Correspond à : DELETE /travaux/<id>/
  *
- * @param {string} travailId - UUID du travail
+ * @param {string} travailId
  */
 export const deleteTravail = (travailId) => {
   return api.delete(`/travaux/${travailId}/`);
@@ -179,7 +135,7 @@ export const deleteTravail = (travailId) => {
 /**
  * Crée plusieurs plannings en parallèle (mode batch).
  *
- * @param {Array<Object>} payloads - Tableau de données de plannings
+ * @param {Array<Object>} payloads
  * @returns {Promise<Array<AxiosResponse>>}
  */
 export const createPlanningBatch = async (payloads) => {
@@ -192,9 +148,8 @@ export const createPlanningBatch = async (payloads) => {
 
 /**
  * Récupère la liste des centrales thermiques disponibles.
- * Utilisé pour le champ "Centrale thermique sollicitée" du segment PRODUCTION.
  *
- * @returns {Array} - Liste des centrales
+ * @returns {Array}
  */
 export const getCentrales = async () => {
   try {
@@ -207,13 +162,10 @@ export const getCentrales = async () => {
 };
 
 /**
- * Récupère les listes déroulantes (options) filtrées par service.
+ * Récupère les listes déroulantes filtrées par service.
  *
- * NOTE : Cet endpoint n'est pas encore implémenté côté backend.
- * On retourne un objet vide pour ne pas bloquer le formulaire.
- *
- * @param {string} service - Le service (ex: "distribution", "transport")
- * @returns {Object} - Options disponibles (vide si endpoint absent)
+ * @param {string} service
+ * @returns {Object}
  */
 export const getOptionsByService = async (service) => {
   try {
@@ -230,13 +182,10 @@ export const getOptionsByService = async (service) => {
 };
 
 /**
- * Récupère les informations détaillées d'une référence par son ID.
- * Retourne : ouvrage, poste, départ, segment, etc.
+ * Récupère les informations d'une référence par son ID.
  *
- * Correspond à : GET /references/<id>/
- *
- * @param {string|number} id - Identifiant de la référence
- * @returns {Object} - Détails de la référence
+ * @param {string|number} id
+ * @returns {Object}
  */
 export const getReferenceDetails = async (id) => {
   const response = await api.get(`/references/${id}/`);

@@ -165,6 +165,6 @@ export const mapPlanningPayload = (data) => {
     travail_en_alignement: data.travail_en_alignement || false,
 
     // Statut
-    statut_travaux: data.statut_travaux || "BROUILLON",
+    statut_travaux: data.statut_travaux || "  CREER",
   };
 };

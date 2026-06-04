@@ -54,54 +54,32 @@ const startOfWeek = (date) => {
 const getPeriodLabel = () => {
 
   if (view === "mois") {
+    return `${MONTHS[currentDate.getMonth()]} ${currentDate.getFullYear()}`;
+  }
 
-    return `${
-      MONTHS[currentDate.getMonth()]
-    } ${currentDate.getFullYear()}`;
+  if (view === "jour") {
+    return `${currentDate.getDate()} ${MONTHS[currentDate.getMonth()]} ${currentDate.getFullYear()}`;
   }
 
   const start = startOfWeek(currentDate);
-
   const end = new Date(start);
-
   end.setDate(start.getDate() + 6);
-
-  return `${start.getDate()} ${
-    MONTHS[start.getMonth()]
-  } - ${end.getDate()} ${
-    MONTHS[end.getMonth()]
-  }`;
+  return `${start.getDate()} ${MONTHS[start.getMonth()]} - ${end.getDate()} ${MONTHS[end.getMonth()]}`;
 };
 
 const previousPeriod = () => {
-
   const d = new Date(currentDate);
-
-  if (view === "semaine") {
-
-    d.setDate(d.getDate() - 7);
-
-  } else {
-
-    d.setMonth(d.getMonth() - 1);
-  }
-
+  if      (view === "jour")    d.setDate(d.getDate() - 1);
+  else if (view === "semaine") d.setDate(d.getDate() - 7);
+  else                         d.setMonth(d.getMonth() - 1);
   setCurrentDate(d);
 };
 
 const nextPeriod = () => {
-
   const d = new Date(currentDate);
-
-  if (view === "semaine") {
-
-    d.setDate(d.getDate() + 7);
-
-  } else {
-
-    d.setMonth(d.getMonth() + 1);
-  }
-
+  if      (view === "jour")    d.setDate(d.getDate() + 1);
+  else if (view === "semaine") d.setDate(d.getDate() + 7);
+  else                         d.setMonth(d.getMonth() + 1);
   setCurrentDate(d);
 };
 
@@ -153,12 +131,17 @@ const nextPeriod = () => {
 
         <div className="toggle">
           <button
-            className={view === "semaine" ? "active" : ""}
-            onClick={() => setView("semaine")} > 
-            Semaine
-           
+            className={view === "jour" ? "active" : ""}
+            onClick={() => setView("jour")}
+          >
+            Jour
           </button>
-
+          <button
+            className={view === "semaine" ? "active" : ""}
+            onClick={() => setView("semaine")}
+          >
+            Semaine
+          </button>
           <button
             className={view === "mois" ? "active" : ""}
             onClick={() => setView("mois")}

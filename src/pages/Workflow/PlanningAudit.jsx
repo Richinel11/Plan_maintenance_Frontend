@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import api from '../../API/axiosInstance';
+import { getPlannings } from '../../services/planningService';
 import './PlanningAudit.css';
 
 /**
@@ -17,9 +17,9 @@ const PlanningAudit = () => {
         const fetchPlannings = async () => {
             try {
                 // On récupère la liste des plannings (ceux qui ont un workflow associé)
-                const { data } = await api.get('/plannings/');
-                // On filtre pour ne garder que ceux qui sont dans un workflow (si le backend ne le fait pas déjà)
-                const workflowPlannings = data.filter(p => p.workflow !== null);
+                const response = await getPlannings();
+                const allPlannings = response.results || [];
+                const workflowPlannings = allPlannings.filter(p => p.workflow !== null);
                 setPlannings(workflowPlannings);
             } catch (error) {
                 console.error("Erreur lors de la récupération des plannings:", error);

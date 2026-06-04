@@ -28,7 +28,7 @@ import {
   createTravail,
   getOptionsByService,
   getCentrales,
-} from "../../../../API/planningService";
+} from "../../../../services/planningService";
 
 import { getEntites } from "../../../../services/userService";
 

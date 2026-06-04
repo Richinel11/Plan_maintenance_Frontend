@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import CalendarComponent from './components/calendar';
-import { fetchAllTravaux, fetchConflitIds } from '../services/gplanService';
-import { mapTravauxToCalendarEvents } from '../services/travailMapper';
+import { fetchAllTravaux, fetchConflitIds } from '../../../services/gplanService';
+import { mapTravauxToCalendarEvents } from '../../../services/travailMapper';
 
 const CalendarView = () => {
     const [events,  setEvents]  = useState([]);

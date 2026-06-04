@@ -12,7 +12,7 @@ import PlanningForm from "../Creer_Travail/components/PlanningForm";
 import SearchBar from "../components/Filter_search/search";
 import Filter from "./filterCards/filter";
 import useServiceRole from "../../../pages/ComponentsRole/ServiceRole";
-import { createPlanning, createTravail, updateTravail, deleteTravail, getPlanningById, getTravaux, getCentrales } from "../../../API/planningService";
+import { createPlanning, createTravail, updateTravail, deleteTravail, getPlanningById, getTravaux, getCentrales } from "../../../services/planningService";
 import { mapPlanningPayload } from "../../../utils/planningMapper";
 import Etape3 from "../Creer_Travail/etape3/etape3";
 import {

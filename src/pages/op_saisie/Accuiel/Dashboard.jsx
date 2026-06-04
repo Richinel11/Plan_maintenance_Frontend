@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import './Dashboard.css';
 import Footer from '../Plannings/footer/footer';
-import { getPlannings, deletePlanning } from "../../../API/planningService";
+import { getPlannings, deletePlanning } from "../../../services/planningService";
 import { toast } from "sonner";
 
 const Dashboard = () => {

@@ -17,7 +17,7 @@ import Footer from "../footer/footer";
 import {
   getPlannings,
   getPlanningsBySegment,
-} from "../../../../API/planningService";
+} from "../../../../services/planningService";
 
 const Tableaux = () => {
 
