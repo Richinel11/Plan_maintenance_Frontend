@@ -25,6 +25,8 @@ import AdvancedGantt from './pages/G-Plan/Gantt-Diag/details/AdvancedGantt';
 import ReajustementAvance from './pages/G-Plan/Gantt-Diag/details/ReajustementAvance';
 import AlertesView from './pages/G-Plan/Alertes/AlertesView';
 
+import Accueil from './pages/Responsable/Accueil/accueil';
+import Notifications from './pages/Responsable/Planning/Notifications';
 function App() {
     return (
         <div className="app-container">
@@ -67,6 +69,19 @@ function App() {
                         <Route path="alertes"              element={<AlertesView />} />
                         <Route path="advanced-gantt"       element={<AdvancedGantt />} />
                         <Route path="reajustement-avance"  element={<ReajustementAvance />} />
+                        {/* new */}
+                        <Route path="Planning/:id" element={<Planning />}/>
+                        <Route path="Tableaux_De_Bord" element={<Tableaux_De_Bord />} />
+                        <Route path="CreerTravail" element={<Creer_Travail />} />
+
+                        {/* Contenus pour G-Plan */}
+                        <Route path="Dashboard_Plan" element={<Dashboard_Plan />} />
+                        <Route path="Gantt" element={<Gantt />} />
+                        <Route path="Calendar" element={<Calendar />} />
+
+                        {/* Contenus Responsable d'exploitation */}
+                        <Route path='Accueil' element={<Accueil />} />
+                        <Route path='Notifications' element={<Notifications />} />
                     </Route>
                 </Routes>
             </Router>
