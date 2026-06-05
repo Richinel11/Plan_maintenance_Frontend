@@ -1,197 +1,106 @@
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-  /* margin-bottom: 10px; */
-}
-
 .notifications-wrapper {
-  width: 100%;
-  padding: 20px;
-  background: #f5f7fa;
-  
+  padding: 24px;
+  background: #f4f6f9;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
 }
 
-.notifications-card {
-  width: 100%;
-  background: #ffffff;
-  border-radius: 4px;
-  padding: 12px;
-  margin-bottom: 20px;
+/* Card notifications */
+.notif-card {
+  background: #fff;
+  border-radius: 14px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+  border: 1px solid #edf0f5;
+  padding: 18px 20px;
 }
 
-/* Header */
-.notifications-header {
+.notif-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 16px;
-  gap: 12px;
+  margin-bottom: 14px;
 }
 
-.header-left {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.header-left h3 {
-  font-size: 16px;
+.notif-title {
+  font-size: 15px;
   font-weight: 600;
-  color: #1f2937;
-}
-
-.bell-icon {
-  font-size: 14px;
+  color: #1a1a2e;
 }
 
 .mark-read-btn {
+  background: none;
   border: none;
-  background: transparent;
-  color: #1f73c9;
+  color: #3b82f6;
+  font-size: 13px;
   cursor: pointer;
-  font-size: 12px;
-  font-weight: 500;
 }
 
 .mark-read-btn:hover {
   text-decoration: underline;
 }
 
-/* List */
-.notifications-list {
+.notif-list {
   display: flex;
   flex-direction: column;
   gap: 10px;
 }
 
-.notification-item {
-  background: #fff;
-  border: 1px solid #e5e7eb;
-  border-radius: 8px;
-
+.notif-item {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-
-  padding: 12px 14px;
-  gap: 20px;
-
-  transition: 0.2s ease;
-}
-
-.notification-item:hover {
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-}
-
-.notification-left {
-  display: flex;
-  align-items: center;
   gap: 12px;
+  padding: 12px;
+  border-radius: 10px;
+  border: 1px solid transparent;
+}
+
+.notif-item.blue   { background: #eff6ff; border-color: #bfdbfe; }
+.notif-item.red    { background: #fff1f2; border-color: #fecaca; }
+.notif-item.yellow { background: #fffbeb; border-color: #fde68a; }
+
+.notif-icon {
+  font-size: 18px;
+  margin-top: 2px;
+}
+
+.notif-body {
   flex: 1;
-  min-width: 0;
 }
 
-.notification-icon {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  background: #eef5ff;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  flex-shrink: 0;
-}
-
-.notification-content {
-  min-width: 0;
-}
-
-.notification-content h4 {
+.notif-name {
   font-size: 13px;
-  font-weight: 500;
-  color: #6b7280;
-  margin-bottom: 4px;
+  font-weight: 600;
+  color: #1a1a2e;
 }
 
-.notification-content p {
+.notif-desc {
   font-size: 12px;
-  color: #9ca3af;
-}
-
-.notification-right {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 8px;
-  flex-shrink: 0;
-}
-
-.time {
-  font-size: 11px;
-  color: #9ca3af;
-}
-
-.actions {
-  display: flex;
-  gap: 8px;
-}
-
-.review-btn {
-  border: none;
-  background: #0d6efd;
-  color: white;
-  font-size: 11px;
-  padding: 6px 12px;
-  border-radius: 4px;
-  cursor: pointer;
-}
-
-.review-btn:hover {
-  background: #0b5ed7;
-}
-
-.dismiss-btn {
-  background: white;
-  border: 1px solid #d1d5db;
   color: #6b7280;
+  margin-top: 3px;
+  line-height: 1.5;
+}
+
+.notif-time {
   font-size: 11px;
-  padding: 6px 12px;
-  border-radius: 4px;
+  color: #9aa3b2;
+  white-space: nowrap;
+}
+
+.see-all {
+  text-align: center;
+  margin-top: 14px;
+}
+
+.see-all button {
+  background: none;
+  border: none;
+  color: #6b7280;
+  font-size: 13px;
   cursor: pointer;
+  font-weight: 600;
 }
 
-.dismiss-btn:hover {
-  background: #f9fafb;
-}
-
-/* Mobile */
-@media (max-width: 768px) {
-  .notification-item {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
-  .notification-right {
-    width: 100%;
-    align-items: flex-start;
-  }
-
-  .actions {
-    width: 100%;
-    flex-wrap: wrap;
-  }
-
-  .review-btn,
-  .dismiss-btn {
-    flex: 1;
-    min-width: 100px;
-  }
-
-  .notifications-header {
-    flex-direction: column;
-    align-items: flex-start;
-  }
+.see-all button:hover {
+  color: #374151;
 }

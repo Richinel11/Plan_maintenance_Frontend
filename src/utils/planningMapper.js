@@ -165,6 +165,6 @@ export const mapPlanningPayload = (data) => {
     travail_en_alignement: data.travail_en_alignement || false,
 
     // Statut
-    statut_travaux: data.statut_travaux || "  CREER",
+    statut_travaux: data.statut_travaux ? String(data.statut_travaux).trim() : "CREER",
   };
 };

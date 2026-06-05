@@ -1,7 +1,9 @@
 import React, { useMemo, useState, useEffect, useCallback, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import Cookies from 'js-cookie';
 import { getCurrentUser } from "../../../services/Authservice";
 import { toast } from "sonner";
+import { genererDDR } from "../../../services/exploitationService";
 
 import FileInput from "../Importer_Plannings/importation";
 import readExcel from "./readFile";
@@ -222,6 +224,10 @@ const ExcelDisplay = () => {
   const { id } = useParams();
   const { service, setService, fields, options/*, referenceConfig*/ } = useServiceRole();
   const [addStep, setAddStep] = useState(0);
+
+  const activeRoleName = Cookies.get('activeRoleName') || '';
+  const isResponsable = activeRoleName.toUpperCase().replace(/[\s']/g, '_').includes('RESPONSABLE') &&
+                        activeRoleName.toUpperCase().replace(/[\s']/g, '_').includes('EXPLOIT');
 
   const [fileName, setFileName] = useState("");
   const [excelData, setExcelData] = useState([]);
@@ -964,10 +970,9 @@ const prevStep = () => {
   const handleSavePlanningEdit = async () => {
     if (!editingTravailId) return;
 
-    // Construire le payload depuis planningFormData, puis retirer planning_id
-    // (non nécessaire pour un PATCH — le travail est déjà rattaché au planning).
     const payload = mapPlanningPayload({ ...planningFormData, service });
     delete payload.planning_id;
+    delete payload.statut_travaux;
 
     try {
       const response = await updateTravail(editingTravailId, payload);
@@ -992,6 +997,50 @@ const prevStep = () => {
       setIsPlanningModalOpen(false);
       setIsEditMode(false);
       setEditingTravailId(null);
+    } catch (err) {
+      const detail = err?.response?.data;
+      const msg = typeof detail === "object"
+        ? Object.entries(detail).map(([k, v]) => `${k}: ${v}`).join(" | ")
+        : err.message;
+      toast.error("Erreur : " + msg);
+    }
+  };
+
+  // Valider un travail (Responsable) : PATCH + génération DDR + redirection vers la page DDR.
+  const handleValiderTravail = async () => {
+    if (!editingTravailId) return;
+
+    const payload = mapPlanningPayload({ ...planningFormData, service });
+    delete payload.planning_id;
+    delete payload.statut_travaux;
+
+    try {
+      const response = await updateTravail(editingTravailId, payload);
+      const updatedTravail = response.data;
+
+      const fieldsForService = getFieldsForService(service);
+      const newRow = mapTravailToExcelRow(updatedTravail, fieldsForService);
+      newRow.__id = updatedTravail.id;
+      newRow.__travail = updatedTravail;
+
+      const targetRow = rows.find(r => r.__id === editingTravailId);
+      const excelRowIndex = excelData.indexOf(targetRow);
+      if (excelRowIndex !== -1) {
+        const updated = [...excelData];
+        updated[excelRowIndex] = newRow;
+        setExcelData(updated);
+      }
+
+      // Génération de la DDR
+      const ddrResponse = await genererDDR(editingTravailId);
+      const ddr = ddrResponse.data;
+
+      setIsPlanningModalOpen(false);
+      setIsEditMode(false);
+      setEditingTravailId(null);
+
+      toast.success("Travail validé. Redirection vers la DDR...");
+      navigate(`/dashboard/ddr/${ddr.id}`);
     } catch (err) {
       const detail = err?.response?.data;
       const msg = typeof detail === "object"
@@ -1453,24 +1502,35 @@ const handleAddPlanningRow = () => {
                       <td className="action-cell">
                         {id ? (
                           // Mode visualisation : handlers backend (PATCH / DELETE)
-                          <>
-                            <button
-                              type="button"
-                              className="action-btn edit-btn"
-                              title="Modifier ce travail"
-                              onClick={() => handleEditRowDetail(row)}
+                          row.__travail?.demande_retrait ? (
+                            // DDR déjà générée — travail verrouillé
+                            <span
+                              className="action-btn"
+                              title="DDR déjà générée — travail verrouillé"
+                              style={{ cursor: 'default', color: '#94a3b8' }}
                             >
-                              <span className="material-symbols-outlined">edit</span>
-                            </button>
-                            <button
-                              type="button"
-                              className="action-btn delete-btn"
-                              title="Supprimer ce travail"
-                              onClick={() => handleDeleteRowDetail(row)}
-                            >
-                              <span className="material-symbols-outlined">delete</span>
-                            </button>
-                          </>
+                              <span className="material-symbols-outlined">lock</span>
+                            </span>
+                          ) : (
+                            <>
+                              <button
+                                type="button"
+                                className="action-btn edit-btn"
+                                title="Modifier ce travail"
+                                onClick={() => handleEditRowDetail(row)}
+                              >
+                                <span className="material-symbols-outlined">edit</span>
+                              </button>
+                              <button
+                                type="button"
+                                className="action-btn delete-btn"
+                                title="Supprimer ce travail"
+                                onClick={() => handleDeleteRowDetail(row)}
+                              >
+                                <span className="material-symbols-outlined">delete</span>
+                              </button>
+                            </>
+                          )
                         ) : (
                           // Mode création : handlers locaux (état React uniquement)
                           <>
@@ -1746,9 +1806,9 @@ const handleAddPlanningRow = () => {
           ) : (
             <button
               style={{ padding: "8px 20px", borderRadius: "8px", border: "none", background: "#16a34a", color: "#fff", cursor: "pointer", fontSize: "14px", fontWeight: "600" }}
-              onClick={isEditMode ? handleSavePlanningEdit : handleAddPlanningRow}
+              onClick={isEditMode ? (isResponsable ? handleValiderTravail : handleSavePlanningEdit) : handleAddPlanningRow}
             >
-              {isEditMode ? "Sauvegarder" : "Ajouter"}
+              {isEditMode ? (isResponsable ? "VALIDER" : "Sauvegarder") : "Ajouter"}
             </button>
           )}
         </div>

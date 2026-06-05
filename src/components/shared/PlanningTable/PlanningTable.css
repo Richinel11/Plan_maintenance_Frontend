@@ -1,0 +1,152 @@
+.pt-card {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    overflow: hidden;
+}
+
+.pt-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 24px;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.pt-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: #1e293b;
+}
+
+.pt-search-container {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.pt-search-input {
+    padding: 9px 14px 9px 38px;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 13px;
+    width: 300px;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+.pt-search-input:focus {
+    border-color: #1B75BB;
+}
+
+.pt-search-icon {
+    position: absolute;
+    left: 10px;
+    color: #94a3b8;
+    font-size: 18px !important;
+}
+
+.pt-table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+}
+
+.pt-table th {
+    background-color: #f8f9fb;
+    color: #909399;
+    font-weight: 600;
+    padding: 12px 24px;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border-bottom: 1px solid #ebeef5;
+}
+
+.pt-table td {
+    padding: 14px 24px;
+    border-bottom: 1px solid #f1f5f9;
+    color: #606266;
+    font-size: 14px;
+}
+
+.pt-table tr:last-child td {
+    border-bottom: none;
+}
+
+.pt-table tbody tr:hover {
+    background-color: #fafbfc;
+}
+
+.pt-name-cell {
+    cursor: pointer;
+}
+
+.pt-name {
+    font-weight: 500;
+    color: #1e293b;
+    transition: color 0.15s;
+}
+
+.pt-name-cell:hover .pt-name {
+    color: #1B75BB;
+}
+
+.pt-ref {
+    font-family: monospace;
+    font-weight: 600;
+    color: #1B75BB;
+    background: #eff6ff;
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+}
+
+.pt-status {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.status-brouillon { background: #f1f5f9; color: #64748b; }
+.status-soumis    { background: #fef3c7; color: #d97706; }
+.status-encours   { background: #dbeafe; color: #2563eb; }
+.status-cloture   { background: #d1fae5; color: #059669; }
+
+.pt-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 6px;
+}
+
+.pt-btn {
+    background: none;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    padding: 5px 7px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    transition: all 0.15s;
+}
+
+.pt-edit-btn:hover {
+    background: #eff6ff;
+    border-color: #1B75BB;
+    color: #1B75BB;
+}
+
+.pt-delete-btn:hover {
+    background: #fff1f2;
+    border-color: #ef4444;
+    color: #ef4444;
+}
+
+.pt-empty {
+    text-align: center;
+    padding: 40px;
+    color: #9ca3af;
+    font-style: italic;
+}

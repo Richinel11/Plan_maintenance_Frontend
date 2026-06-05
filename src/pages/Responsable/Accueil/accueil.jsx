@@ -2,11 +2,7 @@ import { useEffect, useState } from "react";
 import { getPlannings } from "../../../services/planningService";
 import "./accueil.css";
 
-const notifications = [
-  { cls: "blue",   icon: "✉️", title: "Nouveau Planning Reçu",  desc: "L'entité Logistique a soumis un nouveau planning [REF-2023-089] pour validation.", time: "il y a 5 min"   },
-  { cls: "red",    icon: "🚫", title: "DDR Refusée",             desc: "La demande de ressources [DDR-442] a été refusée par la direction technique.",       time: "il y a 2 heures"},
-  { cls: "yellow", icon: "⚠️", title: "Échéance Proche",         desc: "Le planning [REF-2023-045] arrive à expiration dans 48 heures.",                     time: "il y a 8 heures"},
-];
+const notifications = [];
 
 
 

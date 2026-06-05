@@ -1,0 +1,124 @@
+.ddr-page {
+    padding: 24px;
+    background: #f1f5f9;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+/* ── Toolbar ── */
+.ddr-page-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 10px 16px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+}
+
+.ddr-tb-right {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.ddr-tb-btn {
+    padding: 8px 20px;
+    border-radius: 7px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s;
+    font-family: inherit;
+    letter-spacing: 0.03em;
+}
+
+.ddr-tb-annuler {
+    background: #fff;
+    border: 1px solid #cbd5e1;
+    color: #475569;
+}
+.ddr-tb-annuler:hover { background: #f8fafc; }
+
+.ddr-tb-print {
+    background: #fff;
+    border: 1px solid #cbd5e1;
+    color: #475569;
+}
+.ddr-tb-print:hover { background: #f8fafc; }
+
+.ddr-tb-valider {
+    background: #1B75BB;
+    border: none;
+    color: #fff;
+}
+.ddr-tb-valider:hover { background: #005c98; }
+
+.ddr-badge-saved {
+    font-size: 13px;
+    font-weight: 600;
+    color: #16a34a;
+    background: #dcfce7;
+    border: 1px solid #bbf7d0;
+    border-radius: 6px;
+    padding: 6px 14px;
+}
+
+/* ── Corps ── */
+.ddr-page-body {
+    flex: 1;
+}
+
+/* ── Footer ── */
+.ddr-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 12px 20px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+}
+
+.ddr-footer-right {
+    display: flex;
+    gap: 10px;
+}
+
+.ddr-btn-annuler {
+    padding: 9px 24px;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    background: #fff;
+    color: #475569;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: inherit;
+    transition: background 0.15s;
+}
+.ddr-btn-annuler:hover { background: #f8fafc; }
+
+.ddr-btn-valider {
+    padding: 9px 24px;
+    border: none;
+    border-radius: 8px;
+    background: #1B75BB;
+    color: #fff;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: inherit;
+    transition: background 0.15s;
+}
+.ddr-btn-valider:hover { background: #005c98; }
+
+/* ── Impression ── */
+@media print {
+    .no-print { display: none !important; }
+    .ddr-page { background: #fff; padding: 0; }
+}
