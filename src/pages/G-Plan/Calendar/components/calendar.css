@@ -673,3 +673,247 @@
     color: #64748b;
     white-space: nowrap;
 }
+
+/* ─────────────────────────────────────────────────────────────
+   VUE SEMAINE STYLE GANTT
+───────────────────────────────────────────────────────────── */
+.wg-container {
+    background:    #fff;
+    border-radius: 14px;
+    border:        1px solid #e2e8f0;
+    overflow:      hidden;
+}
+
+.wg-nav {
+    display:       flex;
+    align-items:   center;
+    gap:           8px;
+    padding:       12px 20px;
+    border-bottom: 1px solid #eef2f7;
+}
+
+.wg-nav-btn {
+    padding:       5px 12px;
+    border:        1px solid #e2e8f0;
+    border-radius: 8px;
+    background:    #fff;
+    color:         #374151;
+    font-size:     18px;
+    font-weight:   600;
+    cursor:        pointer;
+    transition:    background 0.15s;
+    line-height:   1.2;
+}
+
+.wg-nav-btn:hover { background: #f1f5f9; }
+
+.wg-today-btn { font-size: 13px; }
+
+.wg-week-label {
+    font-size:   15px;
+    font-weight: 700;
+    color:       #1e293b;
+    margin-left: 6px;
+}
+
+.wg-grid-wrap { overflow-x: auto; }
+
+.wg-header {
+    display:       flex;
+    border-bottom: 1px solid #e2e8f0;
+    background:    #f8fafc;
+    position:      sticky;
+    top:           0;
+    z-index:       2;
+}
+
+.wg-day-col {
+    width:        90px;
+    flex-shrink:  0;
+    border-right: 1px solid #e2e8f0;
+}
+
+.wg-timeline-header {
+    flex:      1;
+    display:   flex;
+    min-width: 600px;
+}
+
+.wg-hour-label {
+    flex:           1;
+    font-size:      10px;
+    font-weight:    700;
+    color:          #94a3b8;
+    padding:        7px 0 5px 4px;
+    border-left:    1px solid #eef2f7;
+    letter-spacing: 0.04em;
+    white-space:    nowrap;
+}
+
+.wg-row {
+    display:       flex;
+    border-bottom: 1px solid #eef2f7;
+    min-height:    50px;
+}
+
+.wg-row:last-child { border-bottom: none; }
+
+.wg-row-today { background: #f0f9ff; }
+
+.wg-day-label {
+    display:         flex;
+    flex-direction:  column;
+    align-items:     center;
+    justify-content: flex-start;
+    padding-top:     10px;
+    gap:             3px;
+}
+
+.wg-day-name {
+    font-size:      10px;
+    font-weight:    700;
+    color:          #94a3b8;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+}
+
+.wg-day-num {
+    font-size:       20px;
+    font-weight:     700;
+    color:           #334155;
+    width:           36px;
+    height:          36px;
+    display:         flex;
+    align-items:     center;
+    justify-content: center;
+    border-radius:   50%;
+}
+
+.wg-day-num-today {
+    color:      #2563eb;
+    background: #eff6ff;
+}
+
+.wg-timeline {
+    flex:      1;
+    position:  relative;
+    min-width: 600px;
+}
+
+.wg-vline {
+    position:   absolute;
+    top:        0;
+    bottom:     0;
+    width:      1px;
+    background: #eef2f7;
+}
+
+.wg-task-bar {
+    position:      absolute;
+    border-radius: 0 4px 4px 0;
+    display:       flex;
+    align-items:   center;
+    gap:           4px;
+    padding:       0 6px;
+    overflow:      hidden;
+    cursor:        pointer;
+    transition:    filter 0.15s;
+    box-sizing:    border-box;
+}
+
+.wg-task-bar:hover { filter: brightness(0.93); }
+
+.wg-task-icon  { font-size: 10px; flex-shrink: 0; }
+
+.wg-task-title {
+    font-size:     11px;
+    font-weight:   600;
+    white-space:   nowrap;
+    overflow:      hidden;
+    text-overflow: ellipsis;
+}
+
+.wg-now-line {
+    position:   absolute;
+    top:        0;
+    bottom:     0;
+    width:      2px;
+    background: #ef4444;
+    z-index:    1;
+}
+
+.wg-now-line::before {
+    content:       '';
+    position:      absolute;
+    top:           -4px;
+    left:          -4px;
+    width:         10px;
+    height:        10px;
+    background:    #ef4444;
+    border-radius: 50%;
+}
+
+/* ── Vue jour : pas de colonne jour à gauche ── */
+.dg-header { padding-left: 0; }
+.dg-header .wg-timeline-header { min-width: 600px; }
+
+.dg-empty {
+    padding:    40px;
+    text-align: center;
+    color:      #94a3b8;
+    font-size:  14px;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   BANDEAUX D'ALERTES (semaine / jour)
+───────────────────────────────────────────────────────────── */
+.al-bandeaux {
+    display:    flex;
+    flex-wrap:  wrap;
+    gap:        8px;
+    padding:    10px 16px;
+    border-bottom: 1px solid #eef2f7;
+    background: #fafafa;
+}
+
+.al-chip {
+    display:       inline-flex;
+    align-items:   center;
+    gap:           6px;
+    padding:       6px 12px;
+    border-radius: 8px;
+    border:        none;
+    font-size:     12px;
+    font-weight:   600;
+    cursor:        pointer;
+    transition:    filter 0.15s, transform 0.1s;
+    text-align:    left;
+    white-space:   nowrap;
+}
+
+.al-chip:hover { filter: brightness(0.93); transform: translateY(-1px); }
+
+.al-chip-conflit {
+    background: #fef3c7;
+    color:      #92400e;
+    border:     1px solid #fcd34d;
+}
+
+.al-chip-opportunite {
+    background: #eff6ff;
+    color:      #1d4ed8;
+    border:     1px solid #bfdbfe;
+}
+
+.al-chip-icon  { font-size: 13px; flex-shrink: 0; }
+.al-chip-label { font-weight: 700; }
+.al-chip-count { font-weight: 500; opacity: 0.75; }
+
+.al-chip-detail {
+    font-size:     10px;
+    font-weight:   500;
+    opacity:       0.65;
+    border-left:   1px solid currentColor;
+    padding-left:  6px;
+    margin-left:   2px;
+}

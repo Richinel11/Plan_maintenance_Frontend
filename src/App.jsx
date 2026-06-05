@@ -20,11 +20,10 @@ import OP_home from './pages/op_saisie/Accuiel/Dashboard';
 import Planning from './pages/op_saisie/Plannings/Planning';
 import Creer_Travail from "./pages/op_saisie/Creer_Travail/Nouveau_Travail";
 import Dashboard_Plan from './pages/G-Plan/Dashboard/Dashboard';
-import Gantt from './pages/G-Plan/Gantt-Diag/Interface';
 import Calendar from './pages/G-Plan/Calendar/CalendarView';
 import AdvancedGantt from './pages/G-Plan/Gantt-Diag/details/AdvancedGantt';
-import ReajustementManuel from './pages/G-Plan/Gantt-Diag/details/ReajustementManuel';
 import ReajustementAvance from './pages/G-Plan/Gantt-Diag/details/ReajustementAvance';
+import AlertesView from './pages/G-Plan/Alertes/AlertesView';
 
 function App() {
     return (
@@ -63,12 +62,11 @@ function App() {
                         <Route path="CreerTravail" element={<Creer_Travail />} />
 
                         {/* Contenus pour G-Plan */}
-                        <Route path="dashboard-plan" element={<Dashboard_Plan />} />
-                        <Route path="Gantt" element={<Gantt />} />
-                        <Route path="Calendar" element={<Calendar />} />
-                        <Route path="advanced-gantt" element={<AdvancedGantt />} />
-                        <Route path="reajustement-manuel" element={<ReajustementManuel />} />
-                        <Route path="reajustement-avance" element={<ReajustementAvance />} />
+                        <Route path="dashboard-plan"       element={<Dashboard_Plan />} />
+                        <Route path="Calendar"             element={<Calendar />} />
+                        <Route path="alertes"              element={<AlertesView />} />
+                        <Route path="advanced-gantt"       element={<AdvancedGantt />} />
+                        <Route path="reajustement-avance"  element={<ReajustementAvance />} />
                     </Route>
                 </Routes>
             </Router>

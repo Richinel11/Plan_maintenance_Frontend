@@ -446,6 +446,118 @@
   cursor: pointer;
 }
 
+/* ── Bouton retour ── */
+.ag-btn-back {
+  display:       inline-flex;
+  align-items:   center;
+  gap:           6px;
+  background:    transparent;
+  border:        none;
+  color:         #64748b;
+  font-size:     13px;
+  font-weight:   600;
+  cursor:        pointer;
+  padding:       4px 0;
+  transition:    color 0.15s;
+}
+.ag-btn-back:hover { color: #1B75BB; }
+
+/* ── Feedback ── */
+.ag-feedback {
+  display:         flex;
+  align-items:     center;
+  justify-content: space-between;
+  padding:         12px 18px;
+  border-radius:   10px;
+  font-size:       13px;
+  font-weight:     600;
+}
+.ag-feedback button {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: 14px;
+  color: inherit;
+}
+.ag-feedback-ok  { background: #f0fdf4; color: #15803d; border: 1px solid #86efac; }
+.ag-feedback-err { background: #fef2f2; color: #b91c1c; border: 1px solid #fca5a5; }
+
+/* ── Segment badges ── */
+.ag-seg-badge {
+  display:       inline-flex;
+  align-items:   center;
+  gap:           5px;
+  padding:       3px 8px;
+  border-radius: 9999px;
+  font-size:     11px;
+  font-weight:   700;
+  text-transform: uppercase;
+}
+.ag-seg-transport    { background: #f0fdf4; color: #15803d; }
+.ag-seg-distribution { background: #fff7ed; color: #c2410c; }
+.ag-seg-production   { background: #eff6ff; color: #1d4ed8; }
+
+/* ── Cartes de propositions ── */
+.ag-prop-card {
+  background:    #fff;
+  border:        1px solid #e2e8f0;
+  border-radius: 10px;
+  padding:       14px 18px;
+  margin-top:    12px;
+  display:       flex;
+  flex-direction: column;
+  gap:           8px;
+}
+.ag-prop-bloquee { border-color: #fca5a5; background: #fef2f2; }
+
+.ag-prop-header {
+  display:     flex;
+  align-items: center;
+  gap:         10px;
+}
+.ag-prop-ref {
+  font-weight: 700;
+  font-family: monospace;
+  font-size:   14px;
+  color:       #0f172a;
+}
+.ag-prop-statut {
+  padding:       2px 8px;
+  border-radius: 9999px;
+  font-size:     11px;
+  font-weight:   700;
+  text-transform: uppercase;
+}
+.statut-en_attente { background: #fef3c7; color: #92400e; }
+.statut-bloquee    { background: #fef2f2; color: #b91c1c; }
+.statut-acceptee   { background: #f0fdf4; color: #15803d; }
+.statut-refusee    { background: #f1f5f9; color: #64748b; }
+
+.ag-prop-raison {
+  font-size:   12px;
+  color:       #374151;
+  line-height: 1.5;
+  margin:      0;
+}
+.ag-prop-note {
+  font-size:   11px;
+  color:       #64748b;
+  font-style:  italic;
+  margin:      0;
+}
+.ag-prop-actions {
+  display: flex;
+  gap:     10px;
+  margin-top: 4px;
+}
+.ag-prop-actions .ag-btn-validate,
+.ag-prop-actions .ag-btn-reject {
+  padding: 7px 16px;
+  font-size: 12px;
+}
+.ag-btn-validate:disabled,
+.ag-btn-reject:disabled { opacity: 0.5; cursor: not-allowed; }
+
 .ag-btn-validate:hover { background: #1d4ed8; }
 .ag-btn-adjust:hover   { background: #f9fafb; }
 .ag-btn-reject:hover   { background: #fef2f2; }

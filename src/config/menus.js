@@ -11,9 +11,9 @@ export const menuConfig = {
         { path: '/dashboard/CreerTravail', name: 'Nouveau Travail', icon: 'add_box' },
     ],
     gestionnaire_de_planification: [
-        { path: '/dashboard/dashboard-plan', name: 'Accueil', icon: 'dashboard' },
-        { path: '/dashboard/Gantt', name: 'Diagramme Gantt', icon: 'bar_chart' },
-        { path: '/dashboard/Calendar', name: 'Calendrier', icon: 'calendar_month' },
+        { path: '/dashboard/dashboard-plan', name: 'Accueil',    icon: 'dashboard'      },
+        { path: '/dashboard/Calendar',       name: 'Calendrier', icon: 'calendar_month' },
+        { path: '/dashboard/alertes',        name: 'Alertes',    icon: 'notifications'  },
     ],
     resp_exploit: [
         { path: '/dashboard/validations', name: 'Validation Plannings', icon: 'rule' },

@@ -41,17 +41,87 @@ const fetchAllPages = async (path) => {
 export const fetchAllTravaux = () => fetchAllPages('/travaux/');
 
 /**
- * Récupère les IDs des travaux en conflit (même ouvrage/tronçon + chevauchement temporel).
+ * Récupère les IDs des travaux en conflit et en opportunité d'harmonisation.
  *
- * @returns {Promise<Set<string>>}
+ * @returns {Promise<{ conflitIds: Set<string>, opportuniteIds: Set<string> }>}
  */
 export const fetchConflitIds = async () => {
-    try {
-        const response = await api.get('/travaux/conflits/');
-        return new Set(response.data?.conflits || []);
-    } catch {
-        return new Set();
+    const response = await api.get('/travaux/conflits/');
+    return {
+        conflitIds:     new Set(response.data?.conflits                    || []),
+        opportuniteIds: new Set(response.data?.opportunites_harmonisation  || []),
+    };
+};
+
+/**
+ * Construit des groupes d'alerte depuis la liste des travaux et les IDs en conflit.
+ * Regroupe les travaux par référence commune.
+ */
+export function buildGroupes(travaux, conflitIds) {
+    console.log('[buildGroupes] conflitIds:', [...conflitIds]);
+    console.log('[buildGroupes] total travaux:', travaux.length);
+    const enConflit = travaux.filter(t => conflitIds.has(t.id));
+    console.log('[buildGroupes] travaux en conflit trouvés:', enConflit.length);
+    enConflit.forEach(t => console.log('  ->', t.id, '| reference:', t.reference?.id, t.reference?.valeur));
+
+    const byRef = {};
+    for (const t of enConflit) {
+        const key = t.reference?.id ?? `_${t.id}`;
+        if (!byRef[key]) byRef[key] = [];
+        byRef[key].push(t);
     }
+
+    const fmtD = (iso) => new Date(iso).toLocaleString('fr-FR', {
+        weekday: 'short', day: '2-digit', month: '2-digit',
+        hour: '2-digit', minute: '2-digit',
+    });
+
+    return Object.entries(byRef)
+        .filter(([, grp]) => grp.length > 1)
+        .map(([key, grp]) => {
+            const refValeur = grp[0].reference?.valeur || 'Référence inconnue';
+            const statut = grp.every(t => t.travail_en_alignement) ? 'RESOLU' : 'OUVERT';
+
+            const debuts = grp.map(t => new Date(t.heure_debut_planifie).getTime());
+            const fins   = grp.map(t => new Date(t.heure_fin_planifie).getTime());
+            const overlapStart = new Date(Math.max(...debuts));
+            const overlapEnd   = new Date(Math.min(...fins));
+            const chevauchement = overlapStart < overlapEnd
+                ? `${fmtD(overlapStart)} → ${fmtD(overlapEnd)}`
+                : '—';
+
+            return {
+                id_groupe:           key.slice(0, 12),
+                type:                'CONFLIT',
+                statut,
+                ressources_communes: [refValeur],
+                chevauchement,
+                nb_travaux:          grp.length,
+                travaux: grp.map(t => ({
+                    id:           t.id,
+                    reference:    t.reference?.valeur || `Travail ${t.id.slice(0, 8)}`,
+                    segment:      t.segment,
+                    planning_id:  t.planning?.id  ?? null,
+                    planning_nom: t.planning?.nom ?? '—',
+                    debut:        t.heure_debut_planifie,
+                    fin:          t.heure_fin_planifie,
+                })),
+            };
+        });
+}
+
+/**
+ * Récupère les groupes de conflits en combinant les IDs en conflit
+ * et les détails des travaux — sans endpoint supplémentaire côté backend.
+ *
+ * @returns {Promise<Array>}
+ */
+export const fetchAlertes = async () => {
+    const [{ conflitIds }, travaux] = await Promise.all([
+        fetchConflitIds(),
+        fetchAllTravaux(),
+    ]);
+    return buildGroupes(travaux, conflitIds);
 };
 
 /**

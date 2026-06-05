@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import "./Dashboard.css";
-import GanttChart from "./Gantt-chart/gantt";
 import Alerts from "./Alert/Alert";
 import { BsCheckCircle, BsSend } from "react-icons/bs";
 import { FaUserCog } from "react-icons/fa";
@@ -36,10 +35,6 @@ const [statsData, setStatsData] = useState([
             </div>
           </div>
         ))}
-      </div>
-
-      <div className="App">
-        <GanttChart />
       </div>
 
       <Alerts />

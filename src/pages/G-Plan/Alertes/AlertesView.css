@@ -1,0 +1,311 @@
+/* ── Layout ── */
+.al-page {
+    display:        flex;
+    flex-direction: column;
+    gap:            20px;
+    padding:        24px;
+    max-width:      1100px;
+    margin:         0 auto;
+}
+
+.al-center {
+    display:         flex;
+    flex-direction:  column;
+    align-items:     center;
+    justify-content: center;
+    min-height:      60vh;
+    gap:             16px;
+    color:           #64748b;
+}
+
+.al-spinner {
+    width:        36px;
+    height:       36px;
+    border:       4px solid #e2e8f0;
+    border-top:   4px solid #1B75BB;
+    border-radius: 50%;
+    animation:    spin 0.9s linear infinite;
+}
+
+/* ── En-tête ── */
+.al-header {
+    display:         flex;
+    justify-content: space-between;
+    align-items:     flex-start;
+    flex-wrap:       wrap;
+    gap:             16px;
+}
+
+.al-title {
+    font-size:   22px;
+    font-weight: 800;
+    color:       #0f172a;
+    margin:      0 0 4px;
+}
+
+.al-subtitle {
+    font-size: 13px;
+    color:     #64748b;
+    margin:    0;
+}
+
+.al-stats {
+    display: flex;
+    gap:     12px;
+}
+
+.al-stat {
+    display:         flex;
+    flex-direction:  column;
+    align-items:     center;
+    padding:         12px 20px;
+    border-radius:   12px;
+    min-width:       80px;
+}
+
+.al-stat-conflit     { background: #fef3c7; }
+.al-stat-opportunite { background: #eff6ff; }
+.al-stat-resolu      { background: #f0fdf4; }
+
+.al-stat-num {
+    font-size:   26px;
+    font-weight: 800;
+    line-height: 1;
+}
+
+.al-stat-conflit     .al-stat-num { color: #92400e; }
+.al-stat-opportunite .al-stat-num { color: #1d4ed8; }
+.al-stat-resolu      .al-stat-num { color: #15803d; }
+
+.al-stat-label {
+    font-size:   11px;
+    font-weight: 600;
+    color:       #64748b;
+    margin-top:  4px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+/* ── Filtres ── */
+.al-filtres {
+    display:    flex;
+    gap:        8px;
+    flex-wrap:  wrap;
+}
+
+.al-filtre-btn {
+    display:       flex;
+    align-items:   center;
+    gap:           8px;
+    padding:       7px 16px;
+    border:        1px solid #e2e8f0;
+    border-radius: 9999px;
+    background:    #fff;
+    color:         #64748b;
+    font-size:     13px;
+    font-weight:   500;
+    cursor:        pointer;
+    transition:    all 0.15s;
+}
+
+.al-filtre-btn:hover { background: #f1f5f9; color: #1e293b; }
+
+.al-filtre-btn.active {
+    background:   #1B75BB;
+    color:        #fff;
+    border-color: #1B75BB;
+    font-weight:  700;
+}
+
+.al-filtre-badge {
+    background:    rgba(0,0,0,0.1);
+    border-radius: 9999px;
+    padding:       1px 7px;
+    font-size:     11px;
+    font-weight:   700;
+}
+
+.al-filtre-btn.active .al-filtre-badge { background: rgba(255,255,255,0.25); }
+
+/* ── Liste ── */
+.al-list {
+    display:        flex;
+    flex-direction: column;
+    gap:            12px;
+}
+
+.al-empty {
+    display:         flex;
+    flex-direction:  column;
+    align-items:     center;
+    gap:             12px;
+    padding:         60px;
+    color:           #94a3b8;
+    font-size:       15px;
+    background:      #fff;
+    border-radius:   16px;
+    border:          1px solid #e2e8f0;
+}
+
+/* ── Carte alerte ── */
+.al-card {
+    display:       flex;
+    background:    #fff;
+    border-radius: 14px;
+    border:        1px solid #e2e8f0;
+    overflow:      hidden;
+    transition:    box-shadow 0.15s, transform 0.1s;
+}
+
+.al-card:hover:not(.al-card-resolu) {
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    transform:  translateY(-2px);
+}
+
+.al-card-resolu { opacity: 0.65; }
+
+.al-card-side {
+    width:      5px;
+    flex-shrink: 0;
+}
+
+.al-card-conflit     .al-card-side { background: #f59e0b; }
+.al-card-opportunite .al-card-side { background: #3b82f6; }
+.al-card-resolu      .al-card-side { background: #22c55e; }
+
+.al-card-body {
+    flex:    1;
+    padding: 16px 20px;
+    display: flex;
+    flex-direction: column;
+    gap:     10px;
+}
+
+/* Top */
+.al-card-top {
+    display:     flex;
+    align-items: center;
+    gap:         10px;
+    flex-wrap:   wrap;
+}
+
+.al-type-badge {
+    padding:       3px 10px;
+    border-radius: 9999px;
+    font-size:     11px;
+    font-weight:   700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.badge-conflit     { background: #fef3c7; color: #92400e; }
+.badge-opportunite { background: #eff6ff; color: #1d4ed8; }
+
+.al-statut-badge {
+    padding:       3px 10px;
+    border-radius: 9999px;
+    font-size:     11px;
+    font-weight:   600;
+}
+
+.statut-ouvert { background: #fef2f2; color: #ef4444; }
+.statut-resolu { background: #f0fdf4; color: #16a34a; }
+
+/* Ressources */
+.al-ressources {
+    display:  flex;
+    gap:      6px;
+    flex-wrap: wrap;
+}
+
+.al-ressource-chip {
+    padding:       4px 10px;
+    background:    #f1f5f9;
+    border-radius: 6px;
+    font-size:     12px;
+    font-weight:   600;
+    color:         #334155;
+    border:        1px solid #e2e8f0;
+}
+
+/* Travaux */
+.al-travaux-list {
+    display:        flex;
+    flex-direction: column;
+    gap:            6px;
+}
+
+.al-travail-row {
+    display:     flex;
+    align-items: center;
+    gap:         8px;
+    font-size:   12px;
+    flex-wrap:   wrap;
+}
+
+.al-travail-dot {
+    width:        8px;
+    height:       8px;
+    border-radius: 50%;
+    flex-shrink:  0;
+}
+
+.al-travail-ref {
+    font-weight: 700;
+    color:       #0f172a;
+    font-family: monospace;
+    font-size:   13px;
+}
+
+.al-travail-seg {
+    padding:       2px 8px;
+    border-radius: 9999px;
+    font-size:     10px;
+    font-weight:   700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.al-travail-planning {
+    color:     #2563eb;
+    font-size: 11px;
+    font-weight: 500;
+}
+
+.al-travail-dates {
+    color:     #64748b;
+    font-size: 11px;
+    margin-left: auto;
+}
+
+/* Footer */
+.al-card-footer {
+    display:     flex;
+    align-items: center;
+    gap:         10px;
+    flex-wrap:   wrap;
+    padding-top: 8px;
+    border-top:  1px solid #f1f5f9;
+}
+
+.al-detail-chip {
+    padding:       3px 10px;
+    border-radius: 6px;
+    font-size:     11px;
+    font-weight:   600;
+}
+
+.al-detail-conflit     { background: #fef3c7; color: #92400e; }
+.al-detail-opportunite { background: #eff6ff; color: #1d4ed8; }
+
+.al-nb-travaux {
+    font-size: 11px;
+    color:     #94a3b8;
+    margin-left: auto;
+}
+
+.al-cta {
+    font-size:   12px;
+    font-weight: 600;
+    color:       #1B75BB;
+}

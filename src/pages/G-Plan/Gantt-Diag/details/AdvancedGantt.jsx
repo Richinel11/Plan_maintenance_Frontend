@@ -1,289 +1,266 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import "./AdvancedGantt.css";
 import { FaExclamationTriangle, FaLightbulb, FaBolt, FaBell } from "react-icons/fa";
-import { MdLocationOn, MdSearch } from "react-icons/md";
 import { BsCheckCircleFill } from "react-icons/bs";
 import { RiCloseCircleLine } from "react-icons/ri";
 import { AiOutlineTool } from "react-icons/ai";
+import {
+    analyserChevauchements,
+    appliquerProposition,
+    refuserProposition,
+} from "../../../../services/gplanService";
 
-const availabilitySlots = [
-  {
-    id: "transport",
-    date: "2023-10-13",
-    localite: "Paris 15e",
-    ouvrage: "PLANIFIÉ",
-    disponibilite: "Libre",
-    label: "Transport — Maintenance Transformateur T1",
-  },
-  {
-    id: "distribution",
-    date: "2023-10-13",
-    localite: "Paris 15e",
-    ouvrage: "PLANIFIÉ",
-    disponibilite: "Libre",
-    label: "Distribution — Élagage Ligne HTA-44",
-  },
-  {
-    id: "transmission",
-    date: "2023-10-14",
-    localite: "Paris 15e",
-    ouvrage: "PLANIFIÉ",
-    disponibilite: "Libre",
-    label: "Transmission — Contrôle Ligne THT-12",
-  },
-];
+const SEGMENT_ICON = { TRANSPORT: <FaBolt />, DISTRIBUTION: <FaBell />, PRODUCTION: <FaBolt /> };
 
-const activityCards = {
-  transport: {
-    id: "transport",
-    headerClass: "transport",
-    typeLabel: "TRANSPORT",
-    icon: <FaBolt />,
-    title: "Maintenance Transformateur T1",
-    reference: "TR-2024-0892",
-    periode: "07:00 – 12:00 (5h)",
-    chevauchement: "08:00 - 12:00",
-    impact: "Poste source Delta (Partiel)",
-    imgClass: "transport-img",
-  },
-  distribution: {
-    id: "distribution",
-    headerClass: "distribution",
-    typeLabel: "DISTRIBUTION",
-    icon: <FaBell />,
-    title: "Élagage Ligne HTA-44",
-    reference: "DI-2024-1145",
-    periode: "08:00 – 13:00 (5h)",
-    chevauchement: "08:00 - 12:00",
-    impact: "1 240 Usagers (Zone B)",
-    imgClass: "distribution-img",
-  },
-  transmission: {
-    id: "transmission",
-    headerClass: "transmission",
-    typeLabel: "TRANSMISSION",
-    icon: <FaBolt />,
-    title: "Contrôle Ligne THT-12",
-    reference: "TX-2024-0341",
-    periode: "09:00 – 14:00 (5h)",
-    chevauchement: "09:00 - 12:00",
-    impact: "Zone Nord (Partiel)",
-    imgClass: "transmission-img",
-  },
+const fmt = (iso) => {
+    if (!iso) return '—';
+    const d = new Date(iso);
+    return `${d.toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' })} ${d.getHours().toString().padStart(2,'0')}h${d.getMinutes().toString().padStart(2,'0')}`;
 };
 
 export default function AdvancedGantt() {
-  const navigate = useNavigate();
-  const location = useLocation();
-  const conflits = location.state?.conflits || [];
+    const navigate  = useNavigate();
+    const location  = useLocation();
+    const groupe    = location.state?.groupe || null;
 
-  const [checkedSlots, setCheckedSlots] = useState([]);
-  const [selectedEntite, setSelectedEntite] = useState("");
-  const [selectedDate, setSelectedDate] = useState("");
-  const [selectedType, setSelectedType] = useState("");
+    const [propositions,  setPropositions]  = useState([]);
+    const [planningId,    setPlanningId]    = useState(null);
+    const [loading,       setLoading]       = useState(false);
+    const [actionLoading, setActionLoading] = useState(null);
+    const [message,       setMessage]       = useState(null);
 
-  const toggleSlot = (id) => {
-    setCheckedSlots((prev) =>
-      prev.includes(id) ? prev.filter((s) => s !== id) : [...prev, id]
-    );
-  };
+    // ── Chargement des propositions au montage ─────────────────────────────
+    useEffect(() => {
+        if (!groupe) return;
 
-  const visibleCards = checkedSlots.map((id) => activityCards[id]);
+        // Prend le planningId du premier travail qui peut bouger,
+        // ou du premier travail si aucun ne peut bouger.
+        const cible = groupe.travaux.find(t => t.peut_bouger) || groupe.travaux[0];
+        if (!cible?.planning_id) return;
 
-  return (
-    <div className="ag-page">
+        setPlanningId(cible.planning_id);
+        setLoading(true);
+        analyserChevauchements(cible.planning_id)
+            .then(data => setPropositions(data.propositions || []))
+            .catch(() => setPropositions([]))
+            .finally(() => setLoading(false));
+    }, [groupe?.id_groupe]);
 
-      {/* 1 ── Alert Banner ── */}
-      <div className="ag-alert-banner">
-        <FaExclamationTriangle className="ag-alert-icon" />
-        <div className="ag-alert-content">
-          <h3>Diagnostic : Alerte de Co-activité</h3>
-          {conflits.length > 0 ? (
-            <div>
-              <p style={{ margin: '0 0 8px' }}>
-                <span className="ag-highlight">{conflits.length} travaux en chevauchement</span> ont été détectés.
-                Les protocoles de sécurité interdisent leur intervention simultanée sur ce segment.
-              </p>
-              <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                {conflits.map(c => (
-                  <span key={c.ref} className="ag-conflict-ref-badge">
-                    {c.ref} — {c.name}
-                  </span>
+    // ── Actions ────────────────────────────────────────────────────────────
+    const handleAppliquer = async (proposition) => {
+        if (!planningId) return;
+        setActionLoading(proposition.id);
+        try {
+            await appliquerProposition(planningId, proposition.id);
+            setPropositions(prev => prev.filter(p => p.id !== proposition.id));
+            setMessage({ type: 'ok', text: 'Proposition appliquée avec succès.' });
+        } catch {
+            setMessage({ type: 'err', text: 'Erreur lors de l\'application.' });
+        } finally {
+            setActionLoading(null);
+        }
+    };
+
+    const handleRefuser = async (proposition) => {
+        if (!planningId) return;
+        setActionLoading(proposition.id);
+        try {
+            await refuserProposition(planningId, proposition.id);
+            setPropositions(prev => prev.filter(p => p.id !== proposition.id));
+            setMessage({ type: 'ok', text: 'Proposition refusée.' });
+        } catch {
+            setMessage({ type: 'err', text: 'Erreur lors du refus.' });
+        } finally {
+            setActionLoading(null);
+        }
+    };
+
+    // ── Pas de groupe reçu ─────────────────────────────────────────────────
+    if (!groupe) {
+        return (
+            <div className="ag-page">
+                <div style={{ textAlign: 'center', padding: 60, color: '#94a3b8' }}>
+                    <FaExclamationTriangle size={32} style={{ marginBottom: 12 }} />
+                    <p>Aucune alerte sélectionnée.</p>
+                    <button
+                        className="ag-btn-adjust"
+                        style={{ marginTop: 16 }}
+                        onClick={() => navigate('/dashboard/alertes')}
+                    >
+                        ← Retour aux alertes
+                    </button>
+                </div>
+            </div>
+        );
+    }
+
+    const isConflit = groupe.type === 'CONFLIT';
+
+    return (
+        <div className="ag-page">
+
+            {/* ── Retour ── */}
+            <button
+                className="ag-btn-back"
+                onClick={() => navigate('/dashboard/alertes')}
+            >
+                ← Retour aux alertes
+            </button>
+
+            {/* ── Message feedback ── */}
+            {message && (
+                <div className={`ag-feedback ${message.type === 'ok' ? 'ag-feedback-ok' : 'ag-feedback-err'}`}>
+                    {message.text}
+                    <button onClick={() => setMessage(null)}>✕</button>
+                </div>
+            )}
+
+            {/* 1 ── Alert Banner ── */}
+            <div className="ag-alert-banner">
+                <FaExclamationTriangle className="ag-alert-icon" />
+                <div className="ag-alert-content">
+                    <h3>
+                        {isConflit
+                            ? 'Diagnostic : Alerte de Co-activité'
+                            : 'Opportunité d\'harmonisation détectée'}
+                    </h3>
+                    <p>
+                        <span className="ag-highlight">
+                            {groupe.nb_travaux} travaux
+                        </span>{' '}
+                        {isConflit
+                            ? `en chevauchement sur : ${groupe.ressources_communes.join(', ')}.`
+                            : `sur la même ressource cette semaine (${groupe.semaine || ''}) : ${groupe.ressources_communes.join(', ')}.`}
+                        {isConflit && groupe.chevauchement && (
+                            <> Plage de conflit : <strong>{groupe.chevauchement}</strong>.</>
+                        )}
+                    </p>
+                    <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 8 }}>
+                        {groupe.travaux.map(t => (
+                            <span key={t.id} className="ag-conflict-ref-badge">
+                                {t.reference} — {t.segment}
+                            </span>
+                        ))}
+                    </div>
+                </div>
+            </div>
+
+            {/* 2 ── Travaux impliqués ── */}
+            <div className="ag-availability">
+                <div className="ag-avail-header">
+                    <AiOutlineTool className="ag-avail-icon" />
+                    <h3>Travaux impliqués</h3>
+                </div>
+                <table className="ag-table">
+                    <thead>
+                        <tr>
+                            <th>SEGMENT</th>
+                            <th>RÉFÉRENCE</th>
+                            <th>PLANNING</th>
+                            <th>DÉBUT</th>
+                            <th>FIN</th>
+                            <th>PEUT BOUGER</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {groupe.travaux.map(t => (
+                            <tr key={t.id}>
+                                <td>
+                                    <span className={`ag-seg-badge ag-seg-${t.segment?.toLowerCase()}`}>
+                                        {SEGMENT_ICON[t.segment]} {t.segment}
+                                    </span>
+                                </td>
+                                <td><strong>{t.reference}</strong></td>
+                                <td>{t.planning_nom}</td>
+                                <td>{fmt(t.debut)}</td>
+                                <td>{fmt(t.fin)}</td>
+                                <td>{t.peut_bouger ? '✅ Oui' : '🔒 Non'}</td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            </div>
+
+            {/* 3 ── Propositions ── */}
+            <div className="ag-suggestion">
+                <div className="ag-suggestion-header">
+                    <div className="ag-suggestion-left">
+                        <span className="ag-suggestion-badge">PROPOSITIONS</span>
+                        <span className="ag-suggestion-subtitle">
+                            {loading ? 'Chargement…' : `${propositions.length} proposition(s) générée(s)`}
+                        </span>
+                    </div>
+                    <FaLightbulb className="ag-suggestion-bulb" />
+                </div>
+
+                {loading && <p style={{ color: '#94a3b8', padding: '12px 0' }}>Analyse en cours…</p>}
+
+                {!loading && propositions.length === 0 && (
+                    <p style={{ color: '#94a3b8', fontSize: 13, padding: '8px 0' }}>
+                        Aucune proposition disponible — réajustement manuel requis.
+                    </p>
+                )}
+
+                {!loading && propositions.map(p => (
+                    <div key={p.id} className={`ag-prop-card ${p.statut === 'BLOQUEE' ? 'ag-prop-bloquee' : ''}`}>
+                        <div className="ag-prop-header">
+                            <span className="ag-prop-ref">{p.travail_a_modifier_ref || 'Travail'}</span>
+                            <span className={`ag-prop-statut statut-${p.statut?.toLowerCase()}`}>{p.statut}</span>
+                        </div>
+                        <p className="ag-prop-raison">{p.raison}</p>
+                        {p.note_compatibilite_types && (
+                            <p className="ag-prop-note">{p.note_compatibilite_types}</p>
+                        )}
+                        <div className="ag-suggestion-time">
+                            <span className="ag-time-label">ANCIEN HORAIRE</span>
+                            <span className="ag-time-value">{fmt(p.ancien_debut)}</span>
+                            <span className="ag-arrow">→</span>
+                            <span className="ag-time-label">NOUVEL HORAIRE</span>
+                            <span className="ag-time-value" style={{ color: '#16a34a' }}>{fmt(p.nouveau_debut)}</span>
+                        </div>
+                        {p.statut === 'EN_ATTENTE' && (
+                            <div className="ag-prop-actions">
+                                <button
+                                    className="ag-btn-validate"
+                                    disabled={actionLoading === p.id}
+                                    onClick={() => handleAppliquer(p)}
+                                >
+                                    <BsCheckCircleFill size={13} />
+                                    {actionLoading === p.id ? 'Application…' : 'Appliquer'}
+                                </button>
+                                <button
+                                    className="ag-btn-reject"
+                                    disabled={actionLoading === p.id}
+                                    onClick={() => handleRefuser(p)}
+                                >
+                                    <RiCloseCircleLine size={15} /> Refuser
+                                </button>
+                            </div>
+                        )}
+                    </div>
                 ))}
-              </div>
             </div>
-          ) : (
-            <p>
-              Un <span className="ag-highlight">chevauchement</span> a été détecté.
-              Les protocoles de sécurité interdisent l'intervention simultanée sur ce segment.
-            </p>
-          )}
-        </div>
-      </div>
 
-      {/* 2 ── Availability Checker ── */}
-      <div className="ag-availability">
-        <div className="ag-avail-header">
-          <MdLocationOn className="ag-avail-icon" />
-          <h3>Vérification de Disponibilité Alternative</h3>
-        </div>
-
-        <div className="ag-avail-filters">
-          <select
-            className="ag-select"
-            value={selectedEntite}
-            onChange={(e) => setSelectedEntite(e.target.value)}
-          >
-            <option value="">Toutes les entités</option>
-            <option value="production">Production</option>
-            <option value="transport">Transport</option>
-            <option value="distribution">Distribution</option>
-          </select>
-
-          <input
-            type="date"
-            className="ag-input"
-            value={selectedDate}
-            onChange={(e) => setSelectedDate(e.target.value)}
-          />
-
-          <select
-            className="ag-select"
-            value={selectedType}
-            onChange={(e) => setSelectedType(e.target.value)}
-          >
-            <option value="">Tous les types</option>
-            <option value="p1">P1 — Urgent (après coupure)</option>
-            <option value="p2">P2 — Non urgent (1 à 7 jours)</option>
-            <option value="p3">P3 — Non urgent (7j à 1 mois)</option>
-            <option value="p4">P4 — Non urgent (1 mois à 1 trimestre)</option>
-          </select>
-
-          <button className="ag-search-btn">
-            <MdSearch size={15} /> Rechercher des Créneaux
-          </button>
-        </div>
-
-        <table className="ag-table">
-          <thead>
-            <tr>
-              <th></th>
-              <th>DATE/HEURE</th>
-              <th>LOCALITÉ</th>
-              <th>OUVRAGE</th>
-              <th>DISPONIBILITÉ</th>
-            </tr>
-          </thead>
-          <tbody>
-            {availabilitySlots.map((slot) => (
-              <tr
-                key={slot.id}
-                className={checkedSlots.includes(slot.id) ? "ag-row-checked" : ""}
-                onClick={() => toggleSlot(slot.id)}
-                style={{ cursor: "pointer" }}
-              >
-                <td>
-                  <input
-                    type="checkbox"
-                    checked={checkedSlots.includes(slot.id)}
-                    onChange={() => toggleSlot(slot.id)}
-                    className="ag-checkbox"
-                    onClick={(e) => e.stopPropagation()}
-                  />
-                </td>
-                <td>{slot.date}</td>
-                <td>{slot.localite}</td>
-                <td><span className="ag-planifie">{slot.ouvrage}</span></td>
-                <td><span className="ag-libre">{slot.disponibilite}</span></td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-
-        {checkedSlots.length === 0 && (
-          <p className="ag-helper-text">
-            Cochez une ou plusieurs lignes pour voir les activités correspondantes.
-          </p>
-        )}
-      </div>
-
-      {/* 3 ── Dynamic Activity Cards ── */}
-      {visibleCards.length > 0 && (
-        <div className={`ag-tasks-row cards-${visibleCards.length}`}>
-          {visibleCards.map((card) => (
-            <div className="ag-task-card" key={card.id}>
-              <div className={`ag-task-header ${card.headerClass}`}>
-                <span className="ag-task-type">{card.typeLabel}</span>
-                {card.icon}
-              </div>
-              <h3 className="ag-task-title">{card.title}</h3>
-              <div className="ag-task-info">
-                <div className="ag-info-row">
-                  <span className="ag-info-label">Référence</span>
-                  <span className="ag-info-value">{card.reference}</span>
+            {/* 4 ── Actions globales ── */}
+            <div className="ag-actions">
+                <div className="ag-actions-left">
+                    <button
+                        className="ag-btn-adjust"
+                        onClick={() => navigate('/dashboard/reajustement-avance', { state: { groupe } })}
+                    >
+                        <AiOutlineTool size={14} /> Réajuster manuellement
+                    </button>
                 </div>
-                <div className="ag-info-row">
-                  <span className="ag-info-label">Période</span>
-                  <span className="ag-info-value">{card.periode}</span>
+                <div className="ag-actions-right">
+                    <button
+                        className="ag-btn-reject"
+                        onClick={() => navigate('/dashboard/alertes')}
+                    >
+                        <RiCloseCircleLine size={16} /> Fermer
+                    </button>
                 </div>
-                <div className="ag-info-row">
-                  <span className="ag-info-label">Chevauchement</span>
-                  <span className="ag-info-value conflict">{card.chevauchement}</span>
-                </div>
-                <div className="ag-info-row">
-                  <span className="ag-info-label">Impact Clients</span>
-                  <span className="ag-info-value">{card.impact}</span>
-                </div>
-              </div>
-              <div className={`ag-task-image ${card.imgClass}`}></div>
             </div>
-          ))}
         </div>
-      )}
-
-      {/* 4 ── Suggestion ── */}
-      <div className="ag-suggestion">
-        <div className="ag-suggestion-header">
-          <div className="ag-suggestion-left">
-            <span className="ag-suggestion-badge">SUGGESTION</span>
-            <span className="ag-suggestion-subtitle">Solution d'optimisation</span>
-          </div>
-          <FaLightbulb className="ag-suggestion-bulb" />
-        </div>
-        <h3 className="ag-suggestion-title">Décalage des Travaux Distribution (B)</h3>
-        <p className="ag-suggestion-desc">
-          En décalant le travail B de 08h00 à 13:00, nous supprimons le conflit sur le
-          poste Delta tout en conservant la même fenêtre de coupure pour les usagers finaux.
-        </p>
-        <div className="ag-suggestion-time">
-          <span className="ag-time-label">NOUVEL HORAIRE</span>
-          <span className="ag-time-value">08:00</span>
-          <span className="ag-arrow">→</span>
-          <span className="ag-time-value">13:00</span>
-        </div>
-      </div>
-
-      {/* 5 ── Action Buttons ── */}
-      <div className="ag-actions">
-        <div className="ag-actions-left">
-          <button className="ag-btn-validate">
-            <BsCheckCircleFill size={14} /> Valider la suggestion
-          </button>
-          <button
-            className="ag-btn-adjust"
-            onClick={() => navigate('/dashboard/reajustement-manuel', { state: { conflits } })}
-          >
-            <AiOutlineTool size={14} /> Réajuster manuellement
-          </button>
-        </div>
-        <div className="ag-actions-right">
-          <button className="ag-btn-reject">
-            <RiCloseCircleLine size={16} /> Rejeter l'alerte
-          </button>
-        </div>
-      </div>
-
-    </div>
-  );
+    );
 }

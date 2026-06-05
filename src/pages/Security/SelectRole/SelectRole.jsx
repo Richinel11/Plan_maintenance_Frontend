@@ -112,7 +112,7 @@ const SelectRole = () => {
                 <div className="avatar-wrapper">
                     <span className="status-dot avatar-status"></span>
                 </div>
-                <h1 className="welcome-title">Bonjour{user?.nom ? `, ${user.prenom} ${user.nom}` : ''}</h1>
+                <h1 className="welcome-title">Bonjour{user?.first_name ? `, ${user.first_name} ${user.last_name}` : (user?.username ? `, ${user.username}` : '')}</h1>
                 <p className="welcome-subtitle">Sélectionnez votre rôle pour cette session</p>
             </div>
 
@@ -159,7 +159,6 @@ const SelectRole = () => {
                     disabled={!selectedRole}
                 >
                     Continuer
-                    <span className="material-symbols-outlined btn-arrow">arrow_forward</span>
                 </button>
             </div>
         </div>

@@ -25,7 +25,7 @@ const readUser = () => {
 const Sidebar = () => {
     // 1. Récupération des informations de l'utilisateur stockées en session
     const user = readUser();
-    const fullName = `${user.first_name || user.prenom || ''} ${user.last_name || user.nom || ''}`.trim() || 'Utilisateur Anonyme';
+    const fullName = `${user.first_name || user.prenom || ''} ${user.last_name || user.nom || ''}`.trim() || user.username || 'Utilisateur';
 
 
     // 2. Détermination du rôle actif pour savoir quels menus afficher
@@ -119,7 +119,7 @@ const Sidebar = () => {
                     <span className="sidebar-user-name">{fullName}</span>
                     <span className="sidebar-user-role">{activeRoleName || activeRoleCode || 'Aucun rôle'}</span>
                 </div>
-                <span className="material-symbols-outlined sidebar-chevron">expand_more</span>
+
             </div>
         </aside>
     );

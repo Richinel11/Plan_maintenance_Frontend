@@ -5,7 +5,7 @@
  * @param {Set}     conflitIds - Set des IDs de travaux en conflit
  * @returns {Object|null}
  */
-export const travailToCalendarEvent = (travail, conflitIds = new Set()) => {
+export const travailToCalendarEvent = (travail, conflitIds = new Set(), opportuniteIds = new Set()) => {
     if (!travail.heure_debut_planifie) return null;
 
     const title = travail.reference?.valeur
@@ -22,6 +22,7 @@ export const travailToCalendarEvent = (travail, conflitIds = new Set()) => {
             status:      travail.statut_travaux,
             harmonise:   travail.travail_en_alignement === true,
             conflit:     conflitIds.has(travail.id),
+            opportunite: opportuniteIds.has(travail.id),
             entite:      travail.entite_metier?.name || '—',
             planningId:  travail.planning?.id   || null,
             planningNom: travail.planning?.nom  || '—',
@@ -40,9 +41,9 @@ export const travailToCalendarEvent = (travail, conflitIds = new Set()) => {
  * @param {Set}    conflitIds
  * @returns {Array}
  */
-export const mapTravauxToCalendarEvents = (travaux, conflitIds = new Set()) =>
+export const mapTravauxToCalendarEvents = (travaux, conflitIds = new Set(), opportuniteIds = new Set()) =>
     travaux
-        .map(t => travailToCalendarEvent(t, conflitIds))
+        .map(t => travailToCalendarEvent(t, conflitIds, opportuniteIds))
         .filter(Boolean);
 
 

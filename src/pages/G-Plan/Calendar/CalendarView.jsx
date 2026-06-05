@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import CalendarComponent from './components/calendar';
-import { fetchAllTravaux, fetchConflitIds } from '../../../services/gplanService';
+import { fetchAllTravaux, fetchConflitIds, buildGroupes } from '../../../services/gplanService';
 import { mapTravauxToCalendarEvents } from '../../../services/travailMapper';
 
 const CalendarView = () => {
     const [events,  setEvents]  = useState([]);
+    const [groupes, setGroupes] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error,   setError]   = useState(null);
 
@@ -16,14 +17,14 @@ const CalendarView = () => {
                 setLoading(true);
                 setError(null);
 
-                // Les deux appels sont indépendants — on les lance en parallèle
-                const [travaux, conflitIds] = await Promise.all([
+                const [travaux, { conflitIds, opportuniteIds }] = await Promise.all([
                     fetchAllTravaux(),
                     fetchConflitIds(),
                 ]);
 
                 if (cancelled) return;
-                setEvents(mapTravauxToCalendarEvents(travaux, conflitIds));
+                setEvents(mapTravauxToCalendarEvents(travaux, conflitIds, opportuniteIds));
+                setGroupes(buildGroupes(travaux, conflitIds));
             } catch (err) {
                 if (cancelled) return;
                 console.error('[CalendarView] Erreur de chargement :', err);
@@ -66,7 +67,7 @@ const CalendarView = () => {
         );
     }
 
-    return <CalendarComponent tasks={events} />;
+    return <CalendarComponent tasks={events} groupes={groupes} />;
 };
 
 /* ── Styles inline minimaux pour les états loading/error ── */

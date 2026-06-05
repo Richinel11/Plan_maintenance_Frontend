@@ -1,4 +1,5 @@
 import React, { useRef, useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid';
@@ -7,6 +8,50 @@ import frLocale from '@fullcalendar/core/locales/fr';
 import SegmentFilterBar from '../../components/SegmentFilterBar';
 import { SEGMENT_COLORS, STATUT_META } from '../../components/segmentConfig';
 import "./calendar.css";
+
+/* ─── Bandeau d'alertes (semaine / jour) ────────────────────────────────────── */
+const AlertBandeaux = ({ groupes, dateDebut, dateFin }) => {
+    const navigate = useNavigate();
+
+    const alertesDuPeriode = groupes.filter(g => {
+        if (g.statut === 'RESOLU') return false;
+        return g.travaux.some(t => {
+            const d = new Date(t.debut);
+            return d >= dateDebut && d < dateFin;
+        });
+    });
+
+    if (alertesDuPeriode.length === 0) return null;
+
+    const handleClick = (groupe) => {
+        navigate('/dashboard/advanced-gantt', { state: { groupe } });
+    };
+
+    return (
+        <div className="al-bandeaux">
+            {alertesDuPeriode.map(g => (
+                <button
+                    key={g.id_groupe}
+                    className={`al-chip ${g.type === 'CONFLIT' ? 'al-chip-conflit' : 'al-chip-opportunite'}`}
+                    onClick={() => handleClick(g)}
+                    title={`${g.ressources_communes.join(' · ')} — cliquer pour harmoniser`}
+                >
+                    <span className="al-chip-icon">{g.type === 'CONFLIT' ? '⚠️' : '💡'}</span>
+                    <span className="al-chip-label">
+                        {g.ressources_communes[0] || 'Ressource commune'}
+                    </span>
+                    <span className="al-chip-count">{g.nb_travaux} travaux</span>
+                    {g.type === 'CONFLIT' && g.chevauchement && (
+                        <span className="al-chip-detail">{g.chevauchement}</span>
+                    )}
+                    {g.type === 'OPPORTUNITE' && g.semaine && (
+                        <span className="al-chip-detail">{g.semaine}</span>
+                    )}
+                </button>
+            ))}
+        </div>
+    );
+};
 
 const VIEWS = [
     { key: 'dayGridMonth', label: 'Mois'    },
@@ -242,8 +287,310 @@ const ListView = ({ tasks }) => {
     );
 };
 
+/* ─── Helpers vue semaine Gantt ─────────────────────────────────────────────── */
+const HOURS_24 = Array.from({ length: 24 }, (_, i) => i);
+const DAY_ABBR = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
+const LANE_H   = 30;
+const LANE_GAP = 4;
+const ROW_PAD  = 8;
+
+const getWeekStart = (date) => {
+    const d = new Date(date);
+    const day = d.getDay();
+    d.setDate(d.getDate() + (day === 0 ? -6 : 1 - day));
+    d.setHours(0, 0, 0, 0);
+    return d;
+};
+
+const isSameDay = (a, b) =>
+    a.getFullYear() === b.getFullYear() &&
+    a.getMonth()    === b.getMonth()    &&
+    a.getDate()     === b.getDate();
+
+const getTasksForDay = (day, tasks) => {
+    const s = new Date(day); s.setHours(0, 0, 0, 0);
+    const e = new Date(day); e.setHours(23, 59, 59, 999);
+    return tasks.filter(t => {
+        const ts = new Date(t.start);
+        const te = t.end ? new Date(t.end) : new Date(ts.getTime() + 3_600_000);
+        return ts <= e && te >= s;
+    });
+};
+
+const assignLanes = (tasks, day) => {
+    const dayStart = new Date(day); dayStart.setHours(0, 0, 0, 0);
+    const DAY_MS   = 86_400_000;
+
+    const items = tasks.map(t => {
+        const ts = new Date(t.start);
+        const te = t.end ? new Date(t.end) : new Date(ts.getTime() + 3_600_000);
+        return {
+            task:    t,
+            startMs: Math.max(ts.getTime(), dayStart.getTime()),
+            endMs:   Math.min(te.getTime(), dayStart.getTime() + DAY_MS),
+        };
+    }).sort((a, b) => a.startMs - b.startMs);
+
+    const laneEnds = [];
+    return items.map(({ task, startMs, endMs }) => {
+        let li = laneEnds.findIndex(le => le <= startMs);
+        if (li === -1) { li = laneEnds.length; laneEnds.push(endMs); }
+        else           { laneEnds[li] = endMs; }
+        return {
+            task,
+            lane:  li,
+            left:  (startMs - dayStart.getTime()) / DAY_MS * 100,
+            width: Math.max((endMs - startMs) / DAY_MS * 100, 0.4),
+        };
+    });
+};
+
+/* ─── Vue semaine style Gantt ───────────────────────────────────────────────── */
+const WeekGanttView = ({ tasks, groupes = [], onTaskClick }) => {
+    const [weekStart, setWeekStart] = useState(() => getWeekStart(new Date()));
+    const today = new Date(); today.setHours(0, 0, 0, 0);
+
+    const days = Array.from({ length: 7 }, (_, i) => {
+        const d = new Date(weekStart);
+        d.setDate(weekStart.getDate() + i);
+        return d;
+    });
+
+    const goBack  = () => { const d = new Date(weekStart); d.setDate(d.getDate() - 7); setWeekStart(d); };
+    const goNext  = () => { const d = new Date(weekStart); d.setDate(d.getDate() + 7); setWeekStart(d); };
+    const goToday = () => setWeekStart(getWeekStart(new Date()));
+
+    const weekLabel = (() => {
+        const end = new Date(weekStart); end.setDate(weekStart.getDate() + 6);
+        const o = { day: 'numeric', month: 'long', year: 'numeric' };
+        return `${weekStart.toLocaleDateString('fr-FR', o)} – ${end.toLocaleDateString('fr-FR', o)}`;
+    })();
+
+    return (
+        <div className="wg-container">
+            {/* ── Navigation ── */}
+            <div className="wg-nav">
+                <button className="wg-nav-btn" onClick={goBack}>‹</button>
+                <button className="wg-nav-btn wg-today-btn" onClick={goToday}>Aujourd'hui</button>
+                <button className="wg-nav-btn" onClick={goNext}>›</button>
+                <span className="wg-week-label">{weekLabel}</span>
+            </div>
+
+            {/* ── Bandeaux d'alertes de la semaine ── */}
+            <AlertBandeaux
+                groupes={groupes}
+                dateDebut={weekStart}
+                dateFin={new Date(weekStart.getTime() + 7 * 86400000)}
+            />
+
+            {/* ── Grille ── */}
+            <div className="wg-grid-wrap">
+
+                {/* En-tête : heures sur l'axe horizontal */}
+                <div className="wg-header">
+                    <div className="wg-day-col" />
+                    <div className="wg-timeline-header">
+                        {HOURS_24.map(h => (
+                            <div key={h} className="wg-hour-label">
+                                {String(h).padStart(2, '0')}h
+                            </div>
+                        ))}
+                    </div>
+                </div>
+
+                {/* Lignes : jours sur l'axe vertical */}
+                {days.map((day, di) => {
+                    const isToday  = isSameDay(day, today);
+                    const dayTasks = getTasksForDay(day, tasks);
+                    const laned    = assignLanes(dayTasks, day);
+                    const numLanes = laned.length > 0 ? Math.max(...laned.map(l => l.lane)) + 1 : 1;
+                    const rowH     = numLanes * (LANE_H + LANE_GAP) + ROW_PAD * 2;
+
+                    return (
+                        <div key={di} className={`wg-row ${isToday ? 'wg-row-today' : ''}`}>
+                            {/* Label jour */}
+                            <div className="wg-day-col wg-day-label">
+                                <span className="wg-day-name">{DAY_ABBR[di]}</span>
+                                <span className={`wg-day-num ${isToday ? 'wg-day-num-today' : ''}`}>
+                                    {day.getDate()}
+                                </span>
+                            </div>
+
+                            {/* Timeline horizontale */}
+                            <div className="wg-timeline" style={{ height: rowH }}>
+                                {/* Séparateurs verticaux heures */}
+                                {HOURS_24.map(h => (
+                                    <div key={h} className="wg-vline" style={{ left: `${(h / 24) * 100}%` }} />
+                                ))}
+
+                                {/* Barres travaux */}
+                                {laned.map(({ task, lane, left, width }) => {
+                                    const seg   = task.extendedProps?.segment;
+                                    const isCon = task.extendedProps?.conflit;
+                                    const isHar = task.extendedProps?.harmonise;
+
+                                    const c = isCon
+                                        ? { bg: '#fef2f2', text: '#b91c1c', border: '#ef4444' }
+                                        : isHar
+                                        ? { bg: '#f5f3ff', text: '#7c3aed', border: '#7c3aed' }
+                                        : SEGMENT_COLORS[seg]
+                                        ? { bg: SEGMENT_COLORS[seg].bg, text: SEGMENT_COLORS[seg].text, border: SEGMENT_COLORS[seg].dot }
+                                        : { bg: '#f3f4f6', text: '#374151', border: '#9ca3af' };
+
+                                    const icon = isCon ? '⚠️' : isHar ? '🔗' : null;
+
+                                    return (
+                                        <div
+                                            key={task.id || `${di}-${lane}`}
+                                            className="wg-task-bar"
+                                            style={{
+                                                left:       `${left}%`,
+                                                width:      `${width}%`,
+                                                top:        ROW_PAD + lane * (LANE_H + LANE_GAP),
+                                                height:     LANE_H,
+                                                background: c.bg,
+                                                color:      c.text,
+                                                borderLeft: `3px solid ${c.border}`,
+                                            }}
+                                            title={task.title}
+                                            onClick={() => onTaskClick(task)}
+                                        >
+                                            {icon && <span className="wg-task-icon">{icon}</span>}
+                                            <span className="wg-task-title">{task.title}</span>
+                                        </div>
+                                    );
+                                })}
+
+                                {/* Ligne heure actuelle */}
+                                {isToday && (() => {
+                                    const n   = new Date();
+                                    const pct = (n.getHours() * 60 + n.getMinutes()) / 1440 * 100;
+                                    return <div className="wg-now-line" style={{ left: `${pct}%` }} />;
+                                })()}
+                            </div>
+                        </div>
+                    );
+                })}
+            </div>
+        </div>
+    );
+};
+
+/* ─── Vue jour style Gantt ──────────────────────────────────────────────────── */
+const DayGanttView = ({ tasks, groupes = [], onTaskClick }) => {
+    const [currentDay, setCurrentDay] = useState(() => {
+        const d = new Date(); d.setHours(0, 0, 0, 0); return d;
+    });
+
+    const today = new Date(); today.setHours(0, 0, 0, 0);
+    const isToday = isSameDay(currentDay, today);
+
+    const goBack  = () => { const d = new Date(currentDay); d.setDate(d.getDate() - 1); setCurrentDay(d); };
+    const goNext  = () => { const d = new Date(currentDay); d.setDate(d.getDate() + 1); setCurrentDay(d); };
+    const goToday = () => { const d = new Date(); d.setHours(0, 0, 0, 0); setCurrentDay(d); };
+
+    const dayLabel = currentDay.toLocaleDateString('fr-FR', {
+        weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
+    });
+
+    const dayTasks = getTasksForDay(currentDay, tasks);
+    const laned    = assignLanes(dayTasks, currentDay);
+    const numLanes = laned.length > 0 ? Math.max(...laned.map(l => l.lane)) + 1 : 1;
+    const bodyH    = numLanes * (LANE_H + LANE_GAP) + ROW_PAD * 2;
+
+    return (
+        <div className="wg-container">
+            {/* ── Navigation ── */}
+            <div className="wg-nav">
+                <button className="wg-nav-btn" onClick={goBack}>‹</button>
+                <button className="wg-nav-btn wg-today-btn" onClick={goToday}>Aujourd'hui</button>
+                <button className="wg-nav-btn" onClick={goNext}>›</button>
+                <span className="wg-week-label">{dayLabel}</span>
+            </div>
+
+            {/* ── Bandeaux d'alertes du jour ── */}
+            <AlertBandeaux
+                groupes={groupes}
+                dateDebut={currentDay}
+                dateFin={new Date(currentDay.getTime() + 86400000)}
+            />
+
+            {/* ── Grille ── */}
+            <div className="wg-grid-wrap">
+
+                {/* En-tête : heures sur l'axe horizontal, sans colonne jour */}
+                <div className="wg-header dg-header">
+                    <div className="wg-timeline-header">
+                        {HOURS_24.map(h => (
+                            <div key={h} className="wg-hour-label">
+                                {String(h).padStart(2, '0')}h
+                            </div>
+                        ))}
+                    </div>
+                </div>
+
+                {/* Corps : toutes les barres du jour */}
+                <div className={isToday ? 'wg-row-today' : ''}>
+                    {dayTasks.length === 0 ? (
+                        <div className="dg-empty">Aucun travail ce jour.</div>
+                    ) : (
+                        <div className="wg-timeline" style={{ height: bodyH, minWidth: 600 }}>
+                            {HOURS_24.map(h => (
+                                <div key={h} className="wg-vline" style={{ left: `${(h / 24) * 100}%` }} />
+                            ))}
+
+                            {laned.map(({ task, lane, left, width }) => {
+                                const seg   = task.extendedProps?.segment;
+                                const isCon = task.extendedProps?.conflit;
+                                const isHar = task.extendedProps?.harmonise;
+
+                                const c = isCon
+                                    ? { bg: '#fef2f2', text: '#b91c1c', border: '#ef4444' }
+                                    : isHar
+                                    ? { bg: '#f5f3ff', text: '#7c3aed', border: '#7c3aed' }
+                                    : SEGMENT_COLORS[seg]
+                                    ? { bg: SEGMENT_COLORS[seg].bg, text: SEGMENT_COLORS[seg].text, border: SEGMENT_COLORS[seg].dot }
+                                    : { bg: '#f3f4f6', text: '#374151', border: '#9ca3af' };
+
+                                const icon = isCon ? '⚠️' : isHar ? '🔗' : null;
+
+                                return (
+                                    <div
+                                        key={task.id || lane}
+                                        className="wg-task-bar"
+                                        style={{
+                                            left:       `${left}%`,
+                                            width:      `${width}%`,
+                                            top:        ROW_PAD + lane * (LANE_H + LANE_GAP),
+                                            height:     LANE_H,
+                                            background: c.bg,
+                                            color:      c.text,
+                                            borderLeft: `3px solid ${c.border}`,
+                                        }}
+                                        title={task.title}
+                                        onClick={() => onTaskClick(task)}
+                                    >
+                                        {icon && <span className="wg-task-icon">{icon}</span>}
+                                        <span className="wg-task-title">{task.title}</span>
+                                    </div>
+                                );
+                            })}
+
+                            {isToday && (() => {
+                                const n   = new Date();
+                                const pct = (n.getHours() * 60 + n.getMinutes()) / 1440 * 100;
+                                return <div className="wg-now-line" style={{ left: `${pct}%` }} />;
+                            })()}
+                        </div>
+                    )}
+                </div>
+            </div>
+        </div>
+    );
+};
+
 // ─── Composant principal ──────────────────────────────────────────────────────
-const CalendarView = ({ tasks = [] }) => {
+const CalendarView = ({ tasks = [], groupes = [] }) => {
     const calendarRef  = useRef(null);
     const [currentView,    setCurrentView]    = useState('dayGridMonth');
     const [segmentFilter,  setSegmentFilter]  = useState('TOUS');
@@ -345,8 +692,44 @@ const CalendarView = ({ tasks = [] }) => {
                 <ListView tasks={filteredTasks} />
             )}
 
-            {/* ── Calendrier FullCalendar ── */}
-            <div className={`calendar-container ${currentView === 'liste' ? 'cal-hidden' : ''}`}>
+            {/* ── Vue semaine Gantt ── */}
+            {currentView === 'timeGridWeek' && (
+                <WeekGanttView
+                    tasks={filteredTasks}
+                    groupes={groupes}
+                    onTaskClick={(task) => {
+                        const p = task.extendedProps;
+                        alert(
+                            `Référence : ${task.title}\n` +
+                            `Segment : ${p.segment || 'N/A'}\n` +
+                            `Statut : ${STATUT_META[p.status]?.label || p.status || 'N/A'}\n` +
+                            `Début : ${task.start}\n` +
+                            `Fin : ${task.end || 'N/A'}`
+                        );
+                    }}
+                />
+            )}
+
+            {/* ── Vue jour Gantt ── */}
+            {currentView === 'timeGridDay' && (
+                <DayGanttView
+                    tasks={filteredTasks}
+                    groupes={groupes}
+                    onTaskClick={(task) => {
+                        const p = task.extendedProps;
+                        alert(
+                            `Référence : ${task.title}\n` +
+                            `Segment : ${p.segment || 'N/A'}\n` +
+                            `Statut : ${STATUT_META[p.status]?.label || p.status || 'N/A'}\n` +
+                            `Début : ${task.start}\n` +
+                            `Fin : ${task.end || 'N/A'}`
+                        );
+                    }}
+                />
+            )}
+
+            {/* ── Calendrier FullCalendar (Mois uniquement) ── */}
+            <div className={`calendar-container ${(currentView === 'liste' || currentView === 'timeGridWeek' || currentView === 'timeGridDay') ? 'cal-hidden' : ''}`}>
                 <FullCalendar
                     ref={calendarRef}
                     plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
