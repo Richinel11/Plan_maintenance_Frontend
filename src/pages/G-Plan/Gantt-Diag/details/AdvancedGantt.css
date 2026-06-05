@@ -1,153 +1,47 @@
-/* wrapper */
-.gantt-wrapper {
-  font-family: Arial;
-  background: #f5f6f8;
-  padding: 10px;
+.advanced-gantt-container {
+  height: 85vh;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  overflow: hidden;
 }
 
-/* legend */
 .legend {
+  margin-bottom: 12px;
+  font-size: 0.95rem;
   display: flex;
   gap: 10px;
-  font-size: 12px;
-  font-weight: bold;
   margin-bottom: 10px;
- 
 }
 
 .dot {
   display: inline-block;
-  width: 8px;
-  height: 8px;
+  width: 12px;
+  height: 12px;
   border-radius: 50%;
-  margin-right: 5px;
+  margin-right: 6px;
+  vertical-align: middle;
   position: relative;
   top: 3px;
 }
 
-.green { background: #84cc16; }
-.blue { background: #2563eb; }
-.gray { background: #64748b; }
-.red { background: #ef4444; }
+.green  { background: #4caf50; }
+.blue   { background: #2196f3; }
+.gray   { background: #9e9e9e; }
+.red    { background: #f44336; }
 
-/* layout */
-.gantt {
-  display: flex;
-  background: white;
-  border-radius: 10px;
-  overflow: hidden;
-  max-width: 100%;
-  border: 1px solid #e5e7eb;
-}
-
-.sidebar {
-background: #f9fafb;
-  border-right: 1px solid #e5e7eb;
-  width: 280px;
-  flex-shrink: 0;
-  overflow-y: hidden;           /* Will be controlled by sync */
-  padding-bottom: 20px;
-}
-
-.sidebar-header {
-  padding: 12px;
-  font-weight: bold;
-  font-size: 12px;
-  color: #6b7280;
-}
-
-.sidebar-item {
-  padding: 12px;
-  border-top: 1px solid #eee;
-}
-
-.sidebar-item.alert {
-  background: #fff1f1;
-}
-
-.title {
-  font-size: 13px;
+/* Custom badges */
+.badge {
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 0.8rem;
   font-weight: 600;
 }
 
-.ref {
-  font-size: 11px;
-  color: #9ca3af;
-}
+.badge.production { background: #e8f5e9; color: #2e7d32; }
+.badge.transport  { background: #e3f2fd; color: #1565c0; }
+.badge.distribution { background: #f5f5f5; color: #424242; }
 
-/* badges */
-.badge {
-  margin-left: 8px;
-  font-size: 10px;
-  padding: 2px 6px;
-  border-radius: 4px;
-}
-
-.badge.prd { background: #dcfce7; color: #166534; }
-.badge.trp { background: #dbeafe; color: #1e3a8a; }
-.badge.dst { background: #e5e7eb; }
-
-/* Timeline content */
-.timeline-container {
-  overflow: auto;
-  flex: 1;
-  max-height: 700px;           /* Adjust as needed */
-}
-
-.timeline {
-  position: relative;
-  min-width: 100%;
-}
-
-/* Days */
-.days {
-  display: grid;
-  grid-template-columns: repeat(5, minmax(140px, 1fr));
-  border-bottom: 1px solid #eee;
-  position: sticky;
-  top: 0;
-  background: white;
-  z-index: 10;
-}
-
-.day {
-  padding: 12px 8px;
-  font-size: 12.5px;
-  text-align: center;
-  border-left: 1px solid #eee;
-  font-weight: 500;
-}
-
-/* Rows */
-.row {
-  position: relative;
-  min-height: 70px;
-  border-bottom: 1px solid #f1f1f1;
-  padding: 8px 0;
-}
-
-/* Tasks */
-.task {
-  position: absolute;
-  height: 26px;
-  border-radius: 6px;
-  color: white;
-  font-size: 11px;
-  display: flex;
-  align-items: center;
-  padding: 0 10px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-  overflow: hidden;
-  white-space: nowrap;
-  z-index: 2;
-  max-width: 100%;
-}
-
-/* Color classes */
-.task.green { background: #84cc16; }
-.task.blue { background: #2563eb; }
-.task.gray { background: #64748b; }
-.task.light-green { 
-  background: #86efac; 
-  color: #166534; 
+/* Alert rows */
+.alert-row {
+  background: #fff3e0 !important;
 }

@@ -23,6 +23,8 @@ import Creer_Travail from "./pages/op_saisie/Creer_Travail/Nouveau_Travail";
 import Dashboard_Plan from './pages/G-Plan/Dashboard/Dashboard';
 import Gantt from './pages/G-Plan/Gantt-Diag/Interface';
 import Calendar from './pages/G-Plan/Calendar/CalendarView';
+import Accueil from './pages/Responsable/Accueil/accueil';
+import Notifications from './pages/Responsable/Planning/Notifications';
 function App() {
     return (
         <div className="app-container">
@@ -56,10 +58,7 @@ function App() {
                         <Route path="OP-home" element={<OP_home />} />
                         <Route path="Planning" element={<Planning />} />
                         {/* new */}
-                        <Route
-                            path="Planning/:id"
-                            element={<Planning />}
-                            />
+                        <Route path="Planning/:id" element={<Planning />}/>
                         <Route path="Tableaux_De_Bord" element={<Tableaux_De_Bord />} />
                         <Route path="CreerTravail" element={<Creer_Travail />} />
 
@@ -67,6 +66,10 @@ function App() {
                         <Route path="Dashboard_Plan" element={<Dashboard_Plan />} />
                         <Route path="Gantt" element={<Gantt />} />
                         <Route path="Calendar" element={<Calendar />} />
+
+                        {/* Contenus Responsable d'exploitation */}
+                        <Route path='Accueil' element={<Accueil />} />
+                        <Route path='Notifications' element={<Notifications />} />
                     </Route>
                 </Routes>
             </Router>

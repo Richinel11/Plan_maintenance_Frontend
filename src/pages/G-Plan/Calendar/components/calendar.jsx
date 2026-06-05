@@ -58,7 +58,7 @@ const CalendarView = ({ tasks = [] }) => {
                 <span>Filtres:</span>
 
                 <div className="filter-pill">
-                    <span className="dot"></span>
+                    <span className="dot1"></span>
 
                     <select>
                         <option>Production</option>

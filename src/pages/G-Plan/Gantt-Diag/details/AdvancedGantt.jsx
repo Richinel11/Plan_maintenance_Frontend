@@ -1,52 +1,85 @@
-import React, { useEffect, useState, useRef } from "react";
-import "./AdvancedGantt.css";
+import React, { useEffect, useRef, useState } from "react";
+import ReactGantt from "@dhtmlx/trial-react-gantt";           // ← Fixed
+import "@dhtmlx/trial-react-gantt/dist/react-gantt.css";     // ← Fixed
 import mockData from "./data/ganttAdvancedData";
+import "./AdvancedGantt.css";
 
-export default function AdvancedGantt({ currentDate, view }) {
-  const [ganttData, setGanttData] = useState([]);
-  const sidebarRef = useRef(null);
-  const timelineRef = useRef(null);
-
-  const MONTHS = ["Jan", "Fév", "Mars", "Avr", "Mai", "Juin", "Juil", "Août", "Sep", "Oct", "Nov", "Déc"];
-  const DAYS = ["Dim", "Lun", "Mar", "Mer", "Jeu", "Ven", "Sam"];
-
-  const startOfWeek = (date) => {
-    const d = new Date(date);
-    const day = d.getDay();
-    const diff = d.getDate() - day + (day === 0 ? -6 : 1);
-    return new Date(d.setDate(diff));
-  };
-
+export default function AdvancedGantt({ view }) {
+  const ganttRef = useRef(null);
+  const [tasks, setTasks] = useState({ data: [], links: [] });
+  const [ganttKey, setGanttKey] = useState(0);
+  // Transform mockData to DHTMLX format
   useEffect(() => {
-    setGanttData(mockData);
-  }, []);
+    const ganttRows = mockData.map((row) => ({
+      id: row.id,
+      text: row.name,
+      type: "project",
+      open: true,
+      ref: row.ref,
+      alert: !!row.alert,
+    }));
 
-  let generatedDays = [];
-  let totalColumns = 5;
+    const ganttTasks = mockData.flatMap((row) =>
+      row.tasks.map((task) => ({
+        id: task.id || `task_${Math.random().toString(36).substr(2, 9)}`,
+        text: task.name,
+        // text: task.name || "",
+        start_date: formatDate(task.start),
+        end_date: formatDate(task.end),
+        parent: row.id,
+        color: getTaskColor(task.color || row.type),
+      }))
+    );
+
+    setTasks({
+      data: [...ganttRows, ...ganttTasks],
+      links: [],
+    });
+  }, [mockData]);
+
+  // Update view (week / month)
+useEffect(() => {
+  const gantt = ganttRef.current?.getInstance?.();
+  if (!gantt) return;
 
   if (view === "semaine") {
-    const start = startOfWeek(currentDate);
-    for (let i = 1; i <= 5; i++) {
-      const d = new Date(start);
-      d.setDate(start.getDate() + i);
-      generatedDays.push(`${DAYS[d.getDay()]} ${d.getDate()} ${MONTHS[d.getMonth()]}`);
-    }
-  } else {
-    const year = currentDate.getFullYear();
-    const month = currentDate.getMonth();
-    const totalDays = new Date(year, month + 1, 0).getDate();
-    totalColumns = totalDays;
-    for (let i = 1; i <= totalDays; i++) {
-      generatedDays.push(`${i} ${MONTHS[month]}`);
-    }
+    gantt.config.scales = [
+      // { unit: "week", step: 1, format: "Semaine #%W" },
+      { unit: "day", step: 1, format: "%D %d" },
+    ];
+
+    gantt.config.date_scale = "%D %d";
+    gantt.config.scale_height = 50;
+    gantt.config.min_column_width = 80;
   }
 
-  // Sync vertical scrolling
-  const handleScroll = (e) => {
-    if (sidebarRef.current && timelineRef.current) {
-      sidebarRef.current.scrollTop = e.target.scrollTop;
-      timelineRef.current.scrollTop = e.target.scrollTop;
-    }
+  if (view === "mois") {
+    gantt.config.scales = [
+      { unit: "month", step: 1, format: "%F %Y" },
+      { unit: "day", step: 1, format: "%d" },
+    ];
+
+    gantt.config.min_column_width = 40;
+    gantt.config.scale_height = 60;
+  }
+
+  gantt.showDate(new Date());
+  gantt.render();
+}, [view]);
+
+  const getTaskColor = (type) => {
+    const t = String(type).toLowerCase();
+    if (t.includes("production")) return "#4caf50";
+    if (t.includes("transport")) return "#2196f3";
+    if (t.includes("distribution")) return "#9e9e9e";
+    if (t.includes("conflit")) return "#f44336";
+    return "#607d8b";
+  };
+
+  const formatDate = (d) => {
+    if (!d) return "";
+    if (d instanceof Date) return d.toISOString().split("T")[0];
+    return String(d);
   };
 
   return (
@@ -58,104 +91,27 @@ export default function AdvancedGantt({ currentDate, view }) {
         <span className="dot red"></span> CONFLIT DETECTE
       </div>
 
-      <div className="gantt">
-        {/* FIXED WIDTH SIDEBAR */}
-        <div className="sidebar" ref={sidebarRef}>
-          <div className="sidebar-header">TRAVAUX & ENTITÉS</div>
-          {ganttData.map((item) => (
-            <div className={`sidebar-item ${item.alert ? "alert" : ""}`} key={item.id}>
-              <div className="title">
-                {item.name}
-                <span className={`badge ${item.type.toLowerCase()}`}>{item.type}</span>
-              </div>
-              <div className="ref">REF : {item.ref}</div>
-            </div>
-          ))}
-        </div>
-
-        {/* SCROLLABLE TIMELINE AREA */}
-        <div className="timeline-container" onScroll={handleScroll} ref={timelineRef}>
-          <div className="timeline">
-            {/* Days Header */}
-            <div className="days" style={{ gridTemplateColumns: `repeat(${totalColumns}, minmax(140px, 1fr))` }}>
-              {generatedDays.map((d, i) => (
-                <div key={i} className="day">{d}</div>
-              ))}
-            </div>
-
-            {/* Task Rows */}
-            {ganttData.map((row) => {
-              // 1. Sort tasks chronologically to ensure packing works perfectly
-              const sortedTasks = [...row.tasks].sort((a, b) => a.start - b.start);
-              
-              const lanes = []; // Keeps track of the end-day for tasks in each sub-lane
-              
-              // 2. Map tasks to calculate dynamic positioning and lanes
-              const processedTasks = sortedTasks.map((task) => {
-                // Check visibility bounds
-                const isVisible = task.start <= totalColumns && task.end >= 1;
-                
-                // Clamp start/end boundaries inside the visible timeline matrix grid
-                const clampedStart = Math.max(1, task.start);
-                const clampedEnd = Math.min(totalColumns, task.end);
-
-                let laneIndex = 0;
-                if (isVisible) {
-                  // Find the first lane where the previous task finished before this task starts
-                  const targetLane = lanes.findIndex((laneEnd) => task.start > laneEnd);
-                  
-                  if (targetLane !== -1) {
-                    laneIndex = targetLane;
-                    lanes[targetLane] = task.end; // update end tracker for this lane
-                  } else {
-                    laneIndex = lanes.length;
-                    lanes.push(task.end); // open a new sub-lane row
-                  }
-                }
-
-                return {
-                  ...task,
-                  clampedStart,
-                  clampedEnd,
-                  laneIndex,
-                  isVisible,
-                };
-              }).filter(t => t.isVisible); // Drop completely out-of-bounds tasks
-
-              const totalLanes = lanes.length || 1;
-
-              return (
-                <div 
-                  className="row" 
-                  key={row.id} 
-                  style={{ height: `${Math.max(70, totalLanes * 45)}px` }}
-                >
-                  {processedTasks.map((task, i) => {
-                    // Left position offset calculation adjusted for 1-indexed days
-                    const leftPercent = ((task.clampedStart - 1) / totalColumns) * 100;
-                    // Precise width calculation bounded securely inside totalColumns
-                    const widthPercent = ((task.clampedEnd - task.clampedStart + 1) / totalColumns) * 100;
-
-                    return (
-                      <div
-                        key={i}
-                        className={`task ${task.color}`}
-                        style={{
-                          left: `${leftPercent}%`,
-                          width: `${widthPercent}%`,
-                          top: `${15 + task.laneIndex * 35}px`,
-                          height: "26px",
-                        }}
-                      >
-                        Reference titre
-                      </div>
-                    );
-                  })}
-                </div>
-              );
-            })}
-          </div>
-        </div>
+      <div className="advanced-gantt-container" style={{ height: "82vh", border: "1px solid #ddd", borderRadius: "8px" }}>
+        <ReactGantt
+          ref={ganttRef}
+          tasks={tasks.data}
+          links={tasks.links}
+          config={{
+            scale_height: 55,
+            row_height: 62,
+            resize_rows: true,
+            drag_move: true,
+            drag_resize: true,
+            drag_progress: true,
+            show_progress: true,
+            readonly: false,
+       
+          columns:[
+            { name: "text", label: "Travaux & Entités", tree: true, width: 250, resize: true },
+            { name: "ref", label: "REF", align: "center", width: 150 },
+            
+          ]   }}
+        />
       </div>
     </div>
   );

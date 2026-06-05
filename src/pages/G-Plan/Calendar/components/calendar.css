@@ -228,11 +228,11 @@
     gap: 8px;
 }
 
-.dot {
+.dot1 {
     width: 8px;
     height: 8px;
     border-radius: 50%;
-    background: #3b82f6;
+    background: #3b82f6 !important;
     /* flex-shrink: 0; */
 }
 
