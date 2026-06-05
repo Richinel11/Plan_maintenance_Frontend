@@ -25,6 +25,7 @@ import Gantt from './pages/G-Plan/Gantt-Diag/Interface';
 import Calendar from './pages/G-Plan/Calendar/CalendarView';
 import Accueil from './pages/Responsable/Accueil/accueil';
 import Notifications from './pages/Responsable/Planning/Notifications';
+import DDR from './pages/Responsable/DDRdisplay/display';
 function App() {
     return (
         <div className="app-container">
@@ -70,6 +71,7 @@ function App() {
                         {/* Contenus Responsable d'exploitation */}
                         <Route path='Accueil' element={<Accueil />} />
                         <Route path='Notifications' element={<Notifications />} />
+                        <Route path='DDR' element={<DDR />} />
                     </Route>
                 </Routes>
             </Router>
