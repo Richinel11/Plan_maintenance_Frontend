@@ -28,6 +28,7 @@ import AlertesView from './pages/G-Plan/Alertes/AlertesView';
 import Accueil from './pages/Responsable/Accueil/accueil';
 import Notifications from './pages/Responsable/Planning/Notifications';
 import DDRDetailPage from './pages/Responsable/DDR/DDRDetailPage';
+import DDR from './pages/Responsable/DDRdisplay/display';
 function App() {
     return (
         <div className="app-container">
@@ -74,6 +75,7 @@ function App() {
                         <Route path='Accueil' element={<Accueil />} />
                         <Route path='Notifications' element={<Notifications />} />
                         <Route path='ddr/:ddrId' element={<DDRDetailPage />} />
+                        <Route path='DDR' element={<DDR />} />
                     </Route>
                 </Routes>
             </Router>

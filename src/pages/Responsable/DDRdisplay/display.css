@@ -1,0 +1,252 @@
+body {
+  margin: 0;
+  font-family: Arial;
+  background: #f6f7fb;
+}
+
+
+
+.content {
+  width: min(900px, 95%);
+  margin: auto;
+  padding: 16px;
+}
+
+/* HEADER RESPONSIVE */
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.page-header h1 {
+  font-size: 18px;
+}
+
+.page-header h1 span {
+  color: #1a56db;
+}
+
+.page-header p {
+  font-size: 12px;
+  color: #666;
+  max-width: 500px;
+}
+
+.badge {
+  background: #fff3e6;
+  color: #d97706;
+  padding: 6px 10px;
+  border-radius: 8px;
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  font-size: 12px;
+}
+
+/* CARD */
+.card {
+  background: rgb(237, 239, 240);
+  border-radius: 10px;
+  margin-top: 12px;
+  border: 1px solid #eee;
+  
+}
+
+
+
+/* HEADER INSIDE CARD */
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  padding: 12px;
+  border-bottom: 1px solid #eee;
+  flex-wrap: wrap;
+}
+
+.title {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.btn {
+  border: 1px solid #1a56db;
+  background: white;
+  padding: 6px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+.side{
+    height: 250px;
+   
+}
+/* DOC */
+.doc {
+  padding: 12px;
+}
+
+.doc-box {
+  border: 1px solid #ddd;
+  padding: 12px;
+}
+
+.doc-top {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+
+.doc-title {
+  color: #1a56db;
+  font-weight: bold;
+}
+
+.docItem{
+    height: 60px;
+    margin-bottom: -20px;
+    margin-top: -10px;
+    /* border-radius: 10px; */
+}
+
+input{
+    border-radius: 5px;
+    border: none;
+    padding: 10px;
+}
+
+.doc-sub {
+  font-size: 10px;
+  color: gray;
+}
+
+.lines div {
+  height: 6px;
+  background: #eee;
+  margin: 6px 0;
+}
+
+.seal {
+  text-align: center;
+  margin-top: 10px;
+  /* background-color: #d97706; */
+  border-radius: 30px;
+  width: 10%;
+  height: 50px;
+  justify-content: center;
+  align-items: center;
+  display: flex;
+  margin-left: 280px;
+  border: 3px solid rgb(193, 209, 224);
+}
+
+
+/* TEXTAREA */
+.section {
+  padding: 12px;
+  font-size: 15px;
+  font-weight: bolder;
+  border-bottom: 1px solid #eee;
+}
+
+textarea {
+  width: 100%;
+  min-height: 120px;
+  border: none;
+  padding: 12px;
+  outline: none;
+  resize: vertical;
+  background: #fafafa;
+}
+
+.count {
+  text-align: right;
+  font-size: 11px;
+  padding: 6px 10px;
+  color: gray;
+}
+
+/* GRID RESPONSIVE */
+.grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 12px;
+}
+
+/* MOBILE */
+@media (max-width: 768px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* DROPZONE */
+.drop {
+  margin: 12px;
+  padding: 20px;
+  border: 2px dashed #ccc;
+  text-align: center;
+  background: #fafafa;
+  cursor: pointer;
+  border-radius: 10px;
+  height: 50px;
+}
+
+.drop.active {
+  background: #e8f0fe;
+  border-color: #1a56db;
+}
+
+/* FILES */
+.files {
+  padding: 10px;
+}
+
+.file {
+  display: flex;
+  justify-content: space-between;
+  background: #f8f8f8;
+  padding: 8px;
+  border-radius: 6px;
+  margin-bottom: 6px;
+}
+
+/* RIGHT PANEL */
+.side .docItem {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px;
+  border-bottom: 1px solid #eee;
+}
+
+/* FOOTER RESPONSIVE */
+.footer {
+  position: fixed;
+  bottom: 0;
+  width: 100%;
+  background: white;
+  display: flex;
+  justify-content: space-between;
+  padding: 10px;
+  border-top: 1px solid #eee;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.footer button {
+  flex: 1;
+  padding: 12px;
+  border: none;
+  cursor: pointer;
+}
+
+.back {
+  background: #eee;
+}
+
+.primary {
+  background: #1a56db;
+  color: white;
+  border-radius: 6px;
+}
