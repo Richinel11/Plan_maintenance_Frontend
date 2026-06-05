@@ -16,9 +16,8 @@ export const menuConfig = {
         { path: '/dashboard/alertes',        name: 'Alertes',    icon: 'notifications'  },
     ],
     resp_exploit: [
-        { path: '/dashboard/validations', name: 'Validation Plannings', icon: 'rule' },
-        { path: '/dashboard/ddr', name: 'Demandes DDR', icon: 'assignment' },
-        { path: '/dashboard/napt', name: 'Documents NAPT', icon: 'description' },
+        { path: '/dashboard/Accueil', name: 'Accueil', icon: 'dashboard' },
+        { path: '/dashboard/Notifications', name: 'Plannings', icon: 'assignment' },
     ],
     ccr: [
         { path: '/dashboard/traitement-ddr', name: 'Traitement DDR', icon: 'task' },
@@ -62,6 +61,10 @@ menuConfig['gestionnaire de planification'] = menuConfig['gest_planif'];
 menuConfig['gest_planification'] = menuConfig['gest_planif'];
 menuConfig['Gestionnaire_Planification'] = menuConfig['gest_planif'];
 menuConfig['RESP_EXPLOIT'] = menuConfig['resp_exploit'];
+menuConfig['RESPONSABLE_EXPLOITATION'] = menuConfig['resp_exploit'];
+menuConfig['responsable_exploitation'] = menuConfig['resp_exploit'];
+menuConfig["responsable_d'exploitation"] = menuConfig['resp_exploit'];
+menuConfig['responsable_d_exploitation'] = menuConfig['resp_exploit'];
 menuConfig['CCR'] = menuConfig['ccr'];
 menuConfig['REG_AUDIT'] = menuConfig['reg_audit'];
 menuConfig['EQ_COMM'] = menuConfig['eq_comm'];

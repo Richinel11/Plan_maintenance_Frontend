@@ -1,8 +1,6 @@
 import { useEffect, useState } from "react";
-import { getPlannings } from "../../../API/planningService";
-import { Funnel } from 'lucide-react';
+import { getPlannings } from "../../../services/planningService";
 import "./accueil.css";
-import Liste from "../components/liste/liste";
 
 const notifications = [
   { cls: "blue",   icon: "✉️", title: "Nouveau Planning Reçu",  desc: "L'entité Logistique a soumis un nouveau planning [REF-2023-089] pour validation.", time: "il y a 5 min"   },
@@ -104,8 +102,6 @@ export default function PlanningDashboardCSS() {
               </div>
             </div>
           </div>
- 
-              <Liste plannings={plannings} />
  
         </div>
       </div>

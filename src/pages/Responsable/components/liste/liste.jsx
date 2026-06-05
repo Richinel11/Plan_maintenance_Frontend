@@ -4,7 +4,7 @@ import "../../Accueil/accueil.css";
 
 
  
-export default function Table({ plannings }) {
+export default function Table({ plannings = [] }) {
     const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
   
