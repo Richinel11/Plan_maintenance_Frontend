@@ -1,0 +1,121 @@
+/* ════════════════════════════════════════════════════════════════
+   CcrDDRActionPage — styles spécifiques CCR
+   (réutilise ConsultationPage.css pour le layout)
+   ════════════════════════════════════════════════════════════════ */
+
+/* ── Toolbar ───────────────────────────────────────────────── */
+.ccr-toolbar-left {
+  display: flex;
+  gap: 8px;
+}
+
+.ccr-action-btns {
+  display: flex;
+  gap: 10px;
+  margin-left: auto;
+}
+
+/* ── Bouton Rejeter ────────────────────────────────────────── */
+.ccr-btn-rejeter {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 18px;
+  border: 1.5px solid #ef4444;
+  border-radius: 8px;
+  background: #fff;
+  color: #ef4444;
+  font-size: 13px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.ccr-btn-rejeter:hover:not(:disabled) {
+  background: #fff1f2;
+}
+.ccr-btn-rejeter:disabled { opacity: 0.55; cursor: not-allowed; }
+.ccr-btn-rejeter .material-symbols-outlined { font-size: 17px; }
+
+/* ── Bouton Valider ────────────────────────────────────────── */
+.ccr-btn-valider {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 20px;
+  border: none;
+  border-radius: 8px;
+  background: #16a34a;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.ccr-btn-valider:hover:not(:disabled) { background: #15803d; }
+.ccr-btn-valider:disabled { opacity: 0.55; cursor: not-allowed; }
+.ccr-btn-valider .material-symbols-outlined { font-size: 17px; }
+
+/* ── Panneau de rejet (inline dans l'aside) ────────────────── */
+.ccr-rejet-panel {
+  background: #fff5f5;
+  border: 1.5px solid #fecaca;
+  border-radius: 10px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.ccr-motif-input {
+  width: 100%;
+  border: 1px solid #fca5a5;
+  border-radius: 8px;
+  padding: 8px 10px;
+  font-size: 12px;
+  font-family: inherit;
+  resize: vertical;
+  outline: none;
+  background: #fff;
+  color: #1e293b;
+  line-height: 1.5;
+  box-sizing: border-box;
+  transition: border-color 0.2s;
+}
+.ccr-motif-input:focus { border-color: #ef4444; }
+
+.ccr-rejet-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.ccr-btn-annuler-rejet {
+  padding: 6px 14px;
+  border: 1px solid #e2e8f0;
+  border-radius: 7px;
+  background: #fff;
+  color: #64748b;
+  font-size: 12px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.ccr-btn-annuler-rejet:hover { background: #f1f5f9; }
+
+.ccr-btn-confirmer-rejet {
+  padding: 6px 14px;
+  border: none;
+  border-radius: 7px;
+  background: #ef4444;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.ccr-btn-confirmer-rejet:hover:not(:disabled) { background: #dc2626; }
+.ccr-btn-confirmer-rejet:disabled { opacity: 0.5; cursor: not-allowed; }

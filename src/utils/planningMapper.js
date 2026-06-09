@@ -163,8 +163,5 @@ export const mapPlanningPayload = (data) => {
     // Booleans
     statut_probleme: data.statut_probleme || false,
     travail_en_alignement: data.travail_en_alignement || false,
-
-    // Statut
-    statut_travaux: data.statut_travaux ? String(data.statut_travaux).trim() : "CREER",
   };
 };

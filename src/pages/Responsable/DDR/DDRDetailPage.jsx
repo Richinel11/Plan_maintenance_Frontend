@@ -1,47 +1,61 @@
-import React, { useRef, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import React, { useRef } from 'react';
+import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import DDRView from '../../../components/shared/DDRView/DDRView';
 import './DDRDetailPage.css';
 
 const DDRDetailPage = () => {
-  const navigate   = useNavigate();
-  const { ddrId }  = useParams();
-  const ddrRef     = useRef();
-  const [readOnly, setReadOnly] = useState(false);
+  const navigate        = useNavigate();
+  const { ddrId }       = useParams();
+  const location        = useLocation();
+  const ddrRef          = useRef();
 
-  const handleAnnuler = () => navigate(-1);
+  const isReadOnly = location.state?.readOnly === true;
 
+  const handleRetour   = () => navigate(-1);
   const handleImprimer = () => window.print();
-
-  const handleValider = () => {
-    const formData = ddrRef.current?.getFormData();
-    console.log('[DDR] Données à enregistrer :', formData);
-    setReadOnly(true);
-  };
+  const handleValider  = () => navigate(`/dashboard/ddr/${ddrId}/valider`);
 
   return (
     <div className="ddr-page">
 
       <div className="ddr-page-body">
-        <DDRView ref={ddrRef} ddrId={ddrId} readOnly={readOnly} />
+        <DDRView ref={ddrRef} ddrId={ddrId} readOnly={isReadOnly} />
       </div>
 
       <div className="ddr-footer no-print">
-        <button className="ddr-btn-annuler" onClick={handleAnnuler}>
-          Annuler
-        </button>
-        <div className="ddr-footer-right">
-          {readOnly && (
-            <button className="ddr-btn-annuler" onClick={handleImprimer}>
-              🖨 Imprimer
+
+        {isReadOnly ? (
+          /* ── Mode consultation (depuis Historique) ── */
+          <>
+            <button className="ddr-btn-annuler" onClick={handleRetour}>
+              ← Retour
             </button>
-          )}
-          {!readOnly && (
-            <button className="ddr-btn-valider" onClick={handleValider}>
-              Valider
+            <div className="ddr-footer-right">
+              <button className="ddr-btn-annuler" onClick={handleImprimer}>
+                🖨 Imprimer
+              </button>
+              <button className="ddr-btn-annuler" onClick={handleImprimer}>
+                ⬇ Exporter
+              </button>
+            </div>
+          </>
+        ) : (
+          /* ── Mode édition (depuis Planning) ── */
+          <>
+            <button className="ddr-btn-annuler" onClick={handleRetour}>
+              Annuler
             </button>
-          )}
-        </div>
+            <div className="ddr-footer-right">
+              <button className="ddr-btn-annuler" onClick={handleImprimer}>
+                🖨 Imprimer
+              </button>
+              <button className="ddr-btn-valider" onClick={handleValider}>
+                Valider
+              </button>
+            </div>
+          </>
+        )}
+
       </div>
 
     </div>

@@ -1,0 +1,335 @@
+/* ═══════════════════════════════════════════════════════
+   Historique — tous les sélecteurs préfixés .hist-
+   ═══════════════════════════════════════════════════════ */
+
+.hist-page {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.hist-loading {
+  padding: 3rem;
+  text-align: center;
+  color: #94a3b8;
+  font-size: 14px;
+}
+
+/* ── EN-TÊTE ──────────────────────────────────────────── */
+.hist-header { padding-bottom: 4px; }
+
+.hist-title {
+  font-size: 24px;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0 0 6px;
+}
+
+.hist-subtitle {
+  font-size: 13px;
+  color: #64748b;
+  margin: 0;
+  max-width: 600px;
+}
+
+/* ── STATS ────────────────────────────────────────────── */
+.hist-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+}
+
+.hist-stat-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 18px 20px;
+}
+
+.hist-stat-card--blue { border-color: #bfdbfe; background: #eff6ff; }
+.hist-stat-card--green { border-color: #bbf7d0; background: #f0fdf4; }
+
+.hist-stat-label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.7px;
+  color: #64748b;
+  margin-bottom: 8px;
+}
+
+.hist-stat-card--blue  .hist-stat-label { color: #1B75BB; }
+.hist-stat-card--green .hist-stat-label { color: #16a34a; }
+
+.hist-stat-value {
+  font-size: 30px;
+  font-weight: 700;
+  color: #1e293b;
+  line-height: 1;
+}
+
+.hist-stat-value--blue  { color: #1B75BB; }
+.hist-stat-value--green { color: #16a34a; }
+
+/* ── FILTRES ──────────────────────────────────────────── */
+.hist-filters {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.hist-search-wrap {
+  flex: 1;
+  min-width: 240px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 0 14px;
+}
+
+.hist-search-icon {
+  font-size: 18px;
+  color: #94a3b8;
+  flex-shrink: 0;
+}
+
+.hist-search {
+  flex: 1;
+  border: none;
+  outline: none;
+  font-size: 13px;
+  font-family: inherit;
+  color: #1e293b;
+  background: transparent;
+  padding: 10px 0;
+}
+
+.hist-search::placeholder { color: #94a3b8; }
+
+.hist-filter-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.hist-period-tabs {
+  display: flex;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.hist-period-btn {
+  padding: 8px 14px;
+  border: none;
+  background: transparent;
+  font-size: 12px;
+  font-weight: 500;
+  color: #64748b;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.15s;
+}
+
+.hist-period-btn--active {
+  background: #1B75BB;
+  color: #ffffff;
+  font-weight: 600;
+}
+
+.hist-period-btn:hover:not(.hist-period-btn--active) { background: #f8fafc; }
+
+.hist-type-select {
+  padding: 8px 12px;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  background: #ffffff;
+  font-size: 13px;
+  font-family: inherit;
+  color: #374151;
+  outline: none;
+  cursor: pointer;
+}
+
+/* ── TABLEAU ──────────────────────────────────────────── */
+.hist-table-wrap {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.hist-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.hist-table th {
+  background: #f8fafc;
+  padding: 11px 16px;
+  text-align: left;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #64748b;
+  border-bottom: 1px solid #e2e8f0;
+  white-space: nowrap;
+}
+
+.hist-table td {
+  padding: 14px 16px;
+  border-bottom: 1px solid #f1f5f9;
+  color: #374151;
+  vertical-align: middle;
+}
+
+.hist-table tbody tr:last-child td { border-bottom: none; }
+
+.hist-row--clickable {
+  cursor: pointer;
+  transition: background 0.12s;
+}
+.hist-row--clickable:hover { background: #f8fafc; }
+
+/* Type badge */
+.hist-badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+}
+
+.hist-badge--ddr  { background: #dbeafe; color: #1B75BB; }
+.hist-badge--napt { background: #dcfce7; color: #16a34a; }
+
+/* Référence */
+.hist-ref {
+  color: #1B75BB;
+  font-weight: 600;
+}
+
+/* Statut */
+.hist-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 500;
+}
+
+.hist-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.hist-status--green .hist-dot  { background: #22c55e; }
+.hist-status--red   .hist-dot  { background: #ef4444; }
+.hist-status--orange .hist-dot { background: #f97316; }
+.hist-status--blue  .hist-dot  { background: #1B75BB; }
+.hist-status--grey  .hist-dot  { background: #94a3b8; }
+
+.hist-status--green  { color: #16a34a; }
+.hist-status--red    { color: #dc2626; }
+.hist-status--orange { color: #ea580c; }
+.hist-status--blue   { color: #1B75BB; }
+.hist-status--grey   { color: #64748b; }
+
+/* Date */
+.hist-date { color: #475569; font-size: 12px; white-space: nowrap; }
+
+/* Owner */
+.hist-owner {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.hist-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #dbeafe;
+  color: #1B75BB;
+  font-size: 10px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+/* Vide */
+.hist-empty {
+  text-align: center;
+  padding: 3rem;
+  color: #94a3b8;
+  font-size: 13px;
+}
+
+/* ── PAGINATION ───────────────────────────────────────── */
+.hist-pagination {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.hist-pag-info {
+  font-size: 12px;
+  color: #64748b;
+}
+
+.hist-pag-controls {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.hist-pag-btn {
+  width: 32px;
+  height: 32px;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  background: #ffffff;
+  font-size: 13px;
+  font-weight: 500;
+  color: #374151;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.15s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.hist-pag-btn:hover:not(:disabled):not(.hist-pag-btn--active) { background: #f1f5f9; }
+.hist-pag-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.hist-pag-btn--active  { background: #1B75BB; color: #ffffff; border-color: #1B75BB; }
+
+.hist-pag-ellipsis {
+  font-size: 13px;
+  color: #94a3b8;
+  padding: 0 4px;
+}
+
+/* ── RESPONSIVE ───────────────────────────────────────── */
+@media (max-width: 768px) {
+  .hist-stats { grid-template-columns: 1fr 1fr; }
+  .hist-filter-right { width: 100%; }
+}
+
+@media (max-width: 500px) {
+  .hist-stats { grid-template-columns: 1fr; }
+}

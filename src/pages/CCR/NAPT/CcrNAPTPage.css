@@ -1,0 +1,48 @@
+/* ════════════════════════════════════════════════════════════════
+   CcrNAPTPage
+   ════════════════════════════════════════════════════════════════ */
+
+/* ── Bouton Diffuser ─────────────────────────────────────────── */
+.napt-btn-diffuser {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 22px;
+  border: none;
+  border-radius: 8px;
+  background: #1B75BB;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.napt-btn-diffuser:hover:not(:disabled) { background: #005c98; }
+.napt-btn-diffuser:disabled { opacity: 0.55; cursor: not-allowed; }
+.napt-btn-diffuser .material-symbols-outlined { font-size: 17px; }
+
+/* ── Note d'information ──────────────────────────────────────── */
+.napt-edit-info {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  border-radius: 10px;
+  padding: 12px 14px;
+}
+
+.napt-edit-info .material-symbols-outlined {
+  font-size: 18px;
+  color: #1B75BB;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.napt-edit-info p {
+  font-size: 12px;
+  color: #1e40af;
+  line-height: 1.55;
+  margin: 0;
+}

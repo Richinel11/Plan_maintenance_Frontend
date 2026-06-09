@@ -14,14 +14,17 @@ export const menuConfig = {
         { path: '/dashboard/dashboard-plan', name: 'Accueil',    icon: 'dashboard'      },
         { path: '/dashboard/Calendar',       name: 'Calendrier', icon: 'calendar_month' },
         { path: '/dashboard/alertes',        name: 'Alertes',    icon: 'notifications'  },
+        { path: '/dashboard/historique',     name: 'Historique', icon: 'history'        },
     ],
     resp_exploit: [
-        { path: '/dashboard/Accueil', name: 'Accueil', icon: 'dashboard' },
-        { path: '/dashboard/Notifications', name: 'Plannings', icon: 'assignment' },
+        { path: '/dashboard/Accueil',       name: 'Accueil',     icon: 'dashboard'  },
+        { path: '/dashboard/Notifications', name: 'Plannings',   icon: 'assignment' },
+        { path: '/dashboard/historique',    name: 'Historique',  icon: 'history'    },
     ],
     ccr: [
-        { path: '/dashboard/traitement-ddr', name: 'Traitement DDR', icon: 'task' },
-        { path: '/dashboard/validation-napt', name: 'Validation NAPT', icon: 'verified_user' },
+        { path: '/dashboard/ccr-accueil',    name: 'Accueil',    icon: 'dashboard' },
+        { path: '/dashboard/traitement-ddr', name: 'DDR',        icon: 'task'      },
+        { path: '/dashboard/ccr-historique', name: 'Historique', icon: 'history'   },
     ],
     reg_audit: [
         { path: '/dashboard/audit-plannings', name: 'Plannings', icon: 'visibility' },
@@ -30,7 +33,8 @@ export const menuConfig = {
         { path: '/dashboard/export', name: 'Export Global', icon: 'download' },
     ],
     eq_comm: [
-        { path: '/dashboard/alertes-publiques', name: 'Alertes Publiques', icon: 'campaign' },
+        { path: '/dashboard/comm-accueil', name: 'Accueil', icon: 'dashboard' },
+        { path: '/dashboard/comm-napt',    name: 'NAPT',    icon: 'policy'    },
     ],
     //rofil Administrateur Système (Gestion Permissions et workflow)
     admin: [
@@ -56,10 +60,11 @@ menuConfig['opérateur_de_saisie'] = menuConfig['operateur_de_saisie'];
 menuConfig['ADMIN'] = menuConfig['admin'];
 menuConfig['ADMINISTRATEUR'] = menuConfig['admin'];
 menuConfig['administrateur'] = menuConfig['admin'];
-menuConfig['GESTIONNAIRE_PLANNING'] = menuConfig['gest_planif'];
-menuConfig['gestionnaire de planification'] = menuConfig['gest_planif'];
-menuConfig['gest_planification'] = menuConfig['gest_planif'];
-menuConfig['Gestionnaire_Planification'] = menuConfig['gest_planif'];
+menuConfig['GESTIONNAIRE_PLANNING'] = menuConfig['gestionnaire_de_planification'];
+menuConfig['gestionnaire de planification'] = menuConfig['gestionnaire_de_planification'];
+menuConfig['gest_planification'] = menuConfig['gestionnaire_de_planification'];
+menuConfig['Gestionnaire_Planification'] = menuConfig['gestionnaire_de_planification'];
+menuConfig['gest_planif'] = menuConfig['gestionnaire_de_planification'];
 menuConfig['RESP_EXPLOIT'] = menuConfig['resp_exploit'];
 menuConfig['RESPONSABLE_EXPLOITATION'] = menuConfig['resp_exploit'];
 menuConfig['responsable_exploitation'] = menuConfig['resp_exploit'];
@@ -67,4 +72,6 @@ menuConfig["responsable_d'exploitation"] = menuConfig['resp_exploit'];
 menuConfig['responsable_d_exploitation'] = menuConfig['resp_exploit'];
 menuConfig['CCR'] = menuConfig['ccr'];
 menuConfig['REG_AUDIT'] = menuConfig['reg_audit'];
-menuConfig['EQ_COMM'] = menuConfig['eq_comm'];
+menuConfig['EQ_COMM']        = menuConfig['eq_comm'];
+menuConfig['COMMUNICATION']  = menuConfig['eq_comm'];
+menuConfig['communication']  = menuConfig['eq_comm'];

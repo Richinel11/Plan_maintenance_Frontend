@@ -1,0 +1,130 @@
+/* ════════════════════════════════════════════════════════════════
+   NAPTView — surcharge légère au-dessus de DDRView.css
+   ════════════════════════════════════════════════════════════════ */
+
+/* ── Colonnes ENF étroites ─────────────────────────────────── */
+.napt-input-narrow {
+  max-width: 68px;
+}
+
+/* ── Zones impactées ─────────────────────────────────────────── */
+.napt-zones-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px dashed #e2e8f0;
+  flex-wrap: wrap;
+}
+
+.napt-zones-input {
+  flex: 1;
+  min-width: 200px;
+}
+
+/* ── ENF global (Distribution / Production) ─────────────────── */
+.napt-enf-global {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+  padding: 10px 14px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  flex-wrap: wrap;
+}
+
+.napt-enf-global .ddr-label {
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+/* ── Blocs chantier (Transport) ──────────────────────────────── */
+.napt-chantier-block {
+  margin-bottom: 18px;
+  border: 1px solid #dbeafe;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.napt-chantier-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 14px;
+  background: linear-gradient(135deg, #eff6ff 0%, #f0f9ff 100%);
+  border-bottom: 1px solid #dbeafe;
+}
+
+.napt-chantier-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: #1B75BB;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.napt-chantier-input {
+  font-weight: 700;
+  color: #1B75BB;
+  min-width: 130px;
+}
+
+.napt-chantier-consistance {
+  padding: 10px 14px;
+  background: #fafbfc;
+  border-bottom: 1px solid #f1f5f9;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.napt-btn-add-chantier {
+  width: 100%;
+  text-align: center;
+  margin-top: 4px;
+}
+
+/* ── Prévisions ENF (Transport) ──────────────────────────────── */
+.napt-previsions {
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid #e2e8f0;
+}
+
+.napt-prev-table { margin-top: 6px; }
+
+.napt-prev-total td {
+  background: #eff6ff;
+  font-weight: 700;
+  color: #1B75BB;
+}
+
+.napt-td-center { text-align: center; }
+
+/* ── Signature centrée ──────────────────────────────────────── */
+.napt-signature-bar { justify-content: center; }
+
+.napt-signataire-input {
+  display: block;
+  text-align: center;
+  min-width: 220px;
+  margin: 0 auto 1.5rem;
+}
+
+.napt-signataire-name {
+  text-align: center;
+  margin-bottom: 1.5rem;
+  font-size: 13px;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+/* ── Impression ─────────────────────────────────────────────── */
+@media print {
+  .napt-chantier-header { background: transparent; }
+  .napt-chantier-block  { border: 1px solid #ccc; }
+  .napt-btn-add-chantier { display: none !important; }
+}

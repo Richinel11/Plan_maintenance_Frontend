@@ -28,7 +28,17 @@ import AlertesView from './pages/G-Plan/Alertes/AlertesView';
 import Accueil from './pages/Responsable/Accueil/accueil';
 import Notifications from './pages/Responsable/Planning/Notifications';
 import DDRDetailPage from './pages/Responsable/DDR/DDRDetailPage';
-import DDR from './pages/Responsable/DDRdisplay/display';
+import DDRValiderPage from './pages/Responsable/DDRdisplay/DDRValiderPage';
+import Historique from './pages/Responsable/Historique/Historique';
+import ConsultationPage from './pages/Responsable/Consultation/ConsultationPage';
+import CcrAccueil from './pages/CCR/Accueil/CcrAccueil';
+import TraitementDDR from './pages/CCR/TraitementDDR/TraitementDDR';
+import CcrHistorique from './pages/CCR/Historique/Historique';
+import CcrDDRActionPage from './pages/CCR/DDRAction/CcrDDRActionPage';
+import CcrDDRRefusPage from './pages/CCR/DDRRefus/CcrDDRRefusPage';
+import CcrNAPTPage from './pages/CCR/NAPT/CcrNAPTPage';
+import CommAccueil from './pages/Communication/Accueil/CommAccueil';
+import CommNAPTPage from './pages/Communication/NAPT/CommNAPTPage';
 function App() {
     return (
         <div className="app-container">
@@ -74,8 +84,23 @@ function App() {
                         {/* Contenus Responsable d'exploitation */}
                         <Route path='Accueil' element={<Accueil />} />
                         <Route path='Notifications' element={<Notifications />} />
+                        <Route path='historique' element={<Historique />} />
+                        <Route path='consultation/ddr/:id'  element={<ConsultationPage type="DDR"  />} />
+                        <Route path='consultation/napt/:id' element={<ConsultationPage type="NAPT" />} />
                         <Route path='ddr/:ddrId' element={<DDRDetailPage />} />
-                        <Route path='DDR' element={<DDR />} />
+                        <Route path='ddr/:ddrId/valider' element={<DDRValiderPage />} />
+
+                        {/* Contenus Communication */}
+                        <Route path='comm-accueil' element={<CommAccueil />} />
+                        <Route path='comm-napt'    element={<CommNAPTPage />} />
+
+                        {/* Contenus CCR */}
+                        <Route path='ccr-accueil'        element={<CcrAccueil />} />
+                        <Route path='traitement-ddr'     element={<TraitementDDR />} />
+                        <Route path='ccr-historique'     element={<CcrHistorique />} />
+                        <Route path='ccr/ddr/:ddrId'          element={<CcrDDRActionPage />} />
+                        <Route path='ccr/ddr/:ddrId/refuser'  element={<CcrDDRRefusPage />} />
+                        <Route path='ccr/napt/:naptId'        element={<CcrNAPTPage />} />
                     </Route>
                 </Routes>
             </Router>

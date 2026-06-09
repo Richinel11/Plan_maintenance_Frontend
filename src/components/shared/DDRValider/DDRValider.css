@@ -1,0 +1,386 @@
+/* ═══════════════════════════════════════════════════════════
+   DDRValider — tous les sélecteurs préfixés .ddrv-
+   pour éviter tout conflit avec le reste de l'application
+   ═══════════════════════════════════════════════════════════ */
+
+.ddrv-page {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  max-width: 960px;
+  margin: 0 auto;
+  padding-bottom: 16px;
+}
+
+/* ── EN-TÊTE ─────────────────────────────────────────────── */
+.ddrv-header {
+  padding: 4px 0 8px;
+}
+
+.ddrv-title {
+  font-size: 22px;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0 0 4px;
+}
+
+.ddrv-ref {
+  font-size: 13px;
+  color: #64748b;
+  font-family: monospace;
+  margin: 0;
+}
+
+.ddrv-ref strong {
+  color: #1e293b;
+}
+
+/* ── CARD GÉNÉRIQUE ──────────────────────────────────────── */
+.ddrv-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.ddrv-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 18px;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.ddrv-card-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.ddrv-card-title .material-symbols-outlined {
+  font-size: 20px;
+  color: #1B75BB;
+}
+
+.ddrv-apercu-btn {
+  padding: 6px 18px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #1B75BB;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background 0.15s;
+}
+.ddrv-apercu-btn:hover { background: #eff6ff; }
+
+/* ── APERÇU DDR ──────────────────────────────────────────── */
+.ddrv-preview-wrap {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  background: #f8fafc;
+}
+
+.ddrv-doc-box {
+  width: 100%;
+  max-width: 540px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 18px 20px;
+}
+
+.ddrv-doc-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 14px;
+}
+
+.ddrv-doc-name {
+  font-size: 15px;
+  font-weight: 700;
+  color: #1B75BB;
+  letter-spacing: 0.5px;
+}
+
+.ddrv-doc-sub {
+  font-size: 10px;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  margin-top: 3px;
+}
+
+.ddrv-doc-meta {
+  text-align: right;
+  font-size: 12px;
+  color: #64748b;
+  line-height: 1.6;
+}
+
+.ddrv-lines {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  margin-bottom: 8px;
+}
+
+.ddrv-lines div {
+  height: 7px;
+  background: #f1f5f9;
+  border-radius: 4px;
+}
+
+.ddrv-lines-short {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  flex-direction: unset;
+}
+
+.ddrv-seal {
+  display: flex;
+  justify-content: center;
+  margin-top: 14px;
+}
+
+.ddrv-seal .material-symbols-outlined {
+  font-size: 36px;
+  color: #cbd5e1;
+}
+
+.ddrv-caption {
+  font-size: 12px;
+  color: #94a3b8;
+  text-align: center;
+  margin: 0;
+}
+
+/* ── SECTION DOCUMENTS (GRILLE 2 COL) ───────────────────── */
+.ddrv-docs-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 16px;
+  align-items: start;
+}
+
+.ddrv-section-label {
+  padding: 12px 18px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: #1B75BB;
+  border-bottom: 1px solid #f1f5f9;
+  border-left: 3px solid #1B75BB;
+}
+
+/* ── ZONE DRAG & DROP ────────────────────────────────────── */
+.ddrv-drop {
+  margin: 16px;
+  padding: 28px 20px;
+  border: 2px dashed #cbd5e1;
+  border-radius: 10px;
+  background: #f8fafc;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.ddrv-drop:hover,
+.ddrv-drop--active {
+  border-color: #1B75BB;
+  background: #eff6ff;
+}
+
+.ddrv-upload-icon {
+  font-size: 36px;
+  color: #1B75BB;
+  display: block;
+  margin-bottom: 8px;
+}
+
+.ddrv-drop-main {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1e293b;
+  margin: 0 0 4px;
+}
+
+.ddrv-drop-sub {
+  font-size: 12px;
+  color: #94a3b8;
+}
+
+.ddrv-formats {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.ddrv-formats span {
+  padding: 3px 10px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #475569;
+}
+
+/* ── LISTE DES FICHIERS ──────────────────────────────────── */
+.ddrv-empty {
+  padding: 20px 18px;
+  font-size: 13px;
+  color: #94a3b8;
+  text-align: center;
+  margin: 0;
+}
+
+.ddrv-file-list {
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.ddrv-file-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+}
+
+.ddrv-file-icon {
+  font-size: 16px;
+  color: #1B75BB;
+  flex-shrink: 0;
+}
+
+.ddrv-file-name {
+  font-size: 12px;
+  color: #374151;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ddrv-file-remove {
+  flex-shrink: 0;
+  background: none;
+  border: none;
+  color: #ef4444;
+  cursor: pointer;
+  font-size: 11px;
+  padding: 2px 5px;
+  border-radius: 4px;
+  transition: background 0.15s;
+  line-height: 1;
+}
+.ddrv-file-remove:hover { background: #fff1f2; }
+
+/* ── MOTIF DE REFUS ──────────────────────────────────────── */
+.ddrv-motif-body {
+  padding: 16px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.ddrv-motif-textarea {
+  width: 100%;
+  resize: vertical;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 13px;
+  font-family: inherit;
+  color: #1e293b;
+  background: #f8fafc;
+  transition: border-color 0.15s;
+  box-sizing: border-box;
+}
+.ddrv-motif-textarea:focus {
+  outline: none;
+  border-color: #1B75BB;
+  background: #ffffff;
+}
+
+.ddrv-motif-hint {
+  font-size: 11px;
+  color: #94a3b8;
+  margin: 0;
+}
+
+/* ── FOOTER ──────────────────────────────────────────────── */
+.ddrv-footer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 16px;
+  padding: 14px 20px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+}
+
+.ddrv-btn-retour {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 28px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #475569;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background 0.15s;
+  min-width: 160px;
+  justify-content: center;
+}
+.ddrv-btn-retour:hover { background: #f8fafc; }
+
+.ddrv-btn-retour .material-symbols-outlined {
+  font-size: 16px;
+}
+
+.ddrv-btn-soumettre {
+  padding: 10px 28px;
+  border: none;
+  border-radius: 8px;
+  background: #991b1b;
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background 0.15s;
+  min-width: 160px;
+}
+.ddrv-btn-soumettre:hover:not(:disabled) { background: #7f1d1d; }
+.ddrv-btn-soumettre:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* ── RESPONSIVE ──────────────────────────────────────────── */
+@media (max-width: 700px) {
+  .ddrv-docs-grid { grid-template-columns: 1fr; }
+}

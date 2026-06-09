@@ -36,10 +36,13 @@ const Sidebar = () => {
     console.log("Sidebar Debug - Active Role Code:", activeRoleCode, "Active Role Name:", activeRoleName);
 
     let dynamicLinks = [];
-    if (activeRoleName) {
-        const menuKey = activeRoleName.toLowerCase().replace(/\s+/g, '_');
+    if (activeRoleName || activeRoleCode) {
+        const menuKey = (activeRoleName || '').toLowerCase().replace(/\s+/g, '_');
         console.log("Sidebar Debug - Looking for menu with key:", menuKey);
-        dynamicLinks = menuConfig[menuKey] || [];
+        dynamicLinks = menuConfig[menuKey]
+            || menuConfig[activeRoleCode]
+            || menuConfig[(activeRoleCode || '').toLowerCase()]
+            || [];
     }
 
     // 3. État pour gérer l'ouverture des sous-menus (ex: Workflow)

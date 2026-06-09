@@ -102,6 +102,13 @@ Le chargé de travaux prendra toute autre disposition nécessaire pour assurer l
   if (!ddr)    return null;
 
   const t = ddr.travail;
+  const nomOuvrage = t?.reference?.items?.find(it => it.type?.nom?.toLowerCase() === 'ouvrage')?.valeur || '—';
+  const isTransport = t?.segment === 'TRANSPORT';
+  const companyLogo = isTransport ? '/logosonarel.png' : '/eneo.png';
+  const companyAlt  = isTransport ? 'SONATREL' : 'ENEO';
+  const orgLabel    = isTransport
+    ? "DIRECTION DE L'EXPLOITATION DES SYSTÈMES ÉLECTRIQUES\nSOUS-DIRECTION CONDUITE EN TEMPS RÉEL"
+    : "Direction de l'Exploitation et de la Maintenance Réseaux";
 
   const EditField = ({ fieldKey, type = 'text', placeholder = '', className = '' }) =>
     readOnly
@@ -114,8 +121,8 @@ Le chargé de travaux prendra toute autre disposition nécessaire pour assurer l
       {/* ── EN-TÊTE ─────────────────────────────────────────────── */}
       <div className="ddr-header">
         <div className="ddr-header-brand">
-          <img src="/eneo.png" alt="ENEO" className="ddr-logo-img" />
-          <div className="ddr-header-org">Direction de l'Exploitation et de la Maintenance Réseaux</div>
+          <img src={companyLogo} alt={companyAlt} className="ddr-logo-img" />
+          <div className="ddr-header-org" style={{ whiteSpace: 'pre-line' }}>{orgLabel}</div>
         </div>
         <table className="ddr-meta">
           <tbody>
@@ -166,7 +173,7 @@ Le chargé de travaux prendra toute autre disposition nécessaire pour assurer l
       <div className="ddr-section">
         <div className="ddr-section-label">Installation / Ouvrage à retirer de la conduite du réseau :</div>
         <div className="ddr-installation">
-          {t?.troncons_consignes || t?.reference?.valeur || '—'}
+          {nomOuvrage}
         </div>
       </div>
 
