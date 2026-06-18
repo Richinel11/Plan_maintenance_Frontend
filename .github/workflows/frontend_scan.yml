@@ -1,0 +1,29 @@
+name: Frontend Security Scan
+
+on:
+  push:
+    branches:
+      - bugfix/All_bug
+
+jobs:
+  frontend_security:
+    name: Run Frontend Security Scanners
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js Runtime
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Run Dependency Audit (SCA)
+        run: |
+          echo "Scanning frontend packages for security vulnerabilities..."
+          if [ -f package.json ]; then
+            npm audit --audit-level=high
+          else
+            echo "No package.json found. Skipping npm audit."
+          fi
