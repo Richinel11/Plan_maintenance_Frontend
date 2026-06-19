@@ -1494,6 +1494,14 @@ const handleAddPlanningRow = () => {
                                   ⚠️
                                 </button>
                               </div>
+                            ) : cellIndex === 0 && id && !row.__travail?.demande_retrait ? (
+                              <span
+                                className="ref-link"
+                                onClick={() => handleEditRowDetail(row)}
+                                title="Cliquer pour modifier ce travail"
+                              >
+                                {cell}
+                              </span>
                             ) : cell}
                           </td>
                         );

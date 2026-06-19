@@ -652,6 +652,18 @@ main,
 }
 
 /* Cellule avec un warning */
+.ref-link {
+  color: #1B75BB;
+  cursor: pointer;
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  transition: color 0.15s;
+}
+.ref-link:hover {
+  color: #1558a0;
+}
+
 .cell-with-warning {
   background: #fff8e1 !important;
   position: relative;
