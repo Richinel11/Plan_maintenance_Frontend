@@ -1,5 +1,33 @@
 import api from '../API/axiosInstance';
 
+/* ─── Cache en mémoire (TTL 5 minutes) ─────────────────────────────────────
+ *
+ * Principe : la première visite fait les vrais appels API et stocke le
+ * résultat ici. Les visites suivantes (dans la même session navigateur)
+ * reçoivent la donnée immédiatement, sans requête réseau.
+ * Après 5 minutes, la donnée est considérée périmée et re-téléchargée.
+ * Le bouton "Actualiser" appelle clearCache() pour forcer un rechargement.
+ *
+ * ─────────────────────────────────────────────────────────────────────────── */
+const TTL_MS = 5 * 60 * 1000; // 5 minutes
+const _cache = {};
+
+function getCached(key) {
+    const entry = _cache[key];
+    if (!entry) return null;
+    if (Date.now() - entry.ts > TTL_MS) { delete _cache[key]; return null; }
+    return entry.data;
+}
+
+function setCached(key, data) {
+    _cache[key] = { data, ts: Date.now() };
+}
+
+/** Vide tout le cache (à appeler avant un rechargement forcé par l'utilisateur). */
+export function clearCache() {
+    Object.keys(_cache).forEach(k => delete _cache[k]);
+}
+
 /**
  * Récupère toutes les pages d'un endpoint paginé DRF.
  *
@@ -35,22 +63,48 @@ const fetchAllPages = async (path) => {
 
 /**
  * Récupère tous les travaux (toutes pages confondues).
+ * Résultat mis en cache 5 min.
  *
  * @returns {Promise<Array<Travail>>}
  */
-export const fetchAllTravaux = () => fetchAllPages('/travaux/');
+export const fetchAllTravaux = async () => {
+    const cached = getCached('travaux');
+    if (cached) return cached;
+    const data = await fetchAllPages('/travaux/');
+    setCached('travaux', data);
+    return data;
+};
+
+/**
+ * Récupère tous les plannings (toutes pages confondues).
+ * Résultat mis en cache 5 min.
+ *
+ * @returns {Promise<Array<Planning>>}
+ */
+export const fetchAllPlannings = async () => {
+    const cached = getCached('plannings');
+    if (cached) return cached;
+    const data = await fetchAllPages('/plannings/');
+    setCached('plannings', data);
+    return data;
+};
 
 /**
  * Récupère les IDs des travaux en conflit et en opportunité d'harmonisation.
+ * Résultat mis en cache 5 min.
  *
  * @returns {Promise<{ conflitIds: Set<string>, opportuniteIds: Set<string> }>}
  */
 export const fetchConflitIds = async () => {
+    const cached = getCached('conflitIds');
+    if (cached) return cached;
     const response = await api.get('/travaux/conflits/');
-    return {
+    const data = {
         conflitIds:     new Set(response.data?.conflits                    || []),
         opportuniteIds: new Set(response.data?.opportunites_harmonisation  || []),
     };
+    setCached('conflitIds', data);
+    return data;
 };
 
 /**
@@ -127,12 +181,17 @@ export const fetchAlertes = async () => {
 /**
  * Lance l'analyse des chevauchements d'un planning et génère les propositions d'alignement.
  * POST /plannings/<planningId>/analyser-chevauchements/
+ * Résultat mis en cache 5 min par planning (clé = planningId).
  *
  * @param {string} planningId
  * @returns {{ message, resume, chevauchements, propositions }}
  */
 export const analyserChevauchements = async (planningId) => {
+    const key = `chevauchements_${planningId}`;
+    const cached = getCached(key);
+    if (cached) return cached;
     const response = await api.post(`/plannings/${planningId}/analyser-chevauchements/`);
+    setCached(key, response.data);
     return response.data;
 };
 

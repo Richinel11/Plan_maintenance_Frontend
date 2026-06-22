@@ -6,7 +6,7 @@ import { BsCheckCircleFill } from "react-icons/bs";
 import { RiCloseCircleLine } from "react-icons/ri";
 import { AiOutlineTool } from "react-icons/ai";
 import {
-    analyserChevauchements,
+    fetchPropositions,
     appliquerProposition,
     refuserProposition,
 } from "../../../../services/gplanService";
@@ -34,15 +34,15 @@ export default function AdvancedGantt() {
     useEffect(() => {
         if (!groupe) return;
 
-        // Prend le planningId du premier travail qui peut bouger,
-        // ou du premier travail si aucun ne peut bouger.
-        const cible = groupe.travaux.find(t => t.peut_bouger) || groupe.travaux[0];
-        if (!cible?.planning_id) return;
+        // planning_id est directement dans groupe (positionné par AlertesView)
+        // Fallback sur le premier travail pour la compatibilité
+        const pid = groupe.planning_id || groupe.travaux?.[0]?.planning_id;
+        if (!pid) return;
 
-        setPlanningId(cible.planning_id);
+        setPlanningId(pid);
         setLoading(true);
-        analyserChevauchements(cible.planning_id)
-            .then(data => setPropositions(data.propositions || []))
+        fetchPropositions(pid, 'EN_ATTENTE')
+            .then(data => setPropositions(Array.isArray(data) ? data : []))
             .catch(() => setPropositions([]))
             .finally(() => setLoading(false));
     }, [groupe?.id_groupe]);
@@ -173,8 +173,8 @@ export default function AdvancedGantt() {
                                 </td>
                                 <td><strong>{t.reference}</strong></td>
                                 <td>{t.planning_nom}</td>
-                                <td>{fmt(t.debut)}</td>
-                                <td>{fmt(t.fin)}</td>
+                                <td>{t.debut}</td>
+                                <td>{t.fin}</td>
                                 <td>{t.peut_bouger ? '✅ Oui' : '🔒 Non'}</td>
                             </tr>
                         ))}

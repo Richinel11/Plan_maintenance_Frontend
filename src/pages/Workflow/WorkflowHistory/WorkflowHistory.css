@@ -404,3 +404,46 @@
 @keyframes spin {
   to { transform: rotate(360deg); }
 }
+
+/* ==================== RESPONSIVE DESKTOP ==================== */
+@media (max-width: 1280px) {
+    .wfh-kpis {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    .wfh-filters-bar {
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+}
+
+@media (max-width: 1024px) {
+    .wfh-page {
+        padding: 20px 20px;
+    }
+    .wfh-kpis {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 14px;
+    }
+    .wfh-kpi-value {
+        font-size: 26px;
+    }
+    .wfh-header {
+        flex-wrap: wrap;
+        gap: 12px;
+    }
+    .wfh-filters-bar {
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+    .wfh-search-wrapper {
+        max-width: 100%;
+        flex: 1;
+        min-width: 200px;
+    }
+    .wfh-table th {
+        padding: 12px 14px;
+    }
+    .wfh-table td {
+        padding: 12px 14px;
+    }
+}

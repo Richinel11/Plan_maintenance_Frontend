@@ -1,12 +1,54 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { fetchAlertes } from '../../../services/gplanService';
+import { fetchAllPlannings, analyserChevauchements, clearCache } from '../../../services/gplanService';
 import './AlertesView.css';
+
+function buildGroupeFromChevauchement(chev, planningId, planningNom) {
+    const allTravaux = [
+        {
+            id:          chev.reference.id,
+            reference:   chev.reference.ressource,
+            segment:     chev.reference.segment,
+            planning_id: planningId,
+            planning_nom: planningNom,
+            debut:       chev.reference.debut,
+            fin:         chev.reference.fin,
+            peut_bouger: chev.reference.peut_bouger,
+        },
+        ...chev.travaux_en_conflit.map(t => ({
+            id:          t.id,
+            reference:   t.ressource,
+            segment:     t.segment,
+            planning_id: planningId,
+            planning_nom: planningNom,
+            debut:       t.debut,
+            fin:         t.fin,
+            peut_bouger: t.peut_bouger,
+        })),
+    ];
+
+    const ressourcesCommunes = [...new Set(
+        chev.travaux_en_conflit.flatMap(t => t.ressources_communes)
+    )];
+    const ressourcesAffichees = ressourcesCommunes.length > 0
+        ? ressourcesCommunes
+        : [chev.reference.ressource];
+
+    return {
+        id_groupe:        chev.reference.id.slice(0, 12),
+        type:             'CONFLIT',
+        statut:           'OUVERT',
+        planning_id:      planningId,
+        ressources_communes: ressourcesAffichees,
+        chevauchement:    `${chev.reference.debut} → ${chev.reference.fin}`,
+        nb_travaux:       allTravaux.length,
+        travaux:          allTravaux,
+    };
+}
 
 const FILTRES = [
     { key: 'TOUS',    label: 'Tous'      },
     { key: 'CONFLIT', label: 'Conflits'  },
-    { key: 'RESOLU',  label: 'Résolus'   },
 ];
 
 const SEGMENT_COLORS = {
@@ -15,12 +57,6 @@ const SEGMENT_COLORS = {
     PRODUCTION:   { bg: '#eff6ff', text: '#1d4ed8', dot: '#2563eb' },
 };
 
-const fmt = (iso) => {
-    if (!iso) return '—';
-    return new Date(iso).toLocaleDateString('fr-FR', {
-        day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit',
-    });
-};
 
 const AlertesView = () => {
     const navigate = useNavigate();
@@ -30,16 +66,37 @@ const AlertesView = () => {
     const [error,    setError]    = useState(null);
     const [filtre,   setFiltre]   = useState('TOUS');
 
-    const load = useCallback(() => {
+    const load = useCallback(async () => {
         setLoading(true);
         setError(null);
-        fetchAlertes()
-            .then(setGroupes)
-            .catch((err) => {
-                console.error('[AlertesView] Erreur chargement alertes :', err?.response?.data || err.message);
-                setError(`Impossible de charger les alertes. (${err?.response?.status ?? 'réseau'})`);
-            })
-            .finally(() => setLoading(false));
+        try {
+            const plannings = await fetchAllPlannings();
+
+            const results = await Promise.allSettled(
+                plannings.map(p =>
+                    analyserChevauchements(p.id).then(data => ({
+                        planningId:  p.id,
+                        planningNom: p.nom,
+                        chevauchements: data.chevauchements || [],
+                    }))
+                )
+            );
+
+            const groupes = [];
+            for (const r of results) {
+                if (r.status !== 'fulfilled') continue;
+                const { planningId, planningNom, chevauchements } = r.value;
+                for (const chev of chevauchements) {
+                    groupes.push(buildGroupeFromChevauchement(chev, planningId, planningNom));
+                }
+            }
+            setGroupes(groupes);
+        } catch (err) {
+            console.error('[AlertesView] Erreur chargement alertes :', err?.response?.data || err.message);
+            setError(`Impossible de charger les alertes. (${err?.response?.status ?? 'réseau'})`);
+        } finally {
+            setLoading(false);
+        }
     }, []);
 
     // Recharge à chaque fois qu'on arrive sur cette page
@@ -47,13 +104,11 @@ const AlertesView = () => {
 
     const filtered = groupes.filter(g => {
         if (filtre === 'TOUS')    return true;
-        if (filtre === 'RESOLU')  return g.statut === 'RESOLU';
-        if (filtre === 'CONFLIT') return g.statut !== 'RESOLU';
+        if (filtre === 'CONFLIT') return true;
         return true;
     });
 
-    const nbConflits = groupes.filter(g => g.statut === 'OUVERT').length;
-    const nbResolus  = groupes.filter(g => g.statut === 'RESOLU').length;
+    const nbConflits = groupes.length;
 
     const handleClick = (groupe) => {
         navigate('/dashboard/advanced-gantt', { state: { groupe } });
@@ -91,7 +146,7 @@ const AlertesView = () => {
                     <button
                         className="al-filtre-btn"
                         style={{ marginTop: 8 }}
-                        onClick={load}
+                        onClick={() => { clearCache(); load(); }}
                         title="Actualiser la liste"
                     >
                         ↻ Actualiser
@@ -100,11 +155,7 @@ const AlertesView = () => {
                 <div className="al-stats">
                     <div className="al-stat al-stat-conflit">
                         <span className="al-stat-num">{nbConflits}</span>
-                        <span className="al-stat-label">Conflit{nbConflits !== 1 ? 's' : ''}</span>
-                    </div>
-                    <div className="al-stat al-stat-resolu">
-                        <span className="al-stat-num">{nbResolus}</span>
-                        <span className="al-stat-label">Résolu{nbResolus !== 1 ? 's' : ''}</span>
+                        <span className="al-stat-label">Conflit{nbConflits !== 1 ? 's' : ''} détecté{nbConflits !== 1 ? 's' : ''}</span>
                     </div>
                 </div>
             </div>
@@ -119,9 +170,7 @@ const AlertesView = () => {
                     >
                         {f.label}
                         <span className="al-filtre-badge">
-                            {f.key === 'TOUS'    && groupes.length}
-                            {f.key === 'CONFLIT' && nbConflits}
-                            {f.key === 'RESOLU'  && nbResolus}
+                            {groupes.length}
                         </span>
                     </button>
                 ))}
@@ -130,19 +179,17 @@ const AlertesView = () => {
             {/* ── Liste des alertes ── */}
             {filtered.length === 0 ? (
                 <div className="al-empty">
-                    <span style={{ fontSize: 36 }}>
-                        {filtre === 'RESOLU' ? '✅' : '🎉'}
-                    </span>
-                    <p>{filtre === 'RESOLU' ? 'Aucune alerte résolue.' : 'Aucune alerte dans cette catégorie.'}</p>
+                    <span style={{ fontSize: 36 }}>🎉</span>
+                    <p>Aucun conflit détecté sur les plannings.</p>
                 </div>
             ) : (
                 <div className="al-list">
                     {filtered.map(groupe => (
                         <div
                             key={groupe.id_groupe}
-                            className={`al-card ${groupe.type === 'CONFLIT' ? 'al-card-conflit' : 'al-card-opportunite'} ${groupe.statut === 'RESOLU' ? 'al-card-resolu' : ''}`}
-                            onClick={() => groupe.statut !== 'RESOLU' && handleClick(groupe)}
-                            style={{ cursor: groupe.statut !== 'RESOLU' ? 'pointer' : 'default' }}
+                            className="al-card al-card-conflit"
+                            onClick={() => handleClick(groupe)}
+                            style={{ cursor: 'pointer' }}
                         >
                             {/* Indicateur latéral */}
                             <div className="al-card-side" />
@@ -155,8 +202,8 @@ const AlertesView = () => {
                                     <span className="al-type-badge badge-conflit">
                                         ⚠️ Conflit
                                     </span>
-                                    <span className={`al-statut-badge ${groupe.statut === 'RESOLU' ? 'statut-resolu' : 'statut-ouvert'}`}>
-                                        {groupe.statut === 'RESOLU' ? '✓ Résolu' : '● Ouvert'}
+                                    <span className="al-statut-badge statut-ouvert">
+                                        ● Ouvert
                                     </span>
                                 </div>
 
@@ -180,7 +227,7 @@ const AlertesView = () => {
                                                 </span>
                                                 <span className="al-travail-planning">{t.planning_nom}</span>
                                                 <span className="al-travail-dates">
-                                                    {fmt(t.debut)} → {fmt(t.fin)}
+                                                    {t.debut} → {t.fin}
                                                 </span>
                                             </div>
                                         );
@@ -195,9 +242,7 @@ const AlertesView = () => {
                                         </span>
                                     )}
                                     <span className="al-nb-travaux">{groupe.nb_travaux} travaux impliqués</span>
-                                    {groupe.statut !== 'RESOLU' && (
-                                        <span className="al-cta">Cliquer pour harmoniser →</span>
-                                    )}
+                                    <span className="al-cta">Cliquer pour voir les propositions →</span>
                                 </div>
                             </div>
                         </div>

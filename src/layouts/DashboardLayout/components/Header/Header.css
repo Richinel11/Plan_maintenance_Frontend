@@ -56,3 +56,15 @@
 .logout-btn-header:hover {
     opacity: 0.7;
 }
+
+@media (max-width: 1280px) {
+    .topbar {
+        padding: 0 24px;
+    }
+}
+
+@media (max-width: 1024px) {
+    .topbar {
+        padding: 0 16px;
+    }
+}

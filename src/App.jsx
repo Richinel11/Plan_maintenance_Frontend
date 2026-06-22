@@ -46,6 +46,8 @@ function App() {
                 position="top-center"
                 richColors
                 closeButton
+                duration={2500}
+                visibleToasts={3}
             />
             <Router>
                 <Routes>

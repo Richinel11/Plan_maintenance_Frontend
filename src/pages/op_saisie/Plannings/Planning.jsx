@@ -1256,6 +1256,18 @@ const handleAddPlanningRow = () => {
             if (matchedCentrale) rowObject.centrale_thermique_sollicitee_id = matchedCentrale.id;
           }
 
+          // Charge de consignation : "charge1" ou "Alain Mbarga" → user.id
+          const chargeLabel = rowObject["Charges de consignation"] || rowObject["Charges_de_consignation"];
+          if (chargeLabel && users.length > 0) {
+            const cleanLabel = String(chargeLabel).trim();
+            const matchedUser = users.find(u =>
+              u.username === cleanLabel ||
+              `${u.first_name} ${u.last_name}`.trim() === cleanLabel ||
+              `${u.last_name} ${u.first_name}`.trim() === cleanLabel
+            );
+            if (matchedUser) rowObject.charge_consignation_id = matchedUser.id;
+          }
+
           const payload = mapPlanningPayload(rowObject);
           payload.planning_id = planningId;
 

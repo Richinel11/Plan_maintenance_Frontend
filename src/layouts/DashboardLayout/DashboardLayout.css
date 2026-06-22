@@ -23,3 +23,15 @@
     overflow-y: auto;
     background-color: #f8fafc; /* Légèrement gris pour faire ressortir les éléments de contenu */
 }
+
+@media (max-width: 1280px) {
+    .content {
+        padding: 28px;
+    }
+}
+
+@media (max-width: 1024px) {
+    .content {
+        padding: 20px;
+    }
+}

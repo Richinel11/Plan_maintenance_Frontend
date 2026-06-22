@@ -91,6 +91,86 @@ const fmt = (dateStr) => {
     });
 };
 
+/* ─── Popup détail travail ──────────────────────────────────────────────────── */
+const TaskDetailModal = ({ task, onClose }) => {
+    if (!task) return null;
+
+    const p       = task.extendedProps || {};
+    const seg     = p.segment;
+    const isCon   = p.conflit;
+    const isHar   = p.harmonise;
+
+    const segMeta = isCon
+        ? { bg: '#fef2f2', text: '#b91c1c', dot: '#ef4444' }
+        : isHar
+        ? { bg: '#f5f3ff', text: '#7c3aed', dot: '#7c3aed' }
+        : SEGMENT_COLORS[seg] || { bg: '#f1f5f9', text: '#475569', dot: '#94a3b8' };
+
+    const statutLabel = STATUT_META[p.status]?.label || p.status || '—';
+
+    return (
+        <div className="tdm-overlay" onClick={onClose}>
+            <div className="tdm-card" onClick={e => e.stopPropagation()}>
+
+                {/* ── En-tête ── */}
+                <div className="tdm-header" style={{ borderLeft: `4px solid ${segMeta.dot}` }}>
+                    <span className="tdm-ref" title={task.title}>{task.title}</span>
+                    <button className="tdm-close" onClick={onClose} title="Fermer">✕</button>
+                </div>
+
+                {/* ── Corps ── */}
+                <div className="tdm-body">
+
+                    {/* Alerte conflit / harmonisé */}
+                    {(isCon || isHar) && (
+                        <div className={`tdm-alert-banner ${isCon ? 'tdm-alert-conflit' : 'tdm-alert-harmo'}`}>
+                            {isCon ? '⚠️ Conflit de chevauchement détecté' : '🔗 Travail harmonisé'}
+                        </div>
+                    )}
+
+                    <div className="tdm-row">
+                        <span className="tdm-label">Segment</span>
+                        <span className="tdm-badge" style={{ background: segMeta.bg, color: segMeta.text }}>
+                            <span className="tdm-dot" style={{ background: segMeta.dot }} />
+                            {seg ? seg.charAt(0) + seg.slice(1).toLowerCase() : '—'}
+                        </span>
+                    </div>
+
+                    <div className="tdm-row">
+                        <span className="tdm-label">Statut</span>
+                        <span className="tdm-value">{statutLabel}</span>
+                    </div>
+
+                    {p.planningNom && (
+                        <div className="tdm-row">
+                            <span className="tdm-label">Planning</span>
+                            <span className="tdm-value tdm-planning">{p.planningNom}</span>
+                        </div>
+                    )}
+
+                    <div className="tdm-divider" />
+
+                    <div className="tdm-row">
+                        <span className="tdm-label">Début</span>
+                        <span className="tdm-value">{fmt(task.start)}</span>
+                    </div>
+                    <div className="tdm-row">
+                        <span className="tdm-label">Fin</span>
+                        <span className="tdm-value">{fmt(task.end) || '—'}</span>
+                    </div>
+
+                </div>
+
+                {/* ── Pied ── */}
+                <div className="tdm-footer">
+                    <button className="tdm-btn-close" onClick={onClose}>Fermer</button>
+                </div>
+
+            </div>
+        </div>
+    );
+};
+
 /* ─── Icône de tri ─────────────────────────────────────────────────────────── */
 const SortIcon = ({ col, sortKey, sortDir }) => {
     if (sortKey !== col) return <span className="lv-sort-icon neutral">↕</span>;
@@ -202,7 +282,7 @@ const ListView = ({ tasks }) => {
                                             {isHarmo && !isConflit && (
                                                 <span className="lv-indicator harmonise" title="Travail harmonisé">🔗</span>
                                             )}
-                                            <span className="list-ref">{t.title || '—'}</span>
+                                            <span className="list-ref" title={t.title}>{t.title || '—'}</span>
                                         </div>
                                     </td>
 
@@ -594,6 +674,10 @@ const CalendarView = ({ tasks = [], groupes = [] }) => {
     const calendarRef  = useRef(null);
     const [currentView,    setCurrentView]    = useState('dayGridMonth');
     const [segmentFilter,  setSegmentFilter]  = useState('TOUS');
+    const [selectedTask,   setSelectedTask]   = useState(null);
+
+    const openTask  = (task) => setSelectedTask(task);
+    const closeTask = ()     => setSelectedTask(null);
 
     const filteredTasks = segmentFilter === 'TOUS'
         ? tasks
@@ -658,14 +742,12 @@ const CalendarView = ({ tasks = [], groupes = [] }) => {
     };
 
     const handleEventClick = (info) => {
-        const p = info.event.extendedProps;
-        alert(
-            `Référence : ${info.event.title}\n` +
-            `Segment : ${p.segment || 'N/A'}\n` +
-            `Statut : ${STATUT_META[p.status]?.label || p.status || 'N/A'}\n` +
-            `Début : ${info.event.startStr}\n` +
-            `Fin : ${info.event.endStr}`
-        );
+        openTask({
+            title:         info.event.title,
+            start:         info.event.startStr,
+            end:           info.event.endStr,
+            extendedProps: info.event.extendedProps,
+        });
     };
 
     return (
@@ -697,16 +779,7 @@ const CalendarView = ({ tasks = [], groupes = [] }) => {
                 <WeekGanttView
                     tasks={filteredTasks}
                     groupes={groupes}
-                    onTaskClick={(task) => {
-                        const p = task.extendedProps;
-                        alert(
-                            `Référence : ${task.title}\n` +
-                            `Segment : ${p.segment || 'N/A'}\n` +
-                            `Statut : ${STATUT_META[p.status]?.label || p.status || 'N/A'}\n` +
-                            `Début : ${task.start}\n` +
-                            `Fin : ${task.end || 'N/A'}`
-                        );
-                    }}
+                    onTaskClick={openTask}
                 />
             )}
 
@@ -715,16 +788,7 @@ const CalendarView = ({ tasks = [], groupes = [] }) => {
                 <DayGanttView
                     tasks={filteredTasks}
                     groupes={groupes}
-                    onTaskClick={(task) => {
-                        const p = task.extendedProps;
-                        alert(
-                            `Référence : ${task.title}\n` +
-                            `Segment : ${p.segment || 'N/A'}\n` +
-                            `Statut : ${STATUT_META[p.status]?.label || p.status || 'N/A'}\n` +
-                            `Début : ${task.start}\n` +
-                            `Fin : ${task.end || 'N/A'}`
-                        );
-                    }}
+                    onTaskClick={openTask}
                 />
             )}
 
@@ -762,6 +826,9 @@ const CalendarView = ({ tasks = [], groupes = [] }) => {
                     noEventsContent="Aucun travail sur cette période"
                 />
             </div>
+
+            {/* ── Popup détail travail ── */}
+            <TaskDetailModal task={selectedTask} onClose={closeTask} />
 
         </div>
     );
