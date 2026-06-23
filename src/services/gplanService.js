@@ -238,3 +238,23 @@ export const refuserProposition = async (planningId, propositionId) => {
     });
     return response.data;
 };
+
+/**
+ * Modifie partiellement un travail (réajustement manuel des horaires).
+ * PATCH /travaux/<travailId>/
+ *
+ * Champs utiles pour le réajustement :
+ *   heure_debut_planifie  — ISO 8601 (ex: "2024-04-03T08:30")
+ *   duree                 — entier positif
+ *   unite_duree           — "HEURES" | "JOURS" | "SEMAINES"
+ *
+ * heure_fin_planifie est calculée automatiquement par le backend (save()).
+ *
+ * @param {string} travailId
+ * @param {object} data
+ * @returns {object} travail mis à jour
+ */
+export const patchTravail = async (travailId, data) => {
+    const response = await api.patch(`/travaux/${travailId}/`, data);
+    return response.data;
+};

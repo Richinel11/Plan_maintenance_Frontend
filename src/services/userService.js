@@ -13,6 +13,11 @@ export const getEntites = async () => {
     return data;
 };
 
+export const getRegions = async () => {
+    const { data } = await api.get('regions/');
+    return data;
+};
+
 export const getUserById = async (id) => {
     const { data } = await api.get(`users/find-user/${id}/`);
     return data;

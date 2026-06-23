@@ -3,20 +3,7 @@ import { createUser, updateUser, update_userrole } from '../../../../services/us
 import { toast } from 'sonner';
 import './Modals.css';
 
-// Les 9 régions ENEO gérées directement dans le frontend
-const ENEO_REGIONS = [
-    'Douala',
-    'Yaoundé',
-    'Centre',
-    'Littoral & Sud-Ouest',
-    'Ouest & Nord-Ouest',
-    'Sud',
-    'Sanaga Océan',
-    'Nord',
-    'Est',
-];
-
-const UserModal = ({ isOpen, onClose, user, roles, entites, onSuccess }) => {
+const UserModal = ({ isOpen, onClose, user, roles, entites, regions = [], onSuccess }) => {
     const isEditMode = !!user;
 
     const [formData, setFormData] = useState({
@@ -47,7 +34,7 @@ const UserModal = ({ isOpen, onClose, user, roles, entites, onSuccess }) => {
                     password: '',
                     code_role: firstRole,
                     entite_metier: user.entite_metier?.id || user.entite_metier || '',
-                    region: user.region || '',
+                    region: user.region?.id ?? user.region ?? '',
                     is_ldap: user.is_ldap || false
                 });
             } else {
@@ -220,10 +207,15 @@ const UserModal = ({ isOpen, onClose, user, roles, entites, onSuccess }) => {
                                         className="form-input"
                                     >
                                         <option value="">-- Sélectionner une région --</option>
-                                        {ENEO_REGIONS.map(region => (
-                                            <option key={region} value={region}>{region}</option>
+                                        {regions.map(r => (
+                                            <option key={r.id} value={r.id}>{r.code}</option>
                                         ))}
                                     </select>
+                                    {regions.length === 0 && (
+                                        <span className="form-hint" style={{ color: '#94a3b8' }}>
+                                            Chargement des régions…
+                                        </span>
+                                    )}
                                 </div>
                                 <div className="form-group">
                                     <label>Entité Métier <span className="text-danger">*</span></label>

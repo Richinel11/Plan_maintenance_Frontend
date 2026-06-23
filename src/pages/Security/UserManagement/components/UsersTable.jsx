@@ -1,7 +1,14 @@
 import React from 'react';
 import './UsersTable.css';
 
-const UsersTable = ({ users, onEdit, onToggle }) => {
+const UsersTable = ({ users, regions = [], onEdit, onToggle }) => {
+    const resolveRegion = (value) => {
+        if (!value) return '-';
+        if (typeof value === 'object') return value.code || '-';
+        const found = regions.find(r => r.id === value);
+        return found ? found.code : '-';
+    };
+
     // Helper: affiche le rôle de l'utilisateur
     // Le backend retourne `roles` comme un TABLEAU [{nom, code_role, ...}]
     const renderRole = (rolesArr) => {
@@ -51,7 +58,7 @@ const UsersTable = ({ users, onEdit, onToggle }) => {
                                 <td className="text-gray">{user.first_name || '-'}</td>
                                 <td className="text-gray">{user.email || '-'}</td>
                                 <td className="text-gray-code">{user.username}</td>
-                                <td className="text-gray">{user.region || '-'}</td>
+                                <td className="text-gray">{resolveRegion(user.region)}</td>
                                 <td className="text-gray">{renderEntite(user.entite_metier)}</td>
                                 <td>{renderRole(user.roles)}</td>
                                 <td>

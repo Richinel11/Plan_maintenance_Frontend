@@ -3,6 +3,15 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { fetchAllPlannings, analyserChevauchements, clearCache } from '../../../services/gplanService';
 import './AlertesView.css';
 
+// Formate une date ISO pour l'affichage (ex: "03/04/2024 08:30")
+function fmtDate(iso) {
+    if (!iso) return '—';
+    const d = new Date(iso);
+    if (isNaN(d.getTime())) return iso;
+    const p = (n) => String(n).padStart(2, '0');
+    return `${p(d.getDate())}/${p(d.getMonth() + 1)}/${d.getFullYear()} ${p(d.getHours())}:${p(d.getMinutes())}`;
+}
+
 function buildGroupeFromChevauchement(chev, planningId, planningNom) {
     const allTravaux = [
         {
@@ -11,7 +20,7 @@ function buildGroupeFromChevauchement(chev, planningId, planningNom) {
             segment:     chev.reference.segment,
             planning_id: planningId,
             planning_nom: planningNom,
-            debut:       chev.reference.debut,
+            debut:       chev.reference.debut,   // ISO — utilisé pour le calendrier
             fin:         chev.reference.fin,
             peut_bouger: chev.reference.peut_bouger,
         },
@@ -40,7 +49,7 @@ function buildGroupeFromChevauchement(chev, planningId, planningNom) {
         statut:           'OUVERT',
         planning_id:      planningId,
         ressources_communes: ressourcesAffichees,
-        chevauchement:    `${chev.reference.debut} → ${chev.reference.fin}`,
+        chevauchement:    `${fmtDate(chev.reference.debut)} → ${fmtDate(chev.reference.fin)}`,
         nb_travaux:       allTravaux.length,
         travaux:          allTravaux,
     };

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { getUsers, getRoles, getEntites } from '../../../services/userService';
+import { getUsers, getRoles, getEntites, getRegions } from '../../../services/userService';
 import { toast } from 'sonner';
 import UsersTable from './components/UsersTable';
 import UserModal from './components/UserModal';
@@ -10,6 +10,7 @@ const UserManagement = () => {
     const [users, setUsers] = useState([]);
     const [roles, setRoles] = useState([]);
     const [entites, setEntites] = useState([]);
+    const [regions, setRegions] = useState([]);
     const [loading, setLoading] = useState(true);
 
     // Modals state
@@ -32,14 +33,16 @@ const UserManagement = () => {
     const fetchData = async () => {
         try {
             setLoading(true);
-            const [usersData, rolesData, entitesData] = await Promise.all([
+            const [usersData, rolesData, entitesData, regionsData] = await Promise.all([
                 getUsers(),
                 getRoles(),
-                getEntites()
+                getEntites(),
+                getRegions()
             ]);
             setUsers(Array.isArray(usersData) ? usersData : []);
             setRoles(Array.isArray(rolesData) ? rolesData : []);
             setEntites(Array.isArray(entitesData) ? entitesData : (entitesData?.results || []));
+            setRegions(Array.isArray(regionsData) ? regionsData : (regionsData?.results || []));
         } catch (error) {
             console.error("Erreur lors du chargement des données", error);
             toast.error("Impossible de charger les données. Vérifiez la connexion au serveur.");
@@ -191,22 +194,24 @@ const UserManagement = () => {
                         <p>Chargement des utilisateurs...</p>
                     </div>
                 ) : (
-                    <UsersTable 
-                        users={filteredUsers} 
-                        onEdit={handleEditClick} 
-                        onToggle={handleToggleStatusClick} 
+                    <UsersTable
+                        users={filteredUsers}
+                        regions={regions}
+                        onEdit={handleEditClick}
+                        onToggle={handleToggleStatusClick}
                     />
                 )}
             </div>
 
             {/* Modales */}
             {isUserModalOpen && (
-                <UserModal 
-                    isOpen={isUserModalOpen} 
+                <UserModal
+                    isOpen={isUserModalOpen}
                     onClose={() => setIsUserModalOpen(false)}
                     user={selectedUser}
                     roles={roles}
                     entites={entites}
+                    regions={regions}
                     onSuccess={refreshData}
                 />
             )}
