@@ -326,7 +326,7 @@ Viewer/éditeur complet du document DDR. Utilise `forwardRef`.
 
 **Logo dynamique** selon `t.segment` :
 - `TRANSPORT` → `/logosonarel.png` (SONATREL)
-- Autre → `/eneo.png` (ENEO)
+- Autre → `/Socadel.jpg` (ENEO)
 
 ### 7.2 `NAPTView` — `src/components/shared/NAPTView/`
 
@@ -690,7 +690,7 @@ npm run lint     # ESLint
 
 | Fichier | Usage |
 |---------|-------|
-| `/public/eneo.png` | Logo ENEO (Distribution + Production) |
+| `/public/Socadel.jpg` | Logo ENEO (Distribution + Production) |
 | `/public/logosonarel.png` | Logo SONATREL (Transport) |
 
 ---

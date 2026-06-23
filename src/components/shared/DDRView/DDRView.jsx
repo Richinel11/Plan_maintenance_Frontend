@@ -104,8 +104,8 @@ Le chargé de travaux prendra toute autre disposition nécessaire pour assurer l
   const t = ddr.travail;
   const nomOuvrage = t?.reference?.items?.find(it => it.type?.nom?.toLowerCase() === 'ouvrage')?.valeur || '—';
   const isTransport = t?.segment === 'TRANSPORT';
-  const companyLogo = isTransport ? '/logosonarel.png' : '/eneo.png';
-  const companyAlt  = isTransport ? 'SONATREL' : 'ENEO';
+  const companyLogo = isTransport ? '/logosonarel.png' : '/socadel.jpg';
+  const companyAlt  = isTransport ? 'SONATREL' : 'SOCADEL';
   const orgLabel    = isTransport
     ? "DIRECTION DE L'EXPLOITATION DES SYSTÈMES ÉLECTRIQUES\nSOUS-DIRECTION CONDUITE EN TEMPS RÉEL"
     : "Direction de l'Exploitation et de la Maintenance Réseaux";

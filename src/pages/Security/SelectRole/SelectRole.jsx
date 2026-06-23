@@ -86,7 +86,7 @@ const SelectRole = () => {
         return (
             <div className="select-role-page">
                 <div className="top-logo-container">
-                    <img src="/Group 1.png" alt="EneoPlan" className="top-logo-img" />
+                    <img src="/Group 1.png" alt="SocadelPlan" className="top-logo-img" />
                 </div>
                 <div className="select-role-header" style={{ marginTop: '100px' }}>
                     <span className="material-symbols-outlined" style={{ fontSize: '48px', color: 'red' }}>error</span>
@@ -106,7 +106,7 @@ const SelectRole = () => {
     return (
         <div className="select-role-page">
             <div className="top-logo-container">
-                <img src="/Group 1.png" alt="EneoPlan" className="top-logo-img" />
+                <img src="/socadelplan.svg" alt="SocadelPLAN" className="top-logo-img" />
             </div>
             <div className="select-role-header">
                 <div className="avatar-wrapper">

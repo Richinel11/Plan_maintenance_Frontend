@@ -13,8 +13,8 @@ const getCompany = (segment) => {
     signature: 'Le Sous Directeur Conduite en Temps Réel',
   };
   return {
-    logo:      '/eneo.png',
-    alt:       'ENEO',
+    logo:      '/Socadel.jpg',
+    alt:       'SOCADEL',
     direction: 'DIRECTION RÉGIONALE / CENTRE CONDUITE RÉSEAU HTA',
     signature: 'Responsable du CCR',
   };

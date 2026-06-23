@@ -55,7 +55,7 @@ const Sidebar = () => {
         <aside className="sidebar">
             {/* Logo de l'application */}
             <div className="sidebar-brand">
-                <img src="/Group 1.png" alt="ENEOPLAN" className="brand-logo" />
+                <img src="/socadelplan.svg" alt="SocadelPLAN" className="brand-logo" />
             </div>
             
             {/* Navigation Dynamique */}

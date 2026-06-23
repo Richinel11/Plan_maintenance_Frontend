@@ -61,7 +61,7 @@ const Login = () => {
                     } else if (err.response.status === 403) {
                         toast.error('Votre compte est désactivé ou vous n\'avez pas la permission de vous connecter.');
                     } else if (err.response.status === 404) {
-                        toast.error('Profil introuvable. Ce compte existe mais ne possède pas de profil applicatif valide dans EneoPlan.');
+                        toast.error('Profil introuvable. Ce compte existe mais ne possède pas de profil applicatif valide dans SocadelPlan.');
                     } else if (err.response.status >= 500) {
                         toast.error('Le serveur d\'authentification est indisponible (Erreur ' + err.response.status + '). Veuillez réessayer plus tard.');
                     } else {
@@ -81,7 +81,7 @@ const Login = () => {
     return (
         <AuthLayout
             title="Connexion"
-            subtitle="Accédez à votre espace ENEOPLAN"
+            subtitle="Accédez à votre espace SocadelPLAN"
         >
             <form onSubmit={handleSubmit}>
                 <div className="input-group">

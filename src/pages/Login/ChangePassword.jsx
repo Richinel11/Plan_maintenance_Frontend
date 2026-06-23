@@ -51,7 +51,7 @@ const ChangePassword = () => {
     return (
         <AuthLayout
             title="Première connexion"
-            subtitle="Veuillez définir votre mot de passe pour sécuriser votre compte ENEOPLAN"
+            subtitle="Veuillez définir votre mot de passe pour sécuriser votre compte SOCADELPLAN"
         >
             {success ? (
                 <div className="success-message">

@@ -24,7 +24,7 @@ const DashboardHome = () => {
                     waving_hand
                 </span>
                 <h2 style={{ color: '#1a202c', fontWeight: '800', fontSize: '2rem', marginBottom: '10px' }}>
-                    Bienvenue sur ENEOPLAN
+                    Bienvenue sur SOCADELPLAN
                 </h2>
                 <p style={{ color: '#64748b', fontSize: '1rem', textAlign: 'center', maxWidth: '400px' }}>
                     Votre espace de travail est prêt. Le contenu spécifique à votre rôle s'affichera ici.

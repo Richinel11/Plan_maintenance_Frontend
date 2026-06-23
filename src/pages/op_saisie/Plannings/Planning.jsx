@@ -295,6 +295,10 @@ const ExcelDisplay = () => {
   const [newItemDepart, setNewItemDepart] = useState("");
   const rowRefs = useRef({});
 
+  /* MULTI-SÉLECTION — Validation en lot */
+  const [selectedTravailIds, setSelectedTravailIds] = useState(new Set());
+  const [isValidatingBatch, setIsValidatingBatch] = useState(false);
+
   // const step = addStep;
   // const filteredFields = fields ? fields.filter(f => f.step === step) : [];
   const [planningFormData, setPlanningFormData] = useState({
@@ -385,60 +389,56 @@ const ExcelDisplay = () => {
     planningFormData.Jour_avant_travaux,
   ]);
 
-  /* EFFECT POUR LE CHARGEMENT DU PLANNING EXISTANT SI ID PRESENT DANS L'URL */
-  useEffect(() => {
+  /* CHARGEMENT DU PLANNING EXISTANT — extrait en useCallback pour pouvoir
+     être rappelé après une génération DDR en lot sans remonter l'effect. */
+  const loadExistingPlanning = useCallback(async () => {
     if (!id) return;
+    try {
+      setLoadingPlanning(true);
 
-    const loadExistingPlanning = async () => {
-      try {
-        setLoadingPlanning(true);
+      const [planning, listTravaux] = await Promise.all([
+        getPlanningById(id),
+        getTravaux(id),
+      ]);
 
-        // Les deux appels sont indépendants : on les lance en parallèle
-        // pour diviser le temps d'attente par ~2.
-        const [planning, listTravaux] = await Promise.all([
-          getPlanningById(id),
-          getTravaux(id),
-        ]);
+      setPlanningDetail(planning);
 
-        setPlanningDetail(planning);
+      const planningService = (
+          planning.entite_metier?.name?.toLowerCase()
+          || planning.service
+          || planning.segment?.toLowerCase()
+          || "transport"
+      );
+      setService(planningService);
+      setFileName(planning.nom || planning.name || "");
 
-        // Déduire le service depuis entite_metier.name (ex: "Distribution" → "distribution").
-        const planningService = (
-            planning.entite_metier?.name?.toLowerCase()
-            || planning.service
-            || planning.segment?.toLowerCase()
-            || "transport"
-        );
-        setService(planningService);
-        setFileName(planning.nom || planning.name || "");
-        // Double sécurité : si entite_metier est null mais qu'il y a des travaux,
-        // on utilise le segment du premier travail pour déterminer les colonnes.
-        const serviceFromTravaux = listTravaux[0]?.segment?.toLowerCase();
-        const finalService = planningService !== "transport"
-            ? planningService
-            : (serviceFromTravaux || planningService);
+      const serviceFromTravaux = listTravaux[0]?.segment?.toLowerCase();
+      const finalService = planningService !== "transport"
+          ? planningService
+          : (serviceFromTravaux || planningService);
 
-        const fieldsForService = getFieldsForService(finalService);
+      const fieldsForService = getFieldsForService(finalService);
 
-        const mappedRows = listTravaux.map((t) => {
-          const row = mapTravailToExcelRow(t, fieldsForService);
-          row.__id = t.id;
-          row.__travail = t; // Objet complet pour pré-remplir le formulaire d'édition
-          return row;
-        });
+      const mappedRows = listTravaux.map((t) => {
+        const row = mapTravailToExcelRow(t, fieldsForService);
+        row.__id = t.id;
+        row.__travail = t;
+        return row;
+      });
 
-        setExcelData([fieldsForService, ...mappedRows]);
-        setShowImport(false);
-      } catch (err) {
-        console.error("Erreur lors du chargement du planning existant:", err);
-        toast.error("Impossible de charger les détails de ce planning.");
-      } finally {
-        setLoadingPlanning(false);
-      }
-    };
-
-    loadExistingPlanning();
+      setExcelData([fieldsForService, ...mappedRows]);
+      setShowImport(false);
+    } catch (err) {
+      console.error("Erreur lors du chargement du planning existant:", err);
+      toast.error("Impossible de charger les détails de ce planning.");
+    } finally {
+      setLoadingPlanning(false);
+    }
   }, [id, setService]);
+
+  useEffect(() => {
+    loadExistingPlanning();
+  }, [loadExistingPlanning]);
 
 
   /* =========================================================
@@ -839,6 +839,9 @@ const prevStep = () => {
     setCurrentPage(1);
   }, [searchTerm, filterType, filterReseau, filterStatut, filterDateFrom, filterDateTo, excelData]);
 
+  // Lignes éligibles à la sélection (viz mode, sans DDR existante).
+  const selectableRows = filteredRows.filter(r => r.__travail && !r.__travail.demande_retrait);
+
   // Lignes affichées sur la page courante.
   const totalPages = Math.ceil(filteredRows.length / ITEMS_PER_PAGE);
   const paginatedRows = useMemo(() => {
@@ -1079,6 +1082,40 @@ const prevStep = () => {
       },
       cancel: { label: "Annuler", onClick: () => {} }
     });
+  };
+
+  /* ---------------- VALIDATION EN LOT (multi-sélection) ---------------- */
+
+  const handleValiderSelection = async () => {
+    if (selectedTravailIds.size === 0) return;
+    setIsValidatingBatch(true);
+
+    const newDDRIds = [];
+    let errorCount = 0;
+
+    for (const travailId of selectedTravailIds) {
+      try {
+        const res = await genererDDR(travailId);
+        newDDRIds.push(res.data.id);
+      } catch (err) {
+        errorCount++;
+        const msg = err?.response?.data?.error || err?.response?.data?.detail || err.message;
+        console.error(`Erreur génération DDR pour travail ${travailId}:`, msg);
+      }
+    }
+
+    setIsValidatingBatch(false);
+    setSelectedTravailIds(new Set());
+
+    if (errorCount > 0) {
+      toast.error(`${errorCount} DDR(s) n'ont pas pu être générée(s).`);
+    }
+    if (newDDRIds.length > 0) {
+      toast.success(`${newDDRIds.length} DDR(s) générée(s). Redirection vers l'historique...`);
+      navigate('/dashboard/historique', { state: { newDDRIds } });
+    } else {
+      await loadExistingPlanning();
+    }
   };
 
   /* ---------------- ADD ROW ---------------- */
@@ -1470,6 +1507,19 @@ const handleAddPlanningRow = () => {
 
               <thead>
                 <tr>
+                  {isResponsable && id && (
+                    <th style={{ width: "40px", textAlign: "center" }}>
+                      <input
+                        type="checkbox"
+                        title="Tout sélectionner"
+                        checked={selectableRows.length > 0 && selectableRows.every(r => selectedTravailIds.has(r.__id))}
+                        onChange={(e) => {
+                          const ids = new Set(e.target.checked ? selectableRows.map(r => r.__id) : []);
+                          setSelectedTravailIds(ids);
+                        }}
+                      />
+                    </th>
+                  )}
                   {headers.map((h, i) => (
                     <th key={i}>{h.replace(/_/g, " ")}</th>
                   ))}
@@ -1491,6 +1541,23 @@ const handleAddPlanningRow = () => {
                       ref={el => { rowRefs.current[realRowIndex] = el; }}
                       className={isActiveWarning ? "row-active-warning" : ""}
                     >
+                      {isResponsable && id && (
+                        <td style={{ textAlign: "center", width: "40px" }}>
+                          {row.__travail && !row.__travail.demande_retrait ? (
+                            <input
+                              type="checkbox"
+                              checked={selectedTravailIds.has(row.__id)}
+                              onChange={(e) => {
+                                setSelectedTravailIds(prev => {
+                                  const next = new Set(prev);
+                                  e.target.checked ? next.add(row.__id) : next.delete(row.__id);
+                                  return next;
+                                });
+                              }}
+                            />
+                          ) : null}
+                        </td>
+                      )}
                       {Array.isArray(row) && row.map((cell, cellIndex) => {
                         const hasWarning = rowWarning && rowWarning.colIndex === cellIndex;
                         return (
@@ -1625,7 +1692,7 @@ const handleAddPlanningRow = () => {
           {/* FOOTER */}
 
           {id ? (
-            <div className="btn" style={{ justifyContent: "flex-end" }}>
+            <div className="btn" style={{ justifyContent: "space-between" }}>
               <button
                 type="button"
                 className="btn-draft"
@@ -1637,6 +1704,27 @@ const handleAddPlanningRow = () => {
                 </svg>
                 Retour aux plannings
               </button>
+
+              {isResponsable && selectedTravailIds.size > 0 && (
+                <button
+                  type="button"
+                  className="btn-submit"
+                  onClick={handleValiderSelection}
+                  disabled={isValidatingBatch}
+                  style={{ display: "flex", alignItems: "center", gap: "8px" }}
+                >
+                  {isValidatingBatch ? (
+                    "Génération en cours..."
+                  ) : (
+                    <>
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                        <polyline points="20 6 9 17 4 12"/>
+                      </svg>
+                      Valider la sélection ({selectedTravailIds.size})
+                    </>
+                  )}
+                </button>
+              )}
             </div>
           ) : (
             <div className="btn">

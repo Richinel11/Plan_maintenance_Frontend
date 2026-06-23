@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { toast } from 'sonner';
 import { getDDRList, getNAPTList } from '../../../services/exploitationService';
 import './Historique.css';
@@ -46,6 +46,13 @@ const PAGE_SIZE = 10;
 /* ── composant ───────────────────────────────────────────── */
 const Historique = ({ ddrOnly = false, naptOnly = false, naptStatut = null, onRowClick = null }) => {
   const navigate = useNavigate();
+  const location = useLocation();
+
+  // IDs des DDR fraîchement générées (transmis depuis Planning.jsx via navigate state).
+  const newDDRIds = useMemo(
+    () => new Set(location.state?.newDDRIds || []),
+    [location.state]
+  );
 
   const [ddrs,    setDdrs]    = useState([]);
   const [napts,   setNapts]   = useState([]);
@@ -146,7 +153,14 @@ const Historique = ({ ddrOnly = false, naptOnly = false, naptStatut = null, onRo
 
   const handleRowClick = (item) => {
     if (onRowClick) { onRowClick(item); return; }
-    if (item.type === 'DDR')  navigate(`/dashboard/consultation/ddr/${item.id}`);
+    if (item.type === 'DDR') {
+      // DDR en attente → DDRDetailPage (éditable) ; autres statuts → consultation (lecture seule)
+      if (item.statut === 'EN_ATTENTE') {
+        navigate(`/dashboard/ddr/${item.id}`);
+      } else {
+        navigate(`/dashboard/consultation/ddr/${item.id}`);
+      }
+    }
     if (item.type === 'NAPT') navigate(`/dashboard/consultation/napt/${item.id}`);
   };
 
@@ -260,7 +274,24 @@ const Historique = ({ ddrOnly = false, naptOnly = false, naptStatut = null, onRo
                         {item.type}
                       </span>
                     </td>
-                    <td className="hist-ref">#{item.reference}</td>
+                    <td className="hist-ref">
+                      #{item.reference}
+                      {item.type === 'DDR' && newDDRIds.has(item.id) && (
+                        <span style={{
+                          marginLeft: "8px",
+                          padding: "2px 7px",
+                          borderRadius: "10px",
+                          fontSize: "10px",
+                          fontWeight: "700",
+                          background: "#dbeafe",
+                          color: "#1d4ed8",
+                          verticalAlign: "middle",
+                          letterSpacing: "0.03em",
+                        }}>
+                          NOUVEAU
+                        </span>
+                      )}
+                    </td>
                     <td>
                       <span className={`hist-status hist-status--${meta.color}`}>
                         <span className="hist-dot" />
