@@ -15,6 +15,7 @@ export const menuConfig = {
         { path: '/dashboard/Calendar',       name: 'Calendrier', icon: 'calendar_month' },
         { path: '/dashboard/alertes',        name: 'Alertes',    icon: 'notifications'  },
         { path: '/dashboard/historique',     name: 'Historique', icon: 'history'        },
+        { path: '/dashboard/KPI',            name: 'KPI',        icon: 'analytics'      },
     ],
     resp_exploit: [
         { path: '/dashboard/Accueil',       name: 'Accueil',     icon: 'dashboard'  },

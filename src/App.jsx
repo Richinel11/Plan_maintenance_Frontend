@@ -39,6 +39,8 @@ import CcrDDRRefusPage from './pages/CCR/DDRRefus/CcrDDRRefusPage';
 import CcrNAPTPage from './pages/CCR/NAPT/CcrNAPTPage';
 import CommAccueil from './pages/Communication/Accueil/CommAccueil';
 import CommNAPTPage from './pages/Communication/NAPT/CommNAPTPage';
+
+import KPI from "./pages/G-Plan/KPI/KpiResults";
 function App() {
     return (
         <div className="app-container">
@@ -103,6 +105,9 @@ function App() {
                         <Route path='ccr/ddr/:ddrId'          element={<CcrDDRActionPage />} />
                         <Route path='ccr/ddr/:ddrId/refuser'  element={<CcrDDRRefusPage />} />
                         <Route path='ccr/napt/:naptId'        element={<CcrNAPTPage />} />
+
+                        {/* Contenu KPI */}
+                        <Route path='kpi' element={<KPI />} />
                     </Route>
                 </Routes>
             </Router>
