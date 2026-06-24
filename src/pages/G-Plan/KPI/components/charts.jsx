@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from "react";
-import { COLORS } from "../constants/colors";
+import { COLORS } from "../components/kpi";
 
 export function DonutChart({ pct, color, label }) {
   const r = 50, cx = 60, cy = 60, stroke = 12;
