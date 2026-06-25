@@ -29,6 +29,9 @@ import {
 } from "../../../services/referencetielService";
 import { getEntites } from "../../../services/userService";
 
+import CreatePlanningModal from "./NewPlanning/CreatePlanningModal";
+import ExportPlanningButton from "./ExportPlanning/ExportPlanningButton";
+
 // Helper : retourne la liste des colonnes correspondant à un service
 const getFieldsForService = (service) => {
   switch (service.toLowerCase()) {
@@ -97,7 +100,7 @@ const getFieldsForService = (service) => {
       return [];
   }
 };
-
+;
 // Retourne la valeur d'un ReferentielItem pour un type donné (ex: "Segment", "Ouvrage").
 // Les items sont stockés dans travail.reference.items (sérialisé par ReferenceSerializer).
 // Types disponibles : "Segment", "Ouvrage", "Poste", "Départ" (voir seed_referentiel.py).
@@ -224,6 +227,12 @@ const ExcelDisplay = () => {
   const { id } = useParams();
   const { service, setService, fields, options/*, referenceConfig*/ } = useServiceRole();
   const [addStep, setAddStep] = useState(0);
+
+  // ... other states
+
+const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+
+
 
   const activeRoleName = Cookies.get('activeRoleName') || '';
   const isResponsable = activeRoleName.toUpperCase().replace(/[\s']/g, '_').includes('RESPONSABLE') &&
@@ -1378,6 +1387,19 @@ const handleAddPlanningRow = () => {
 
       {showImport && (
         <div className={fade}>
+
+          {/* NEW CREATE BUTTON */}
+          <div style={{ marginBottom: "20px", textAlign: "right" }}>
+            <button
+              type="button"
+              className="btn-submit"
+              onClick={() => setIsCreateModalOpen(true)}
+              style={{ display: "flex", alignItems: "center", gap: "8px" }}
+            >
+              ➕ Créer un nouveau Planning
+            </button>
+          </div>
+
           <FileInput
             onFileSelect={handleFileSelect}
             onContinue={handleContinue}
@@ -1448,6 +1470,14 @@ const handleAddPlanningRow = () => {
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
+
+                        {/* Inside the header-text div or after SearchBar */}
+            <div style={{ marginLeft: "auto", display: "flex", gap: "10px", alignItems: "center" }}>
+              <ExportPlanningButton 
+                excelData={excelData} 
+                fileName={fileName || "planning"} 
+              />
+            </div>
 
           </div>
 
@@ -2097,6 +2127,16 @@ const handleAddPlanningRow = () => {
           </div>
         </div>
       )}
+
+        {/* CREATE PLANNING MODAL */}
+        <CreatePlanningModal
+          isOpen={isCreateModalOpen}
+          onClose={() => setIsCreateModalOpen(false)}
+          onSuccess={(newPlanning) => {
+            // Optional: redirect to the new planning
+            navigate(`/dashboard/Planning/${newPlanning.id}`);
+          }}
+        />
 
     </div>
   );
