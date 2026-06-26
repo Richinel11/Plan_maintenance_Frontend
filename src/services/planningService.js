@@ -132,6 +132,20 @@ export const deleteTravail = (travailId) => {
   return api.delete(`/travaux/${travailId}/`);
 };
 
+export const getTravailById = (travailId) => api.get(`/travaux/${travailId}/`);
+
+export const terminerTravail = (travailId) => api.post(`/travaux/${travailId}/terminer/`);
+
+export const getAllTravaux = async () => {
+  try {
+    const response = await api.get('/travaux/');
+    return response.data?.results || response.data || [];
+  } catch (err) {
+    console.error('Erreur getAllTravaux:', err?.response?.data || err.message);
+    return [];
+  }
+};
+
 /**
  * Crée plusieurs plannings en parallèle (mode batch).
  *

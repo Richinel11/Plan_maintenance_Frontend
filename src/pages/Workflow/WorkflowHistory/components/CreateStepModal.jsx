@@ -55,7 +55,14 @@ const CreateStepModal = ({ workflows, onSave, onClose, loading, fixedWorkflowId 
             </div>
             <div className="wfh-form-field wfh-field-sm">
               <label>CODE <span className="wfh-req">*</span></label>
-              <input className="wfh-form-input" placeholder="EX: EN_ATTENTE" value={form.code} onChange={e => set('code', e.target.value.toUpperCase().replace(/\s/g, '_'))} />
+              <input
+                className="wfh-form-input"
+                placeholder="EX: EN_ATTENTE"
+                value={form.code}
+                onChange={e => set('code', e.target.value.toUpperCase().replace(/\s/g, '_'))}
+                disabled={isEditMode}
+                style={isEditMode ? { backgroundColor: '#e9ecef', cursor: 'not-allowed', color: '#6c757d' } : {}}
+              />
             </div>
             <div className="wfh-form-field wfh-field-xs">
               <label>N°</label>

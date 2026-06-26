@@ -36,6 +36,9 @@ export const menuConfig = {
         { path: '/dashboard/comm-accueil', name: 'Accueil', icon: 'dashboard' },
         { path: '/dashboard/comm-napt',    name: 'NAPT',    icon: 'policy'    },
     ],
+    charge_consig: [
+        { path: '/dashboard/charge-consig/travaux', name: 'Mes travaux', icon: 'engineering' },
+    ],
     //rofil Administrateur Système (Gestion Permissions et workflow)
     admin: [
         { path: '/dashboard/users', name: 'Utilisateurs', icon: 'group' },
@@ -72,6 +75,8 @@ menuConfig["responsable_d'exploitation"] = menuConfig['resp_exploit'];
 menuConfig['responsable_d_exploitation'] = menuConfig['resp_exploit'];
 menuConfig['CCR'] = menuConfig['ccr'];
 menuConfig['REG_AUDIT'] = menuConfig['reg_audit'];
+menuConfig['CHARGE_CONSIGNATION'] = menuConfig['charge_consig'];
+menuConfig['charge_consignation'] = menuConfig['charge_consig'];
 menuConfig['EQ_COMM']        = menuConfig['eq_comm'];
 menuConfig['COMMUNICATION']  = menuConfig['eq_comm'];
 menuConfig['communication']  = menuConfig['eq_comm'];

@@ -117,6 +117,17 @@
     border-radius: 20px;
 }
 
+.role-more-pill {
+    background-color: #e2e8f0;
+    color: #475569;
+    font-size: 0.72rem;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 20px;
+    cursor: default;
+    white-space: nowrap;
+}
+
 /* Status Pills */
 .status-pill {
     display: inline-flex;
@@ -197,4 +208,22 @@
     text-align: center;
     color: #64748b;
     padding: 40px !important;
+}
+
+/* Popup rôles */
+.role-popup {
+    position: absolute;
+    top: calc(100% + 6px);
+    left: 0;
+    z-index: 100;
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.10);
+    padding: 10px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-width: 180px;
+    white-space: nowrap;
 }

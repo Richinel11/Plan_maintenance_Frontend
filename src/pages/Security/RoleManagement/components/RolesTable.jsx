@@ -1,17 +1,27 @@
-import React from 'react';
-import '../../UserManagement/components/UsersTable.css'; // On réutilise intelligemment les styles de base du tableau
+import React, { useState, useEffect } from 'react';
+import '../../UserManagement/components/UsersTable.css';
+import PaginationControls from '../../../../components/shared/PaginationControls/PaginationControls';
+
+const ITEMS_PER_PAGE = 10;
 
 const RolesTable = ({ roles, permissions, onEdit, onDelete }) => {
-    
-    // Fonction qui affiche un résumé des permissions d'un rôle
+    const [currentPage, setCurrentPage] = useState(1);
+
+    useEffect(() => { setCurrentPage(1); }, [roles.length]);
+
+    const totalPages = Math.ceil((roles?.length || 0) / ITEMS_PER_PAGE);
+    const paginatedRoles = (roles || []).slice(
+        (currentPage - 1) * ITEMS_PER_PAGE,
+        currentPage * ITEMS_PER_PAGE
+    );
+
     const renderPermissionsSummary = (rolePermsIds) => {
-        if (!rolePermsIds || rolePermsIds.length === 0) return <span className="text-gray-code">Aucune permission</span>;
-        
-        const count = rolePermsIds.length;
+        if (!rolePermsIds || rolePermsIds.length === 0)
+            return <span className="text-gray-code">Aucune permission</span>;
         return (
             <div className="roles-container">
-                <span className="role-pill" style={{backgroundColor: '#e0f2fe', color: '#0369a1'}}>
-                    {count} permission(s)
+                <span className="role-pill" style={{ backgroundColor: '#e0f2fe', color: '#0369a1' }}>
+                    {rolePermsIds.length} permission(s)
                 </span>
             </div>
         );
@@ -30,24 +40,23 @@ const RolesTable = ({ roles, permissions, onEdit, onDelete }) => {
                     </tr>
                 </thead>
                 <tbody>
-                    {roles && roles.length > 0 ? (
-                        roles.map((role) => (
+                    {paginatedRoles.length > 0 ? (
+                        paginatedRoles.map((role) => (
                             <tr key={role.id || role.code_role}>
                                 <td className="font-medium text-dark">{role.nom}</td>
                                 <td className="text-gray-code">{role.code_role || '-'}</td>
-                                <td className="text-gray" style={{maxWidth: '250px'}}>{role.description || '-'}</td>
+                                <td className="text-gray" style={{ maxWidth: '250px' }}>{role.description || '-'}</td>
                                 <td>{renderPermissionsSummary(role.permissions)}</td>
                                 <td className="td-actions">
-                                    <button 
-                                        className="action-btn edit-btn" 
+                                    <button
+                                        className="action-btn edit-btn"
                                         title="Modifier ce rôle"
                                         onClick={() => onEdit(role)}
                                     >
                                         <span className="material-symbols-outlined">edit</span>
                                     </button>
-                                    
-                                    <button 
-                                        className="action-btn delete-btn" 
+                                    <button
+                                        className="action-btn delete-btn"
                                         title="Supprimer ce rôle"
                                         onClick={() => onDelete(role)}
                                     >
@@ -65,6 +74,15 @@ const RolesTable = ({ roles, permissions, onEdit, onDelete }) => {
                     )}
                 </tbody>
             </table>
+
+            <PaginationControls
+                currentPage={currentPage}
+                totalPages={totalPages}
+                totalItems={roles?.length || 0}
+                itemsPerPage={ITEMS_PER_PAGE}
+                onPageChange={setCurrentPage}
+                itemLabel="rôle(s)"
+            />
         </div>
     );
 };

@@ -14,7 +14,7 @@ import PlanningForm from "../Creer_Travail/components/PlanningForm";
 import SearchBar from "../components/Filter_search/search";
 import Filter from "./filterCards/filter";
 import useServiceRole from "../../../pages/ComponentsRole/ServiceRole";
-import { createPlanning, createTravail, updateTravail, deleteTravail, getPlanningById, getTravaux, getCentrales } from "../../../services/planningService";
+import { createPlanning, createTravail, updateTravail, deleteTravail, getPlanningById, getTravaux, getCentrales, terminerTravail } from "../../../services/planningService";
 import { mapPlanningPayload } from "../../../utils/planningMapper";
 import Etape3 from "../Creer_Travail/etape3/etape3";
 import {
@@ -1084,6 +1084,36 @@ const prevStep = () => {
     });
   };
 
+  // Marquer un travail comme terminé (NAPT générée → bouton Terminer).
+  const handleTerminer = (row) => {
+    const travail = row.__travail;
+    if (!travail?.id) return;
+    toast.warning(`Confirmer la fin du travail "${travail.reference?.valeur || ''}" ?`, {
+      duration: 6000,
+      action: {
+        label: "Confirmer",
+        onClick: async () => {
+          try {
+            await terminerTravail(travail.id);
+            const idx = excelData.indexOf(row);
+            if (idx !== -1) {
+              const newRow = [...row];
+              newRow.__travail = { ...travail, statut_travaux: 'TERMINE' };
+              newRow.__id = row.__id;
+              const updated = [...excelData];
+              updated[idx] = newRow;
+              setExcelData(updated);
+            }
+            toast.success("Travail marqué comme terminé.");
+          } catch (err) {
+            toast.error("Erreur : " + (err?.response?.data?.detail || err.message));
+          }
+        }
+      },
+      cancel: { label: "Annuler", onClick: () => {} }
+    });
+  };
+
   /* ---------------- VALIDATION EN LOT (multi-sélection) ---------------- */
 
   const handleValiderSelection = async () => {
@@ -1540,6 +1570,7 @@ const handleAddPlanningRow = () => {
                       key={filteredIdx}
                       ref={el => { rowRefs.current[realRowIndex] = el; }}
                       className={isActiveWarning ? "row-active-warning" : ""}
+                      style={row.__travail?.statut_travaux === 'TERMINE' ? { opacity: 0.45, background: '#F1F5F9', pointerEvents: 'none' } : {}}
                     >
                       {isResponsable && id && (
                         <td style={{ textAlign: "center", width: "40px" }}>
@@ -1589,11 +1620,21 @@ const handleAddPlanningRow = () => {
                       <td className="action-cell">
                         {id ? (
                           // Mode visualisation : handlers backend (PATCH / DELETE)
-                          row.__travail?.demande_retrait ? (
-                            // DDR déjà générée — travail verrouillé
+                          row.__travail?.demande_retrait?.statut === 'AUTORISE' ? (
+                            // NAPT générée — bouton Terminer
+                            <button
+                              className="action-btn"
+                              title="Marquer ce travail comme terminé"
+                              onClick={() => handleTerminer(row)}
+                              style={{ cursor: 'pointer', color: '#10B981', background: 'none', border: 'none' }}
+                            >
+                              <span className="material-symbols-outlined">check_circle</span>
+                            </button>
+                          ) : row.__travail?.demande_retrait ? (
+                            // DDR générée mais NAPT pas encore — travail verrouillé
                             <span
                               className="action-btn"
-                              title="DDR déjà générée — travail verrouillé"
+                              title="DDR générée — en attente de décision CCR"
                               style={{ cursor: 'default', color: '#94a3b8' }}
                             >
                               <span className="material-symbols-outlined">lock</span>

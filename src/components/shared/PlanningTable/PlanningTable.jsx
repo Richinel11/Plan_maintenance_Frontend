@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import './PlanningTable.css';
+import PaginationControls from '../PaginationControls/PaginationControls';
 
 const getStatusClass = (status) => {
     if (!status) return 'status-brouillon';
@@ -12,7 +13,7 @@ const getStatusClass = (status) => {
     }
 };
 
-const PlanningTable = ({ plannings = [], loading = false, onRowClick, onEdit, onDelete }) => {
+const PlanningTable = ({ plannings = [], loading = false, onRowClick, onEdit, onDelete, currentPage = 1, totalPages = 1, totalItems = 0, onPageChange }) => {
     const [searchTerm, setSearchTerm] = useState('');
     const showActions = onEdit || onDelete;
 
@@ -22,6 +23,8 @@ const PlanningTable = ({ plannings = [], loading = false, onRowClick, onEdit, on
         (p.entite_metier?.name || p.service || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
         (p.statut || '').toLowerCase().includes(searchTerm.toLowerCase())
     );
+
+    const displayedPlannings = searchTerm ? filtered : plannings;
 
     return (
         <div className="pt-card">
@@ -56,8 +59,8 @@ const PlanningTable = ({ plannings = [], loading = false, onRowClick, onEdit, on
                                 Chargement...
                             </td>
                         </tr>
-                    ) : filtered.length > 0 ? (
-                        filtered.map(planning => (
+                    ) : displayedPlannings.length > 0 ? (
+                        displayedPlannings.map(planning => (
                             <tr key={planning.id}>
                                 <td
                                     className="pt-name-cell"
@@ -108,6 +111,17 @@ const PlanningTable = ({ plannings = [], loading = false, onRowClick, onEdit, on
                     )}
                 </tbody>
             </table>
+
+            {!searchTerm && (
+                <PaginationControls
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    totalItems={totalItems}
+                    itemsPerPage={10}
+                    onPageChange={onPageChange}
+                    itemLabel="planning(s)"
+                />
+            )}
         </div>
     );
 };

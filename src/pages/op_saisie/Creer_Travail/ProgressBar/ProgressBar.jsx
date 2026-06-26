@@ -345,7 +345,24 @@ export default function MultiStepForm() {
             <div className="associate-select-wrapper">
               <select
                 value={service?.toLowerCase()}
-                onChange={(e) => setService(e.target.value.toLowerCase())}
+                onChange={(e) => {
+                  setService(e.target.value.toLowerCase());
+                  setFormData(prev => ({
+                    ...prev,
+                    Reference: "", reference_id: null, planning_id: null,
+                    segment_id: null, ouvrage_id: null, poste_id: null, depart_id: null, troncon_id: null,
+                    Unite_demanderesse: "", unite_demanderesse_id: "", Exploitations: "",
+                    Type_de_travaux: "", type_travaux_id: null, Types_de_reseau: "",
+                    Consistances_Des_Travaux: "", charge_consignation_id: null, Disponibilite_mecanique: "",
+                    Segments: "", Ouvrages: "", Poste: "", Departs: "",
+                    Troncons: "", Localites_impactees: "", Moyens_mis_en_oeuvre: "",
+                    Debut_planifiee: "", Duree: "", Fin_planifiee: "", Date_programmee: "",
+                    Prevision_puissance_sollicite: "", Prevision_puissance_interrompue: "",
+                    Prevision_ENF: "", Centrale_thermique: "", centrale_thermique_sollicitee_id: null,
+                    Qte_de_fuel: "", Observations: "", Jour_avant_travaux: null,
+                  }));
+                  setErrors({});
+                }}
               >
                 <option value="">-- Sélectionner une entité --</option>
                 <option value="transport">Transport</option>

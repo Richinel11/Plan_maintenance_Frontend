@@ -15,7 +15,10 @@ import {
 import { getRoles } from '../../../../services/userService';
 import CreateStepModal from '../components/CreateStepModal';
 import CreateTransitionModal from '../components/CreateTransitionModal';
+import PaginationControls from '../../../../components/shared/PaginationControls/PaginationControls';
 import './WorkflowDetail.css';
+
+const ITEMS_PER_PAGE = 5;
 
 // ─── Badge statut ─────────────────────────────────────────────────────────────
 const STATUS_BADGE = {
@@ -45,10 +48,13 @@ const WorkflowDetail = () => {
   const [error, setError] = useState(null);
 
   // état actuel du step en cours d'édition (null = fermé ; {} vide = création ; objet = édition)
-  const [selectedStep, setSelectedStep] = useState(null);  
+  const [selectedStep, setSelectedStep] = useState(null);
   // état actuel de la transition en cours d'édition
   const [selectedTransition, setSelectedTransition] = useState(null);
   const [savingModal, setSavingModal] = useState(false);
+
+  const [stepPage, setStepPage] = useState(1);
+  const [transitionPage, setTransitionPage] = useState(1);
 
   const loadWorkflowData = useCallback(async () => {
     setLoading(true);
@@ -64,6 +70,8 @@ const WorkflowDetail = () => {
       setSteps(Array.isArray(sts) ? sts : []);
       setTransitions(Array.isArray(trs) ? trs : []);
       setRoles(Array.isArray(rls) ? rls : []);
+      setStepPage(1);
+      setTransitionPage(1);
     } catch (err) {
       setError("Impossible de charger les détails du workflow.");
       console.error(err);
@@ -301,7 +309,7 @@ const WorkflowDetail = () => {
                   </td>
                 </tr>
               ) : (
-                transitions.map(t => {
+                transitions.slice((transitionPage - 1) * ITEMS_PER_PAGE, transitionPage * ITEMS_PER_PAGE).map(t => {
                   /*
                    * Données de la transition retournées par WorkflowTransitionSerializer :
                    *
@@ -382,6 +390,14 @@ const WorkflowDetail = () => {
               )}
             </tbody>
           </table>
+          <PaginationControls
+            currentPage={transitionPage}
+            totalPages={Math.ceil(transitions.length / ITEMS_PER_PAGE)}
+            totalItems={transitions.length}
+            itemsPerPage={ITEMS_PER_PAGE}
+            onPageChange={setTransitionPage}
+            itemLabel="transition(s)"
+          />
         </div>
       </div>
 
@@ -419,7 +435,9 @@ const WorkflowDetail = () => {
                   </td>
                 </tr>
               ) : (
-                steps.sort((a, b) => (a.number || 0) - (b.number || 0)).map(s => (
+                [...steps].sort((a, b) => (a.number || 0) - (b.number || 0))
+                  .slice((stepPage - 1) * ITEMS_PER_PAGE, stepPage * ITEMS_PER_PAGE)
+                  .map(s => (
                   <tr key={s.id}>
                     <td className="wfh-center">
                       <span className="wfd-num-badge">{s.number}</span>
@@ -459,6 +477,14 @@ const WorkflowDetail = () => {
               )}
             </tbody>
           </table>
+          <PaginationControls
+            currentPage={stepPage}
+            totalPages={Math.ceil(steps.length / ITEMS_PER_PAGE)}
+            totalItems={steps.length}
+            itemsPerPage={ITEMS_PER_PAGE}
+            onPageChange={setStepPage}
+            itemLabel="état(s)"
+          />
         </div>
       </div>
     </div>

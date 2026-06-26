@@ -6,23 +6,32 @@ import { getPlannings, deletePlanning } from "../../../services/planningService"
 import PlanningTable from "../../../components/shared/PlanningTable/PlanningTable";
 import { toast } from "sonner";
 
+const ITEMS_PER_PAGE = 10;
+
 const Dashboard = () => {
   const navigate = useNavigate();
   const [plannings, setPlannings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({ total: 0, encours: 0, cloture: 0 });
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalCount, setTotalCount] = useState(0);
 
-  const fetchPlannings = async () => {
+  const fetchPlannings = async (page = 1) => {
     try {
       setLoading(true);
-      const data = await getPlannings(1);
+      const data = await getPlannings(page);
       const results = data.results || data;
       const planningsData = Array.isArray(results) ? results : [];
       setPlannings(planningsData);
 
+      const count = data.count || planningsData.length;
+      setTotalCount(count);
+      setTotalPages(Math.ceil(count / ITEMS_PER_PAGE));
+
       const encours = planningsData.filter(p => (p.statut || "").toLowerCase().includes("cours")).length;
       const cloture = planningsData.filter(p => (p.statut || "").toLowerCase().includes("clôturé")).length;
-      setStats({ total: data.count || planningsData.length, encours, cloture });
+      setStats({ total: count, encours, cloture });
     } catch (error) {
       console.error("Erreur lors de la récupération des plannings:", error);
     } finally {
@@ -31,8 +40,8 @@ const Dashboard = () => {
   };
 
   useEffect(() => {
-    fetchPlannings();
-  }, []);
+    fetchPlannings(currentPage);
+  }, [currentPage]);
 
   const handlePlanningClick = (planning) => {
     navigate(`/dashboard/Planning/${planning.id}`);
@@ -54,7 +63,7 @@ const Dashboard = () => {
           try {
             await deletePlanning(planning.id);
             toast.success("Planning supprimé avec succès.");
-            fetchPlannings();
+            fetchPlannings(currentPage);
           } catch (error) {
             console.error("Erreur lors de la suppression:", error);
             toast.error("Impossible de supprimer le planning.");
@@ -116,6 +125,10 @@ const Dashboard = () => {
           onRowClick={handlePlanningClick}
           onEdit={handleEdit}
           onDelete={handleDelete}
+          currentPage={currentPage}
+          totalPages={totalPages}
+          totalItems={totalCount}
+          onPageChange={setCurrentPage}
         />
 
         <Footer />

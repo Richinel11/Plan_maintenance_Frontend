@@ -11,7 +11,10 @@ import ConfirmModal from './components/ConfirmModal';
 import CreateWorkflowModal from './components/CreateWorkflowModal';
 import CreateStepModal from './components/CreateStepModal';
 import CreateTransitionModal from './components/CreateTransitionModal';
+import PaginationControls from '../../../components/shared/PaginationControls/PaginationControls';
 import './WorkflowHistory.css';
+
+const ITEMS_PER_PAGE = 10;
 
 
 // ─── Badge statut ─────────────────────────────────────────────────────────────
@@ -33,6 +36,7 @@ const Badge = ({ status }) => {
 const WorkflowHistory = () => {
   const navigate = useNavigate();
   const [search, setSearch] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
 
   const [workflows, setWorkflows] = useState([]);
   const [steps, setSteps] = useState([]);
@@ -86,6 +90,14 @@ const WorkflowHistory = () => {
   // ─── Filtres ───
   const filteredWorkflows = workflows.filter(item =>
     ['name', 'nom', 'code'].some(f => item[f] && String(item[f]).toLowerCase().includes(search.toLowerCase()))
+  );
+
+  useEffect(() => { setCurrentPage(1); }, [search]);
+
+  const totalPages = Math.ceil(filteredWorkflows.length / ITEMS_PER_PAGE);
+  const paginatedWorkflows = filteredWorkflows.slice(
+    (currentPage - 1) * ITEMS_PER_PAGE,
+    currentPage * ITEMS_PER_PAGE
   );
 
   // ─── Handlers suppression ───
@@ -210,9 +222,9 @@ const WorkflowHistory = () => {
                 </tr>
               </thead>
               <tbody>
-                {filteredWorkflows.length === 0 ? (
+                {paginatedWorkflows.length === 0 ? (
                   <tr><td colSpan={7} className="wfh-no-data">Aucun workflow trouvé</td></tr>
-                ) : filteredWorkflows.map(w => (
+                ) : paginatedWorkflows.map(w => (
                   <tr key={w.id}>
                     <td className="wfh-name-cell" onClick={() => navigate(`/dashboard/workflow/${w.id}`)}>{w.name || w.nom}</td>
                     <td className="wfh-text-gray-code">{w.code}</td>
@@ -246,6 +258,14 @@ const WorkflowHistory = () => {
                 ))}
               </tbody>
             </table>
+            <PaginationControls
+              currentPage={currentPage}
+              totalPages={totalPages}
+              totalItems={filteredWorkflows.length}
+              itemsPerPage={ITEMS_PER_PAGE}
+              onPageChange={setCurrentPage}
+              itemLabel="workflow(s)"
+            />
           </div>
         )}
       </div>

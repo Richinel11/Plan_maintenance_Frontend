@@ -39,6 +39,8 @@ import CcrDDRRefusPage from './pages/CCR/DDRRefus/CcrDDRRefusPage';
 import CcrNAPTPage from './pages/CCR/NAPT/CcrNAPTPage';
 import CommAccueil from './pages/Communication/Accueil/CommAccueil';
 import CommNAPTPage from './pages/Communication/NAPT/CommNAPTPage';
+import MesTravaux from './pages/ChargeConsignation/MesTravaux';
+import DetailTravail from './pages/ChargeConsignation/DetailTravail';
 function App() {
     return (
         <div className="app-container">
@@ -95,6 +97,10 @@ function App() {
                         {/* Contenus Communication */}
                         <Route path='comm-accueil' element={<CommAccueil />} />
                         <Route path='comm-napt'    element={<CommNAPTPage />} />
+
+                        {/* Contenus Chargé de consignation */}
+                        <Route path='charge-consig/travaux'          element={<MesTravaux />} />
+                        <Route path='charge-consig/travail/:id'      element={<DetailTravail />} />
 
                         {/* Contenus CCR */}
                         <Route path='ccr-accueil'        element={<CcrAccueil />} />
