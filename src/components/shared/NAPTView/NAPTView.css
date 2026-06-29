@@ -2,6 +2,17 @@
    NAPTView — surcharge légère au-dessus de DDRView.css
    ════════════════════════════════════════════════════════════════ */
 
+/* ── Rôle verrouillé (Chargé de consignation) ─────────────── */
+.napt-role-locked {
+  background: #eff6ff;
+  font-weight: 600;
+}
+.napt-lock-icon {
+  font-size: 11px;
+  margin-left: 4px;
+  opacity: 0.7;
+}
+
 /* ── Colonnes ENF étroites ─────────────────────────────────── */
 .napt-input-narrow {
   max-width: 68px;

@@ -258,3 +258,11 @@ export const patchTravail = async (travailId, data) => {
     const response = await api.patch(`/travaux/${travailId}/`, data);
     return response.data;
 };
+
+export const analyserMois = async (annee = null, mois = null) => {
+    const body = {};
+    if (annee) body.annee = annee;
+    if (mois) body.mois = mois;
+    const response = await api.post('/plannings/analyser-mois/', body);
+    return response.data;
+};

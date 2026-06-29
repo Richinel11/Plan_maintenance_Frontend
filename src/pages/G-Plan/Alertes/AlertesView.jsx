@@ -1,133 +1,125 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { fetchAllPlannings, analyserChevauchements, clearCache } from '../../../services/gplanService';
+import { analyserMois } from '../../../services/gplanService';
 import './AlertesView.css';
 
-// Formate une date ISO pour l'affichage (ex: "03/04/2024 08:30")
-function fmtDate(iso) {
-    if (!iso) return '—';
-    const d = new Date(iso);
-    if (isNaN(d.getTime())) return iso;
-    const p = (n) => String(n).padStart(2, '0');
-    return `${p(d.getDate())}/${p(d.getMonth() + 1)}/${d.getFullYear()} ${p(d.getHours())}:${p(d.getMinutes())}`;
-}
+// ── Helpers ───────────────────────────────────────────────────────────────────
 
-function buildGroupeFromChevauchement(chev, planningId, planningNom) {
-    const allTravaux = [
-        {
-            id:          chev.reference.id,
-            reference:   chev.reference.ressource,
-            segment:     chev.reference.segment,
-            planning_id: planningId,
-            planning_nom: planningNom,
-            debut:       chev.reference.debut,   // ISO — utilisé pour le calendrier
-            fin:         chev.reference.fin,
-            peut_bouger: chev.reference.peut_bouger,
-        },
-        ...chev.travaux_en_conflit.map(t => ({
-            id:          t.id,
-            reference:   t.ressource,
-            segment:     t.segment,
-            planning_id: planningId,
-            planning_nom: planningNom,
-            debut:       t.debut,
-            fin:         t.fin,
-            peut_bouger: t.peut_bouger,
-        })),
-    ];
-
-    const ressourcesCommunes = [...new Set(
-        chev.travaux_en_conflit.flatMap(t => t.ressources_communes)
-    )];
-    const ressourcesAffichees = ressourcesCommunes.length > 0
-        ? ressourcesCommunes
-        : [chev.reference.ressource];
-
-    return {
-        id_groupe:        chev.reference.id.slice(0, 12),
-        type:             'CONFLIT',
-        statut:           'OUVERT',
-        planning_id:      planningId,
-        ressources_communes: ressourcesAffichees,
-        chevauchement:    `${fmtDate(chev.reference.debut)} → ${fmtDate(chev.reference.fin)}`,
-        nb_travaux:       allTravaux.length,
-        travaux:          allTravaux,
-    };
-}
-
-const FILTRES = [
-    { key: 'TOUS',    label: 'Tous'      },
-    { key: 'CONFLIT', label: 'Conflits'  },
+const MOIS_LABELS = [
+    '', 'Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin',
+    'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre',
 ];
 
 const SEGMENT_COLORS = {
-    TRANSPORT:    { bg: '#f0fdf4', text: '#15803d', dot: '#16a34a' },
-    DISTRIBUTION: { bg: '#fff7ed', text: '#c2410c', dot: '#ea580c' },
-    PRODUCTION:   { bg: '#eff6ff', text: '#1d4ed8', dot: '#2563eb' },
+    TRANSPORT:                 { bg: '#f0fdf4', text: '#15803d', dot: '#16a34a' },
+    DISTRIBUTION_POSTE_SOURCE: { bg: '#fff7ed', text: '#c2410c', dot: '#ea580c' },
+    DISTRIBUTION_LIGNE:        { bg: '#fef3c7', text: '#92400e', dot: '#f59e0b' },
+    PRODUCTION:                { bg: '#eff6ff', text: '#1d4ed8', dot: '#2563eb' },
 };
 
+const FILTRES = [
+    { key: 'TOUS',    label: 'Tous'     },
+    { key: 'CONFLIT', label: 'Conflits' },
+];
+
+// Construit un groupe uniforme depuis un chevauchement retourné par analyser-mois
+function buildGroupe(chev) {
+    const ref = chev.reference;
+    return {
+        id_groupe:           ref.id.slice(0, 12),
+        type:                'CONFLIT',
+        statut:              'OUVERT',
+        ressources_communes: [ref.ressource],
+        chevauchement:       `${ref.debut} → ${ref.fin}`,
+        nb_travaux:          1 + chev.travaux_en_conflit.length,
+        travaux: [
+            {
+                id:          ref.id,
+                reference:   ref.ressource,
+                segment:     ref.segment,
+                planning_nom: ref.planning_nom,
+                debut:       ref.debut,
+                fin:         ref.fin,
+                peut_bouger: ref.peut_bouger,
+            },
+            ...chev.travaux_en_conflit.map(t => ({
+                id:          t.id,
+                reference:   t.ressource,
+                segment:     t.segment,
+                planning_nom: t.planning_nom,
+                debut:       t.debut,
+                fin:         t.fin,
+                peut_bouger: t.peut_bouger,
+            })),
+        ],
+    };
+}
+
+// ── Composant ─────────────────────────────────────────────────────────────────
 
 const AlertesView = () => {
     const navigate = useNavigate();
     const location = useLocation();
-    const [groupes,  setGroupes]  = useState([]);
-    const [loading,  setLoading]  = useState(true);
-    const [error,    setError]    = useState(null);
-    const [filtre,   setFiltre]   = useState('TOUS');
 
-    const load = useCallback(async () => {
+    const now = new Date();
+    const [mois,         setMois]         = useState(now.getMonth() + 1);
+    const [annee,        setAnnee]        = useState(now.getFullYear());
+    const [groupes,      setGroupes]      = useState([]);
+    const [propositions, setPropositions] = useState([]);
+    const [resume,       setResume]       = useState(null);
+    const [loading,      setLoading]      = useState(false);
+    const [error,        setError]        = useState(null);
+    const [filtre,       setFiltre]       = useState('TOUS');
+    const [analyse,      setAnalyse]      = useState(false);
+
+    // Fonction de chargement : prend annee/mois en paramètres explicites
+    // pour ne pas dépendre du state et éviter des appels non voulus
+    const fetchData = useCallback(async (a, m) => {
         setLoading(true);
         setError(null);
         try {
-            const plannings = await fetchAllPlannings();
-
-            const results = await Promise.allSettled(
-                plannings.map(p =>
-                    analyserChevauchements(p.id).then(data => ({
-                        planningId:  p.id,
-                        planningNom: p.nom,
-                        chevauchements: data.chevauchements || [],
-                    }))
-                )
-            );
-
-            const groupes = [];
-            for (const r of results) {
-                if (r.status !== 'fulfilled') continue;
-                const { planningId, planningNom, chevauchements } = r.value;
-                for (const chev of chevauchements) {
-                    groupes.push(buildGroupeFromChevauchement(chev, planningId, planningNom));
-                }
-            }
-            setGroupes(groupes);
+            const data = await analyserMois(a, m);
+            setGroupes((data.chevauchements || []).map(buildGroupe));
+            setPropositions(data.propositions || []);
+            setResume(data.resume || null);
+            setAnalyse(true);
         } catch (err) {
-            console.error('[AlertesView] Erreur chargement alertes :', err?.response?.data || err.message);
+            console.error('[AlertesView]', err?.response?.data || err.message);
             setError(`Impossible de charger les alertes. (${err?.response?.status ?? 'réseau'})`);
         } finally {
             setLoading(false);
         }
     }, []);
 
-    // Recharge à chaque fois qu'on arrive sur cette page
-    useEffect(() => { load(); }, [load, location.key]);
+    // Chargement automatique à l'arrivée sur la page (mois en cours)
+    useEffect(() => {
+        fetchData(now.getFullYear(), now.getMonth() + 1);
+    }, [location.key]); // eslint-disable-line react-hooks/exhaustive-deps
 
-    const filtered = groupes.filter(g => {
-        if (filtre === 'TOUS')    return true;
-        if (filtre === 'CONFLIT') return true;
-        return true;
-    });
+    const handleAnalyse = () => fetchData(annee, mois);
 
-    const nbConflits = groupes.length;
-
+    // Clic sur une carte : on filtre les propositions liées à ce groupe et on navigue
     const handleClick = (groupe) => {
-        navigate('/dashboard/advanced-gantt', { state: { groupe } });
+        const idsGroupe = new Set(groupe.travaux.map(t => t.id));
+        const propositionsGroupe = propositions.filter(p =>
+            idsGroupe.has(p.travail_a_modifier)
+        );
+        navigate('/dashboard/advanced-gantt', {
+            state: { groupe, propositionsGroupe },
+        });
     };
+
+    const filtered = groupes.filter(g =>
+        filtre === 'TOUS' || g.type === filtre
+    );
+
+    // ── États de chargement / erreur ─────────────────────────────────────────
 
     if (loading) {
         return (
             <div className="al-center">
                 <div className="al-spinner" />
-                <p>Chargement des alertes…</p>
+                <p>Analyse de {MOIS_LABELS[mois]} {annee} en cours…</p>
             </div>
         );
     }
@@ -137,10 +129,12 @@ const AlertesView = () => {
             <div className="al-center">
                 <span style={{ fontSize: 36 }}>⚠️</span>
                 <p style={{ color: '#ef4444', fontWeight: 600 }}>{error}</p>
-                <button className="al-filtre-btn" onClick={load}>Réessayer</button>
+                <button className="al-filtre-btn" onClick={handleAnalyse}>Réessayer</button>
             </div>
         );
     }
+
+    // ── Rendu principal ───────────────────────────────────────────────────────
 
     return (
         <div className="al-page">
@@ -150,46 +144,77 @@ const AlertesView = () => {
                 <div>
                     <h1 className="al-title">Alertes d'harmonisation</h1>
                     <p className="al-subtitle">
-                        Conflits et opportunités détectés sur l'ensemble des plannings
+                        Conflits détectés sur l'ensemble des plannings
                     </p>
-                    <button
-                        className="al-filtre-btn"
-                        style={{ marginTop: 8 }}
-                        onClick={() => { clearCache(); load(); }}
-                        title="Actualiser la liste"
-                    >
-                        ↻ Actualiser
-                    </button>
-                </div>
-                <div className="al-stats">
-                    <div className="al-stat al-stat-conflit">
-                        <span className="al-stat-num">{nbConflits}</span>
-                        <span className="al-stat-label">Conflit{nbConflits !== 1 ? 's' : ''} détecté{nbConflits !== 1 ? 's' : ''}</span>
+
+                    {/* Sélecteur de période */}
+                    <div className="al-period-bar">
+                        <select
+                            className="al-select"
+                            value={mois}
+                            onChange={e => setMois(Number(e.target.value))}
+                        >
+                            {MOIS_LABELS.slice(1).map((label, i) => (
+                                <option key={i + 1} value={i + 1}>{label}</option>
+                            ))}
+                        </select>
+                        <input
+                            className="al-input-annee"
+                            type="number"
+                            value={annee}
+                            min={2020}
+                            max={2035}
+                            onChange={e => setAnnee(Number(e.target.value))}
+                        />
+                        <button className="al-filtre-btn active" onClick={handleAnalyse}>
+                            Analyser
+                        </button>
                     </div>
                 </div>
+
+                {/* Stats résumé */}
+                {analyse && resume && (
+                    <div className="al-stats">
+                        <div className="al-stat al-stat-conflit">
+                            <span className="al-stat-num">{groupes.length}</span>
+                            <span className="al-stat-label">
+                                Conflit{groupes.length !== 1 ? 's' : ''}
+                            </span>
+                        </div>
+                        <div className="al-stat al-stat-opportunite">
+                            <span className="al-stat-num">{resume.total_travaux_analyses}</span>
+                            <span className="al-stat-label">Travaux analysés</span>
+                        </div>
+                    </div>
+                )}
             </div>
 
             {/* ── Filtres ── */}
-            <div className="al-filtres">
-                {FILTRES.map(f => (
-                    <button
-                        key={f.key}
-                        className={`al-filtre-btn ${filtre === f.key ? 'active' : ''}`}
-                        onClick={() => setFiltre(f.key)}
-                    >
-                        {f.label}
-                        <span className="al-filtre-badge">
-                            {groupes.length}
-                        </span>
-                    </button>
-                ))}
-            </div>
+            {analyse && (
+                <div className="al-filtres">
+                    {FILTRES.map(f => (
+                        <button
+                            key={f.key}
+                            className={`al-filtre-btn ${filtre === f.key ? 'active' : ''}`}
+                            onClick={() => setFiltre(f.key)}
+                        >
+                            {f.label}
+                            <span className="al-filtre-badge">{groupes.length}</span>
+                        </button>
+                    ))}
+                </div>
+            )}
 
-            {/* ── Liste des alertes ── */}
-            {filtered.length === 0 ? (
+            {/* ── Contenu ── */}
+            {!analyse ? (
+                <div className="al-empty">
+                    <span style={{ fontSize: 36 }}>📋</span>
+                    <p>Sélectionnez une période et cliquez sur <strong>Analyser</strong>.</p>
+                </div>
+            ) : filtered.length === 0 ? (
                 <div className="al-empty">
                     <span style={{ fontSize: 36 }}>🎉</span>
-                    <p>Aucun conflit détecté sur les plannings.</p>
+                    <p>Aucun conflit détecté pour {MOIS_LABELS[mois]} {annee}.</p>
                 </div>
             ) : (
                 <div className="al-list">
@@ -200,30 +225,20 @@ const AlertesView = () => {
                             onClick={() => handleClick(groupe)}
                             style={{ cursor: 'pointer' }}
                         >
-                            {/* Indicateur latéral */}
                             <div className="al-card-side" />
-
-                            {/* Corps */}
                             <div className="al-card-body">
 
-                                {/* Ligne 1 : type + statut */}
-                                        <div className="al-card-top">
-                                    <span className="al-type-badge badge-conflit">
-                                        ⚠️ Conflit
-                                    </span>
-                                    <span className="al-statut-badge statut-ouvert">
-                                        ● Ouvert
-                                    </span>
+                                <div className="al-card-top">
+                                    <span className="al-type-badge badge-conflit">⚠️ Conflit</span>
+                                    <span className="al-statut-badge statut-ouvert">● Ouvert</span>
                                 </div>
 
-                                {/* Ressources */}
                                 <div className="al-ressources">
                                     {groupe.ressources_communes.map((r, i) => (
                                         <span key={i} className="al-ressource-chip">{r}</span>
                                     ))}
                                 </div>
 
-                                {/* Travaux */}
                                 <div className="al-travaux-list">
                                     {groupe.travaux.map(t => {
                                         const sc = SEGMENT_COLORS[t.segment] || { bg: '#f3f4f6', text: '#374151', dot: '#9ca3af' };
@@ -232,7 +247,7 @@ const AlertesView = () => {
                                                 <span className="al-travail-dot" style={{ background: sc.dot }} />
                                                 <span className="al-travail-ref">{t.reference}</span>
                                                 <span className="al-travail-seg" style={{ background: sc.bg, color: sc.text }}>
-                                                    {t.segment}
+                                                    {t.segment?.replace(/_/g, ' ')}
                                                 </span>
                                                 <span className="al-travail-planning">{t.planning_nom}</span>
                                                 <span className="al-travail-dates">
@@ -243,14 +258,13 @@ const AlertesView = () => {
                                     })}
                                 </div>
 
-                                {/* Détail temporel */}
                                 <div className="al-card-footer">
-                                    {groupe.chevauchement && groupe.chevauchement !== '—' && (
-                                        <span className="al-detail-chip al-detail-conflit">
-                                            🕐 {groupe.chevauchement}
-                                        </span>
-                                    )}
-                                    <span className="al-nb-travaux">{groupe.nb_travaux} travaux impliqués</span>
+                                    <span className="al-detail-chip al-detail-conflit">
+                                        🕐 {groupe.chevauchement}
+                                    </span>
+                                    <span className="al-nb-travaux">
+                                        {groupe.nb_travaux} travaux impliqués
+                                    </span>
                                     <span className="al-cta">Cliquer pour voir les propositions →</span>
                                 </div>
                             </div>

@@ -497,23 +497,60 @@
 .ag-seg-distribution { background: #fff7ed; color: #c2410c; }
 .ag-seg-production   { background: #eff6ff; color: #1d4ed8; }
 
-/* ── Cartes de propositions ── */
-.ag-prop-card {
-  background:    #fff;
-  border:        1px solid #e2e8f0;
-  border-radius: 10px;
-  padding:       14px 18px;
-  margin-top:    12px;
-  display:       flex;
-  flex-direction: column;
-  gap:           8px;
+/* ── Résumé propositions ── */
+.ag-prop-summary {
+  display:     flex;
+  gap:         10px;
+  flex-wrap:   wrap;
+  margin-bottom: 4px;
 }
-.ag-prop-bloquee { border-color: #fca5a5; background: #fef2f2; }
+.ag-sum-item {
+  padding:       4px 12px;
+  border-radius: 9999px;
+  font-size:     12px;
+  font-weight:   700;
+}
+.sum-libre   { background: #f0fdf4; color: #15803d; }
+.sum-bloquee { background: #fef2f2; color: #b91c1c; }
 
+/* ── Carte proposition ── */
+.ag-prop-card {
+  display:       flex;
+  border-radius: 12px;
+  border:        1px solid #e2e8f0;
+  margin-top:    12px;
+  overflow:      hidden;
+}
+.ag-prop-libre   { border-color: #86efac; }
+.ag-prop-bloquee { border-color: #fca5a5; background: #fff8f8; }
+
+.ag-prop-side {
+  width:      5px;
+  flex-shrink: 0;
+}
+.side-libre   { background: #22c55e; }
+.side-bloquee { background: #ef4444; }
+
+.ag-prop-inner {
+  flex:    1;
+  padding: 14px 18px;
+  display: flex;
+  flex-direction: column;
+  gap:     10px;
+}
+
+/* En-tête */
 .ag-prop-header {
+  display:         flex;
+  justify-content: space-between;
+  align-items:     center;
+  flex-wrap:       wrap;
+  gap:             8px;
+}
+.ag-prop-header-left {
   display:     flex;
   align-items: center;
-  gap:         10px;
+  gap:         8px;
 }
 .ag-prop-ref {
   font-weight: 700;
@@ -521,42 +558,174 @@
   font-size:   14px;
   color:       #0f172a;
 }
-.ag-prop-statut {
+.ag-prop-prio {
   padding:       2px 8px;
+  border-radius: 9999px;
+  font-size:     10px;
+  font-weight:   700;
+}
+.prio-p1        { background: #fee2e2; color: #b91c1c; }
+.prio-p2        { background: #fef3c7; color: #92400e; }
+.prio-p3        { background: #f1f5f9; color: #475569; }
+.prio-transport { background: #dcfce7; color: #15803d; }
+
+.ag-prop-statut {
+  padding:       3px 10px;
   border-radius: 9999px;
   font-size:     11px;
   font-weight:   700;
-  text-transform: uppercase;
 }
 .statut-en_attente { background: #fef3c7; color: #92400e; }
 .statut-bloquee    { background: #fef2f2; color: #b91c1c; }
 .statut-acceptee   { background: #f0fdf4; color: #15803d; }
 .statut-refusee    { background: #f1f5f9; color: #64748b; }
 
-.ag-prop-raison {
+/* Ligne de référence */
+.ag-prop-ref-line {
+  display:     flex;
+  align-items: center;
+  gap:         8px;
   font-size:   12px;
-  color:       #374151;
-  line-height: 1.5;
-  margin:      0;
 }
+.ag-prop-ref-label {
+  color:       #94a3b8;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.ag-prop-ref-val {
+  color:       #2563eb;
+  font-weight: 600;
+  font-family: monospace;
+}
+
+/* Timeline */
+.ag-prop-timeline {
+  display:     flex;
+  align-items: center;
+  gap:         12px;
+  flex-wrap:   wrap;
+  background:  #f8fafc;
+  border-radius: 8px;
+  padding:     10px 14px;
+}
+.ag-prop-time-block {
+  display:        flex;
+  flex-direction: column;
+  gap:            2px;
+}
+.ag-prop-time-block.old { opacity: 0.7; }
+.ag-prop-time-block.proposed-free    {}
+.ag-prop-time-block.proposed-blocked { opacity: 0.6; }
+
+.ag-tl-label {
+  font-size:      10px;
+  font-weight:    700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color:          #94a3b8;
+}
+.ag-tl-main {
+  font-size:   15px;
+  font-weight: 700;
+  color:       #0f172a;
+}
+.ag-prop-time-block.proposed-free  .ag-tl-main { color: #15803d; }
+.ag-prop-time-block.proposed-blocked .ag-tl-main { color: #64748b; }
+
+.ag-tl-end {
+  font-size: 11px;
+  color:     #94a3b8;
+}
+.ag-tl-arrow {
+  font-size:   20px;
+  font-weight: 700;
+  color:       #cbd5e1;
+}
+
+/* Encadré de blocage */
+.ag-prop-blocage {
+  display:       flex;
+  align-items:   flex-start;
+  gap:           10px;
+  padding:       10px 14px;
+  border-radius: 8px;
+  border:        1px solid;
+}
+.blocage-charge {
+  background:   #fffbeb;
+  border-color: #fcd34d;
+}
+.blocage-fixe {
+  background:   #fef2f2;
+  border-color: #fca5a5;
+}
+.ag-blocage-icon { font-size: 18px; flex-shrink: 0; margin-top: 1px; }
+.ag-blocage-text {
+  display:        flex;
+  flex-direction: column;
+  gap:            3px;
+}
+.ag-blocage-title {
+  font-size:   12px;
+  font-weight: 700;
+  color:       #0f172a;
+}
+.ag-blocage-detail {
+  font-size:   11px;
+  color:       #64748b;
+  margin:      0;
+  line-height: 1.5;
+}
+
+/* Note compatibilité */
 .ag-prop-note {
   font-size:   11px;
   color:       #64748b;
   font-style:  italic;
   margin:      0;
 }
+
+/* Actions EN_ATTENTE */
 .ag-prop-actions {
   display: flex;
   gap:     10px;
-  margin-top: 4px;
 }
 .ag-prop-actions .ag-btn-validate,
 .ag-prop-actions .ag-btn-reject {
-  padding: 7px 16px;
+  padding:   7px 16px;
   font-size: 12px;
 }
 .ag-btn-validate:disabled,
 .ag-btn-reject:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* CTA manuel BLOQUEE */
+.ag-prop-manual-cta {
+  display:         flex;
+  align-items:     center;
+  justify-content: space-between;
+  padding-top:     8px;
+  border-top:      1px solid #f1f5f9;
+}
+.ag-manual-label {
+  font-size:   11px;
+  color:       #94a3b8;
+  font-weight: 500;
+}
+.ag-btn-manual {
+  display:     flex;
+  align-items: center;
+  gap:         5px;
+  padding:     6px 12px;
+  background:  #fff;
+  border:      1px solid #e2e8f0;
+  border-radius: 6px;
+  font-size:   12px;
+  font-weight: 600;
+  color:       #475569;
+  cursor:      pointer;
+  transition:  all 0.15s;
+}
+.ag-btn-manual:hover { background: #f1f5f9; border-color: #cbd5e1; }
 
 .ag-btn-validate:hover { background: #1d4ed8; }
 .ag-btn-adjust:hover   { background: #f9fafb; }

@@ -309,3 +309,39 @@
     font-weight: 600;
     color:       #1B75BB;
 }
+
+/* ── Sélecteur de période ── */
+.al-period-bar {
+    display:     flex;
+    align-items: center;
+    gap:         8px;
+    margin-top:  12px;
+    flex-wrap:   wrap;
+}
+
+.al-select {
+    padding:       7px 12px;
+    border:        1px solid #e2e8f0;
+    border-radius: 8px;
+    font-size:     13px;
+    color:         #1e293b;
+    background:    #f8fafc;
+    cursor:        pointer;
+    outline:       none;
+}
+
+.al-select:focus { border-color: #1B75BB; }
+
+.al-input-annee {
+    width:         80px;
+    padding:       7px 10px;
+    border:        1px solid #e2e8f0;
+    border-radius: 8px;
+    font-size:     13px;
+    color:         #1e293b;
+    background:    #f8fafc;
+    outline:       none;
+    text-align:    center;
+}
+
+.al-input-annee:focus { border-color: #1B75BB; }

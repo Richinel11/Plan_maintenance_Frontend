@@ -20,15 +20,7 @@ const getCompany = (segment) => {
   };
 };
 
-/* ── Rôles par défaut ────────────────────────────────────────── */
-const ROLES_DIST = [
-  'Chargé de conduite',
-  'Chargé de manœuvres',
-  'Chargé de consignation',
-  'Chargé de travaux',
-  'Contrôleur des travaux',
-];
-
+/* ── Rôles Transport (par chantier) ─────────────────────────── */
 const ROLES_TRANSPORT = [
   'Chargé de conduite',
   'Chargé de manœuvres',
@@ -45,13 +37,11 @@ const makeRole = (role, extra = {}) => ({
   ...extra,
 });
 
-const makeChantier = (num, ccNom = '') => ({
-  id: `${Date.now()}-${Math.random()}`,
+const makeChantier = (num) => ({
+  id: `new_${Date.now()}-${Math.random()}`,
   label: `Chantier ${num}`,
+  numero: num,
   consistance: '',
-  roles: ROLES_TRANSPORT.map(r =>
-    makeRole(r, { personne: r === 'Chargé de consignation' ? ccNom : '' })
-  ),
 });
 
 const SECURITE_DEFAULT =
@@ -87,6 +77,7 @@ const fmtTime = (iso) => {
   return new Date(iso).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
 };
 
+
 /* ════════════════════════════════════════════════════════════════
    NAPTView
    ════════════════════════════════════════════════════════════════ */
@@ -95,30 +86,33 @@ const NAPTView = forwardRef(({ naptId, readOnly = false }, ref) => {
   const [loading, setLoading] = useState(true);
   const [error,   setError]   = useState(false);
 
-  /* ── champs éditables (local state — utilisés pour impression/export) */
   const [fields, setFields] = useState({
-    dateReceptionDemande:    '',
-    nomDemandeur:            '',
-    debutConsignationDate:   '',
-    debutConsignationHeure:  '',
-    retourExploitationDate:  '',
-    retourExploitationHeure: '',
-    delaiRestitution:        '',
-    observations:            '',
-    securite:                SECURITE_DEFAULT,
-    nomSignataire:           '',
+    dateReceptionDemande:   '',
+    nomDemandeur:           '',
+    debutConsignationDate:  '',
+    debutConsignationHeure: '',
+    retourExploitationDate: '',
+    delaiRestitution:       '',
+    observations:           '',
+    securite:               SECURITE_DEFAULT,
+    nomSignataire:          '',
     /* Transport */
     previsionConsignation:    '',
     previsionRealisation:     '',
     previsionDeconsignation:  '',
     /* Distribution */
-    zonesImpactees:           '',
-    previsionEnfMwh:          '',
-    previsionEnfPct:          '',
+    zonesImpactees:  '',
+    previsionEnfMwh: '',
+    previsionEnfPct: '',
   });
 
-  /* ── rôles : flat (Dist/Prod) ou par chantier (Transport) */
-  const [rolesFlat, setRolesFlat] = useState([]);
+  const [fieldsVersion, setFieldsVersion] = useState(0);
+  /* Rôles depuis DDR (lecture seule) */
+  const [ddrRoles,       setDdrRoles]       = useState([]);
+  /* Distribution : chantiers */
+  const [chantiersLocal, setChantiersLocal] = useState([]);
+
+  /* Transport : blocs chantier avec rôles intégrés */
   const [chantiers, setChantiers] = useState([]);
 
   useEffect(() => {
@@ -130,20 +124,57 @@ const NAPTView = forwardRef(({ naptId, readOnly = false }, ref) => {
         const seg   = data.travail?.segment;
         const ccNom = data.charge_consignation_nom || '';
 
+        /* Pré-remplissage des champs depuis la NAPT (héritée de la DDR) */
+        const debutCons = data.debut_consignation ? new Date(data.debut_consignation) : null;
+        setFields({
+          dateReceptionDemande:   data.date_reception_demande    || '',
+          nomDemandeur:           data.nom_demandeur             || data.genere_par_nom || '',
+          debutConsignationDate:  debutCons ? debutCons.toISOString().split('T')[0] : '',
+          debutConsignationHeure: debutCons ? debutCons.toTimeString().slice(0, 5)   : '',
+          retourExploitationDate: data.retour_exploitation       || '',
+          delaiRestitution:       data.delai_restitution_urgence || '',
+          observations:           data.observations_generales    || '',
+          securite:               data.points_separation         || SECURITE_DEFAULT,
+          nomSignataire:          '',
+          previsionConsignation:  '',
+          previsionRealisation:   '',
+          previsionDeconsignation:'',
+          zonesImpactees:         data.quartiers_impactes        || '',
+          previsionEnfMwh:        '',
+          previsionEnfPct:        '',
+        });
+
+        /* Rôles depuis napt.ddr.roles — toujours lecture seule */
+        setDdrRoles(data.roles || []);
+        setFieldsVersion(v => v + 1);
+
         if (seg === 'TRANSPORT') {
-          setChantiers([makeChantier(1, ccNom)]);
+          if (data.chantiers?.length > 0) {
+            setChantiers(data.chantiers.map(c => ({
+              id:          c.id,
+              label:       `Chantier ${c.numero}`,
+              numero:      c.numero,
+              consistance: c.consistance || '',
+            })));
+          } else {
+            setChantiers([makeChantier(1, ccNom)]);
+          }
         } else {
-          setRolesFlat(ROLES_DIST.map(r =>
-            makeRole(r, { personne: r === 'Chargé de consignation' ? ccNom : '' })
-          ));
+          setChantiersLocal(data.chantiers || []);
         }
-        setFields(prev => ({ ...prev, nomDemandeur: data.genere_par_nom || '' }));
       })
       .catch(() => { toast.error('Impossible de charger la NAPT.'); setError(true); })
       .finally(() => setLoading(false));
   }, [naptId]);
 
-  useImperativeHandle(ref, () => ({ getFormData: () => ({ ...fields, rolesFlat, chantiers }) }));
+  useImperativeHandle(ref, () => ({
+    getFormData: () => ({
+      fields,
+      chantiers,
+      chantiersLocal,
+      originalChantiers: napt?.chantiers || [],
+    }),
+  }));
 
   const setField = (k, v) => setFields(prev => ({ ...prev, [k]: v }));
 
@@ -153,33 +184,46 @@ const NAPTView = forwardRef(({ naptId, readOnly = false }, ref) => {
 
   const t           = napt.travail;
   const segment     = t?.segment;
-  const isTransport = segment === 'TRANSPORT';
+  const isTransport  = segment === 'TRANSPORT';
   const isProduction = segment === 'PRODUCTION';
   const company     = getCompany(segment);
-  const ddrRef      = napt.reference ? napt.reference.replace('NAPT-', 'DDR-') : '—';
+  const ddrRef      = napt.reference_ddr || '—';
   const nomOuvrage  = t?.reference?.items?.find(it => it.type?.nom?.toLowerCase() === 'ouvrage')?.valeur || '—';
 
-  /* helper input éditable */
-  const EditField = ({ fieldKey, type = 'text', placeholder = '', className = '' }) =>
-    readOnly
-      ? <span className="ddr-ro">{fields[fieldKey] || '—'}</span>
-      : <input className={`ddr-input ${className}`} type={type}
-          value={fields[fieldKey]} onChange={e => setField(fieldKey, e.target.value)}
-          placeholder={placeholder} />;
+  const EditField = ({ fieldKey, type = 'text', placeholder = '', className = '' }) => {
+    if (readOnly) return <span className="ddr-ro">{fields[fieldKey] || '—'}</span>;
+    if (type === 'date' || type === 'time') {
+      return (
+        <input
+          key={`${fieldKey}-${fieldsVersion}`}
+          className={`ddr-input ${className}`}
+          type={type}
+          defaultValue={fields[fieldKey] || ''}
+          onChange={e => { if (e.target.value) setField(fieldKey, e.target.value); }}
+          onBlur={e => setField(fieldKey, e.target.value)}
+        />
+      );
+    }
+    return (
+      <input
+        className={`ddr-input ${className}`}
+        type={type}
+        value={fields[fieldKey]}
+        onChange={e => setField(fieldKey, e.target.value)}
+        placeholder={placeholder}
+      />
+    );
+  };
 
-  /* ── Rôles flat (Distribution / Production) ── */
-  const addRoleFlat    = ()           => setRolesFlat(p => [...p, makeRole('Chargé de conduite')]);
-  const removeRoleFlat = (id)         => setRolesFlat(p => p.filter(r => r.id !== id));
-  const updateRoleFlat = (id, k, v)   => setRolesFlat(p => p.map(r => r.id === id ? { ...r, [k]: v } : r));
+  /* ── Chantiers Distribution ── */
+  const addChantierLocal    = ()        => setChantiersLocal(p => [...p, { id: `new_${Date.now()}`, numero: p.length + 1, consistance: '' }]);
+  const removeChantierLocal = (id)      => setChantiersLocal(p => p.filter(c => c.id !== id));
+  const updateChantierLocal = (id, val) => setChantiersLocal(p => p.map(c => c.id === id ? { ...c, consistance: val } : c));
 
-  /* ── Chantiers (Transport) ── */
-  const addChantier          = ()              => setChantiers(p => [...p, makeChantier(p.length + 1)]);
-  const removeChantier       = (cid)           => setChantiers(p => p.filter(c => c.id !== cid));
-  const updateChantierLabel  = (cid, v)        => setChantiers(p => p.map(c => c.id === cid ? { ...c, label: v } : c));
-  const updateChantierConsis = (cid, v)        => setChantiers(p => p.map(c => c.id === cid ? { ...c, consistance: v } : c));
-  const addRoleChantier      = (cid)           => setChantiers(p => p.map(c => c.id === cid ? { ...c, roles: [...c.roles, makeRole('Chargé de conduite')] } : c));
-  const removeRoleChantier   = (cid, rid)      => setChantiers(p => p.map(c => c.id === cid ? { ...c, roles: c.roles.filter(r => r.id !== rid) } : c));
-  const updateRoleChantier   = (cid, rid, k, v) => setChantiers(p => p.map(c => c.id === cid ? { ...c, roles: c.roles.map(r => r.id === rid ? { ...r, [k]: v } : r) } : c));
+  /* ── Blocs chantiers Transport ── */
+  const addChantier          = ()      => setChantiers(p => [...p, makeChantier(p.length + 1)]);
+  const removeChantier       = (cid)   => setChantiers(p => p.filter(c => c.id !== cid));
+  const updateChantierConsis = (cid, v) => setChantiers(p => p.map(c => c.id === cid ? { ...c, consistance: v } : c));
 
   const totalEnf = [fields.previsionConsignation, fields.previsionRealisation, fields.previsionDeconsignation]
     .map(v => parseFloat(v) || 0).reduce((a, b) => a + b, 0);
@@ -225,11 +269,11 @@ const NAPTView = forwardRef(({ naptId, readOnly = false }, ref) => {
           </div>
           <div className="ddr-field-group">
             <span className="ddr-label">Date réception demande :</span>
-            <EditField fieldKey="dateReceptionDemande" type="date" />
+            {EditField({ fieldKey: "dateReceptionDemande", type: "date" })}
           </div>
           <div className="ddr-field-group">
             <span className="ddr-label">Nom du demandeur :</span>
-            <EditField fieldKey="nomDemandeur" placeholder="Nom complet" />
+            {EditField({ fieldKey: "nomDemandeur", placeholder: "Nom complet" })}
           </div>
         </div>
       </div>
@@ -237,16 +281,59 @@ const NAPTView = forwardRef(({ naptId, readOnly = false }, ref) => {
       {/* ════════ INSTALLATION ════════ */}
       <div className="ddr-section">
         <div className="ddr-section-label">Installations / Ouvrages à retirer de la conduite du réseau :</div>
-        <div className="ddr-installation">
-          {nomOuvrage}
-        </div>
+        <div className="ddr-installation">{nomOuvrage}</div>
       </div>
 
-      {/* ════════ CONSISTANCE (Distribution / Production seulement — Transport : par chantier) ════════ */}
+      {/* ════════ CHANTIERS — Distribution / Production ════════ */}
       {!isTransport && (
         <div className="ddr-section">
           <div className="ddr-section-label">Consistance des travaux :</div>
-          <div className="ddr-consistance">{t?.consistance_travaux || '—'}</div>
+          <div className="ddr-table-wrap ddr-chantiers-wrap">
+            <table className="ddr-chantiers-table">
+              <thead>
+                <tr>
+                  <th className="ddr-chantier-num-col">Chantier</th>
+                  <th>Consistance des travaux</th>
+                  {!readOnly && <th className="ddr-th-action" />}
+                </tr>
+              </thead>
+              <tbody>
+                {chantiersLocal.length === 0 ? (
+                  <tr>
+                    <td colSpan={readOnly ? 2 : 3} className="ddr-chantiers-empty">
+                      {readOnly ? '—' : 'Aucun chantier. Cliquez sur « + Ajouter un chantier » ci-dessous.'}
+                    </td>
+                  </tr>
+                ) : (
+                  chantiersLocal.map((c) => (
+                    <tr key={c.id}>
+                      <td className="ddr-chantier-num-col">Chantier {c.numero}</td>
+                      <td>
+                        {readOnly ? (
+                          <span className="ddr-ro">{c.consistance || '—'}</span>
+                        ) : (
+                          <textarea
+                            className="ddr-chantier-textarea"
+                            value={c.consistance}
+                            onChange={e => updateChantierLocal(c.id, e.target.value)}
+                            placeholder="Décrire la consistance des travaux..."
+                          />
+                        )}
+                      </td>
+                      {!readOnly && (
+                        <td className="ddr-td-action">
+                          <button className="ddr-btn-remove" onClick={() => removeChantierLocal(c.id)} title="Supprimer">✕</button>
+                        </td>
+                      )}
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+          {!readOnly && (
+            <button className="ddr-btn-add" onClick={addChantierLocal}>+ Ajouter un chantier</button>
+          )}
         </div>
       )}
 
@@ -257,18 +344,16 @@ const NAPTView = forwardRef(({ naptId, readOnly = false }, ref) => {
           <div className="ddr-pfield">
             <span className="ddr-plabel">Début de la consignation le :</span>
             <div className="ddr-pvalue">
-              <EditField fieldKey="debutConsignationDate" type="date" />
+              {EditField({ fieldKey: "debutConsignationDate", type: "date" })}
               <span className="ddr-label-a">à</span>
-              <EditField fieldKey="debutConsignationHeure" type="time" />
+              {EditField({ fieldKey: "debutConsignationHeure", type: "time" })}
             </div>
           </div>
 
           <div className="ddr-pfield">
             <span className="ddr-plabel">Retour à l'exploitation le :</span>
             <div className="ddr-pvalue">
-              <EditField fieldKey="retourExploitationDate" type="date" />
-              <span className="ddr-label-a">à</span>
-              <EditField fieldKey="retourExploitationHeure" type="time" />
+              {EditField({ fieldKey: "retourExploitationDate", type: "date" })}
             </div>
           </div>
 
@@ -293,47 +378,48 @@ const NAPTView = forwardRef(({ naptId, readOnly = false }, ref) => {
           <div className="ddr-pfield ddr-pfield-full">
             <span className="ddr-plabel">Délai de restitution d'urgence :</span>
             <div className="ddr-pvalue">
-              <EditField fieldKey="delaiRestitution" placeholder="Ex : 01H00" />
+              {EditField({ fieldKey: "delaiRestitution", placeholder: "Ex : 01H00" })}
             </div>
           </div>
 
         </div>
       </div>
 
-      {/* ════════ RÔLES — Distribution / Production ════════ */}
+      {/* ════════ RÔLES — depuis la DDR (lecture seule) ════════ */}
       {!isTransport && (
         <div className="ddr-section">
-          <table className="ddr-roles-table">
-            <thead>
-              <tr>
-                <th>Affectations / Rôles</th>
-                <th>Chantier</th>
-                <th>Personne désignée</th>
-                <th>Unité</th>
-                <th>Téléphone</th>
-                {!readOnly && <th className="ddr-th-action" />}
-              </tr>
-            </thead>
-            <tbody>
-              {rolesFlat.map(r => (
-                <tr key={r.id}>
-                  <td className="ddr-td-role">
-                    {readOnly ? r.role : <input className="ddr-input-sm" value={r.role} onChange={e => updateRoleFlat(r.id, 'role', e.target.value)} />}
-                  </td>
-                  <td>{readOnly ? (r.chantier || '—') : <input className="ddr-input-sm" value={r.chantier || ''} onChange={e => updateRoleFlat(r.id, 'chantier', e.target.value)} placeholder="Chantier 1" />}</td>
-                  <td>{readOnly ? (r.personne || '—') : <input className="ddr-input-sm" value={r.personne} onChange={e => updateRoleFlat(r.id, 'personne', e.target.value)} />}</td>
-                  <td>{readOnly ? (r.unite || '—') : <input className="ddr-input-sm" value={r.unite} onChange={e => updateRoleFlat(r.id, 'unite', e.target.value)} />}</td>
-                  <td>{readOnly ? (r.telephone || '—') : <input className="ddr-input-sm" value={r.telephone} onChange={e => updateRoleFlat(r.id, 'telephone', e.target.value)} />}</td>
-                  {!readOnly && (
-                    <td className="ddr-td-action">
-                      <button className="ddr-btn-remove" onClick={() => removeRoleFlat(r.id)}>✕</button>
-                    </td>
-                  )}
+          <div className="ddr-table-wrap">
+            <table className="ddr-roles-table">
+              <thead>
+                <tr>
+                  <th>Affectations / Rôles</th>
+                  <th>Personne désignée</th>
+                  <th>Unité</th>
+                  <th>Téléphone</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-          {!readOnly && <button className="ddr-btn-add" onClick={addRoleFlat}>+ Ajouter un rôle</button>}
+              </thead>
+              <tbody>
+                {ddrRoles.length === 0 ? (
+                  <tr><td colSpan={4} className="ddr-chantiers-empty">Aucun rôle défini dans la DDR.</td></tr>
+                ) : (
+                  ddrRoles.map(r => {
+                    const isCC = r.role === 'Chargé de consignation';
+                    return (
+                      <tr key={r.id} className={isCC ? 'napt-role-locked' : ''}>
+                        <td className="ddr-td-role">
+                          {r.role || '—'}
+                          {isCC && <span className="napt-lock-icon" title="Non modifiable"> 🔒</span>}
+                        </td>
+                        <td>{r.personne  || '—'}</td>
+                        <td>{r.unite     || '—'}</td>
+                        <td>{r.telephone || '—'}</td>
+                      </tr>
+                    );
+                  })
+                )}
+              </tbody>
+            </table>
+          </div>
 
           <div className="napt-zones-row">
             <span className="ddr-label">Zones impactées / dans le noir :</span>
@@ -348,14 +434,14 @@ const NAPTView = forwardRef(({ naptId, readOnly = false }, ref) => {
           <div className="napt-enf-global">
             <span className="ddr-label">Prévision ENF :</span>
             {readOnly
-              ? <><span className="ddr-ro">{fields.previsionEnfMwh || '—'}</span><span className="ddr-label">MWh</span>
-                  <span className="ddr-ro">{fields.previsionEnfPct || '—'}</span><span className="ddr-label">%</span></>
+              ? <><span className="ddr-ro">{fields.previsionEnfMwh || '—'}</span><span className="ddr-label"> MWh</span>
+                  <span className="ddr-ro">{fields.previsionEnfPct || '—'}</span><span className="ddr-label"> %</span></>
               : <><input className="ddr-input napt-input-narrow" value={fields.previsionEnfMwh}
                     onChange={e => setField('previsionEnfMwh', e.target.value)} placeholder="0" />
-                  <span className="ddr-label">MWh</span>
+                  <span className="ddr-label"> MWh</span>
                   <input className="ddr-input napt-input-narrow" value={fields.previsionEnfPct}
                     onChange={e => setField('previsionEnfPct', e.target.value)} placeholder="0" />
-                  <span className="ddr-label">%</span></>
+                  <span className="ddr-label"> %</span></>
             }
           </div>
         </div>
@@ -368,11 +454,7 @@ const NAPTView = forwardRef(({ naptId, readOnly = false }, ref) => {
             <div key={c.id} className="napt-chantier-block">
 
               <div className="napt-chantier-header">
-                {readOnly
-                  ? <span className="napt-chantier-label">{c.label}</span>
-                  : <input className="ddr-input napt-chantier-input" value={c.label}
-                      onChange={e => updateChantierLabel(c.id, e.target.value)} />
-                }
+                <span className="napt-chantier-label">{c.label}</span>
                 {!readOnly && chantiers.length > 1 && (
                   <button className="ddr-btn-remove" onClick={() => removeChantier(c.id)}>✕ Supprimer</button>
                 )}
@@ -382,46 +464,48 @@ const NAPTView = forwardRef(({ naptId, readOnly = false }, ref) => {
                 <span className="ddr-section-label">Consistance :</span>
                 {readOnly
                   ? <div className="ddr-consistance">{c.consistance || '—'}</div>
-                  : <textarea className="ddr-textarea" rows={2} value={c.consistance}
+                  : <textarea className="ddr-chantier-textarea" value={c.consistance}
                       onChange={e => updateChantierConsis(c.id, e.target.value)}
                       placeholder="Décrire les travaux de ce chantier..." />
                 }
               </div>
 
-              <table className="ddr-roles-table">
-                <thead>
-                  <tr>
-                    <th>Affectations / Rôles</th>
-                    <th>Personne désignée</th>
-                    <th>Unité</th>
-                    <th>Entreprise</th>
-                    <th>Téléphone</th>
-                    {!readOnly && <th className="ddr-th-action" />}
-                  </tr>
-                </thead>
-                <tbody>
-                  {c.roles.map(r => (
-                    <tr key={r.id}>
-                      <td className="ddr-td-role">
-                        {readOnly ? r.role : <input className="ddr-input-sm" value={r.role} onChange={e => updateRoleChantier(c.id, r.id, 'role', e.target.value)} />}
-                      </td>
-                      <td>{readOnly ? (r.personne || '—') : <input className="ddr-input-sm" value={r.personne} onChange={e => updateRoleChantier(c.id, r.id, 'personne', e.target.value)} />}</td>
-                      <td>{readOnly ? (r.unite || '—') : <input className="ddr-input-sm" value={r.unite} onChange={e => updateRoleChantier(c.id, r.id, 'unite', e.target.value)} />}</td>
-                      <td>{readOnly ? (r.entreprise || '—') : <input className="ddr-input-sm" value={r.entreprise} onChange={e => updateRoleChantier(c.id, r.id, 'entreprise', e.target.value)} />}</td>
-                      <td>{readOnly ? (r.telephone || '—') : <input className="ddr-input-sm" value={r.telephone} onChange={e => updateRoleChantier(c.id, r.id, 'telephone', e.target.value)} />}</td>
-                      {!readOnly && (
-                        <td className="ddr-td-action">
-                          <button className="ddr-btn-remove" onClick={() => removeRoleChantier(c.id, r.id)}>✕</button>
-                        </td>
-                      )}
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-              {!readOnly && <button className="ddr-btn-add" onClick={() => addRoleChantier(c.id)}>+ Ajouter un rôle</button>}
-
             </div>
           ))}
+
+          {/* Rôles DDR — lecture seule, communs à tous les chantiers */}
+          <div className="ddr-table-wrap" style={{ marginTop: '12px' }}>
+            <table className="ddr-roles-table">
+              <thead>
+                <tr>
+                  <th>Affectations / Rôles</th>
+                  <th>Personne désignée</th>
+                  <th>Unité</th>
+                  <th>Téléphone</th>
+                </tr>
+              </thead>
+              <tbody>
+                {ddrRoles.length === 0 ? (
+                  <tr><td colSpan={4} className="ddr-chantiers-empty">Aucun rôle défini dans la DDR.</td></tr>
+                ) : (
+                  ddrRoles.map(r => {
+                    const isCC = r.role === 'Chargé de consignation';
+                    return (
+                      <tr key={r.id} className={isCC ? 'napt-role-locked' : ''}>
+                        <td className="ddr-td-role">
+                          {r.role || '—'}
+                          {isCC && <span className="napt-lock-icon" title="Non modifiable"> 🔒</span>}
+                        </td>
+                        <td>{r.personne  || '—'}</td>
+                        <td>{r.unite     || '—'}</td>
+                        <td>{r.telephone || '—'}</td>
+                      </tr>
+                    );
+                  })
+                )}
+              </tbody>
+            </table>
+          </div>
 
           {!readOnly && (
             <button className="ddr-btn-add napt-btn-add-chantier" onClick={addChantier}>
@@ -429,45 +513,47 @@ const NAPTView = forwardRef(({ naptId, readOnly = false }, ref) => {
             </button>
           )}
 
-          {/* ── Prévisions ENF ── */}
+          {/* ── Prévisions ENF (Transport) ── */}
           <div className="napt-previsions">
             <div className="ddr-section-label">Prévisions ENF</div>
-            <table className="ddr-roles-table napt-prev-table">
-              <thead>
-                <tr>
-                  <th>Phase</th>
-                  <th>Production Thermique (MWh)</th>
-                  <th>ENF (MWh)</th>
-                  <th>%</th>
-                </tr>
-              </thead>
-              <tbody>
-                {[
-                  ['Consignation',       'previsionConsignation'],
-                  ['Réalisation travaux', 'previsionRealisation'],
-                  ['Déconsignation',     'previsionDeconsignation'],
-                ].map(([label, key]) => (
-                  <tr key={key}>
-                    <td>{label}</td>
+            <div className="ddr-table-wrap">
+              <table className="ddr-roles-table napt-prev-table">
+                <thead>
+                  <tr>
+                    <th>Phase</th>
+                    <th>Production Thermique (MWh)</th>
+                    <th>ENF (MWh)</th>
+                    <th>%</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {[
+                    ['Consignation',        'previsionConsignation'],
+                    ['Réalisation travaux', 'previsionRealisation'],
+                    ['Déconsignation',      'previsionDeconsignation'],
+                  ].map(([label, key]) => (
+                    <tr key={key}>
+                      <td>{label}</td>
+                      <td className="napt-td-center">—</td>
+                      <td>
+                        {readOnly
+                          ? <span className="ddr-ro">{fields[key] || '—'}</span>
+                          : <input className="ddr-input-sm napt-input-narrow" value={fields[key]}
+                              onChange={e => setField(key, e.target.value)} placeholder="0" />
+                        }
+                      </td>
+                      <td className="napt-td-center">—</td>
+                    </tr>
+                  ))}
+                  <tr className="napt-prev-total">
+                    <td><strong>TOTAL</strong></td>
                     <td className="napt-td-center">—</td>
-                    <td>
-                      {readOnly
-                        ? <span className="ddr-ro">{fields[key] || '—'}</span>
-                        : <input className="ddr-input-sm napt-input-narrow" value={fields[key]}
-                            onChange={e => setField(key, e.target.value)} placeholder="0" />
-                      }
-                    </td>
+                    <td><strong>{totalEnf > 0 ? totalEnf : '—'}</strong></td>
                     <td className="napt-td-center">—</td>
                   </tr>
-                ))}
-                <tr className="napt-prev-total">
-                  <td><strong>TOTAL</strong></td>
-                  <td className="napt-td-center">—</td>
-                  <td><strong>{totalEnf > 0 ? totalEnf : '—'}</strong></td>
-                  <td className="napt-td-center">—</td>
-                </tr>
-              </tbody>
-            </table>
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       )}
