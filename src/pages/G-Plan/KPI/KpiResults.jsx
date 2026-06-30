@@ -2,14 +2,14 @@ import React, { useState, useRef } from 'react';
 import { COLORS, styles } from "./components/kpi";
 import { DonutChart, MiniBar, BarChart } from "./components/charts";
 
-import Page1 from './KPI1/kpi1';
+import Page1 from './KPI1/Kpi1';
 import Page2 from './KPI2/KPI2';
-import Page3 from './KPI3/kpi3';
-import Page4 from './KPI4/kpi4';
-import Page5 from './KPI5/kpi5';
-import Page6 from './KPI6/kpi6';
-import Page7 from './KPI7/kpi7';
-import Page8 from './KPI8/kpi8';
+import Page3 from './KPI3/Kpi3';
+import Page4 from './KPI4/Kpi4';
+import Page5 from './KPI5/Kpi5';
+import Page6 from './KPI6/Kpi6';
+import Page7 from './KPI7/Kpi7';
+import Page8 from './KPI8/Kpi8';
 
 const PAGES = [
   { id: 1, label: "1. Plannings secteur", component: Page1 },
