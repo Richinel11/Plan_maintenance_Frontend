@@ -39,7 +39,8 @@ const CcrAccueil = () => {
   useEffect(() => {
     Promise.all([getDDRList(), getNAPTList()])
       .then(([ddrRes, naptRes]) => {
-        setDdrs(Array.isArray(ddrRes.data) ? ddrRes.data : []);
+        const all = Array.isArray(ddrRes.data) ? ddrRes.data : [];
+        setDdrs(all.filter(d => d.statut !== 'EN_ATTENTE'));
         setNapts(Array.isArray(naptRes.data) ? naptRes.data : []);
       })
       .catch(() => {})
@@ -47,7 +48,7 @@ const CcrAccueil = () => {
   }, []);
 
   const totalDDR     = ddrs.length;
-  const enCours      = ddrs.filter(d => d.statut === 'EN_ATTENTE').length;
+  const enCours      = ddrs.filter(d => d.statut === 'COMPLETEE').length;
   const tauxValid    = ddrs.filter(d => d.statut === 'AUTORISE').length;
   const naptPrets    = napts.filter(n => n.statut === 'GENEREE').length;
   const alerts       = buildAlerts(ddrs);

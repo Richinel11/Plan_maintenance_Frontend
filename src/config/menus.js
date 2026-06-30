@@ -11,11 +11,11 @@ export const menuConfig = {
         { path: '/dashboard/CreerTravail', name: 'Nouveau Travail', icon: 'add_box' },
     ],
     gestionnaire_de_planification: [
-        { path: '/dashboard/dashboard-plan', name: 'Accueil',    icon: 'dashboard'      },
-        { path: '/dashboard/Calendar',       name: 'Calendrier', icon: 'calendar_month' },
-        { path: '/dashboard/alertes',        name: 'Alertes',    icon: 'notifications'  },
-        { path: '/dashboard/historique',     name: 'Historique', icon: 'history'        },
-        { path: '/dashboard/KPI',            name: 'KPI',        icon: 'analytics'      },
+        { path: '/dashboard/dashboard-plan',  name: 'Accueil',    icon: 'dashboard'      },
+        { path: '/dashboard/Calendar',        name: 'Calendrier', icon: 'calendar_month' },
+        { path: '/dashboard/alertes',         name: 'Alertes',    icon: 'notifications'  },
+        { path: '/dashboard/historique-plan', name: 'Historique', icon: 'history'        },
+        { path: '/dashboard/KPI',             name: 'KPI',        icon: 'analytics'      },
     ],
     resp_exploit: [
         { path: '/dashboard/Accueil',       name: 'Accueil',     icon: 'dashboard'  },
@@ -63,6 +63,9 @@ menuConfig['operateur_saisie'] = menuConfig['operateur_de_saisie'];
 menuConfig['opérateur_de_saisie'] = menuConfig['operateur_de_saisie'];
 menuConfig['ADMIN'] = menuConfig['admin'];
 menuConfig['ADMINISTRATEUR'] = menuConfig['admin'];
+menuConfig['OPERATEUR'] = menuConfig['operateur_de_saisie'];
+menuConfig['GESTIONNAIRE'] = menuConfig['gestionnaire_de_planification'];
+menuConfig['RESPONSABLE'] = menuConfig['resp_exploit'];
 menuConfig['administrateur'] = menuConfig['admin'];
 menuConfig['GESTIONNAIRE_PLANNING'] = menuConfig['gestionnaire_de_planification'];
 menuConfig['gestionnaire de planification'] = menuConfig['gestionnaire_de_planification'];

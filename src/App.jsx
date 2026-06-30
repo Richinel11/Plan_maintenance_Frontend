@@ -43,6 +43,7 @@ import MesTravaux from './pages/ChargeConsignation/MesTravaux';
 import DetailTravail from './pages/ChargeConsignation/DetailTravail';
 
 import KPI from "./pages/G-Plan/KPI/KpiResults";
+import GestionnaireHistorique from './pages/G-Plan/Historique/Historique';
 import ProtectedRoute from './pages/Security/ProtectedRoute/ProtectedRoute';
 function App() {
     return (
@@ -91,6 +92,7 @@ function App() {
                                 <Route path="alertes"              element={<AlertesView />} />
                                 <Route path="advanced-gantt"       element={<AdvancedGantt />} />
                                 <Route path="reajustement-avance"  element={<ReajustementAvance />} />
+                                <Route path="historique-plan"      element={<GestionnaireHistorique />} />
                                 {/* Contenus Responsable d'exploitation */}
                                 <Route path='Accueil' element={<Accueil />} />
                                 <Route path='Notifications' element={<Notifications />} />

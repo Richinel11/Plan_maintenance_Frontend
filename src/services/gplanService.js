@@ -118,8 +118,9 @@ export function buildGroupes(travaux, conflitIds) {
     console.log('[buildGroupes] travaux en conflit trouvés:', enConflit.length);
     enConflit.forEach(t => console.log('  ->', t.id, '| reference:', t.reference?.id, t.reference?.valeur));
 
+    const now = new Date();
     const byRef = {};
-    for (const t of enConflit) {
+    for (const t of enConflit.filter(t => t.segment !== 'PRODUCTION' && new Date(t.heure_fin_planifie) >= now)) {
         const key = t.reference?.id ?? `_${t.id}`;
         if (!byRef[key]) byRef[key] = [];
         byRef[key].push(t);
