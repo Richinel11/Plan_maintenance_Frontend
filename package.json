@@ -26,7 +26,7 @@
     "axios": "^1.14.0",
     "dhtmlx-gantt": "^9.1.4",
     "html2pdf.js": "^0.14.0",
-    "js-cookie": "^3.0.5",
+    "js-cookie": "^3.0.8",
     "lucide": "^1.8.0",
     "lucide-react": "^1.8.0",
     "react": "^19.2.5",

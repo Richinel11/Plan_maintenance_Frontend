@@ -123,3 +123,39 @@
     font-size: 0.88rem;
     border-radius: 6px;
 }
+
+
+/* New css to swap to the Select-role Page */
+/* Role Toggle Button - Dropdown Style */
+.role-toggle-btn {
+    margin-top: 12px;
+    padding: 10px 12px;
+    background: #f8f9fa;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    justify-content: space-between;   /* Spread content */
+    transition: all 0.2s ease;
+}
+
+.role-toggle-btn:hover {
+    background: #e9f0ff;
+    border-color: #1B75BB;
+    color: #1B75BB;
+}
+
+.role-toggle-btn .arrow-down {
+    margin-left: auto;
+    font-size: 1.1rem;
+    transition: transform 0.3s ease;
+}
+
+/* Optional: Rotate arrow when hovered */
+.role-toggle-btn:hover .arrow-down {
+    transform: rotate(180deg);
+}

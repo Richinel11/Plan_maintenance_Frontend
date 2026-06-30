@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { NavLink } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router-dom';
 import { menuConfig } from '../../../../config/menus';
 import Cookies from 'js-cookie';
 import './Sidebar.css';
@@ -27,6 +27,9 @@ const Sidebar = () => {
     const user = readUser();
     const fullName = `${user.first_name || user.prenom || ''} ${user.last_name || user.nom || ''}`.trim() || user.username || 'Utilisateur';
 
+    // NEW: Navigate hook for going back to role selection
+    const navigate = useNavigate();
+
 
     // 2. Détermination du rôle actif pour savoir quels menus afficher
     // On utilise le NOM du rôle (stable) plutôt que le CODE (instable ex: op1, Ad1...)
@@ -48,6 +51,21 @@ const Sidebar = () => {
     // 3. État pour gérer l'ouverture des sous-menus (ex: Workflow)
     const [openMenus, setOpenMenus] = useState({});
     const toggleMenu = (name) => setOpenMenus(prev => ({ ...prev, [name]: !prev[name] }));
+
+    // NEW: Function to go back to role selection page
+    const goBackToRoleSelection = () => {
+        console.log("🔄 User clicked 'Changer de rôle' - Still logged in:", {
+            fullName,
+            hasUserCookie: !!Cookies.get('user'),
+            hasActiveRole: !!Cookies.get('activeRole')
+        });
+        
+        // Clear current active role so user can choose again
+        Cookies.remove('activeRole');
+        Cookies.remove('activeRoleName');
+        
+        navigate('/select-role');   // ← Change this path if your route is different
+    };
 
 
     console.log("Sidebar Render - User:", fullName, "Active Role:", activeRoleName, "Menu Key:", activeRoleName ? activeRoleName.toLowerCase().replace(/\s+/g, '_') : 'N/A', "Links:", dynamicLinks);  
@@ -121,8 +139,20 @@ const Sidebar = () => {
                 <div className="sidebar-user-info">
                     <span className="sidebar-user-name">{fullName}</span>
                     <span className="sidebar-user-role">{activeRoleName || activeRoleCode || 'Aucun rôle'}</span>
-                </div>
 
+                </div>
+                    {/* NEW: Toggle button to go back to role selection */}
+                <div>
+                    <button 
+                    className="role-toggle-btn"
+                    onClick={goBackToRoleSelection}
+                    title="Changer de rôle"
+                >
+                    <span className="material-symbols-outlined">swap_horiz</span>
+                    {/* Changer de rôle */}
+                    {/* <span className="material-symbols-outlined arrow-down">keyboard_arrow_down</span> */}
+                </button>
+            </div>
             </div>
         </aside>
     );

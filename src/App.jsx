@@ -41,6 +41,9 @@ import CommAccueil from './pages/Communication/Accueil/CommAccueil';
 import CommNAPTPage from './pages/Communication/NAPT/CommNAPTPage';
 import MesTravaux from './pages/ChargeConsignation/MesTravaux';
 import DetailTravail from './pages/ChargeConsignation/DetailTravail';
+
+import KPI from "./pages/G-Plan/KPI/KpiResults";
+import ProtectedRoute from './pages/Security/ProtectedRoute/ProtectedRoute';
 function App() {
     return (
         <div className="app-container">
@@ -53,50 +56,53 @@ function App() {
             />
             <Router>
                 <Routes>
+                    {/* 🔓 Public Routes */}
                     <Route path="/" element={<Navigate to="/login" replace />} />
                     <Route path="/login" element={<Login />} />
                     <Route path="/change-password" element={<ChangePassword />} />
                     <Route path="/select-role" element={<SelectRole />} />
 
-                    {/* Dashboard Routes Protegées */}
-                    <Route path="/dashboard" element={<DashboardLayout />}>
-                        <Route index element={<Navigate to="home" replace />} />
-                        <Route path="home" element={<DashboardHome />} />
-                        <Route path="users" element={<UserManagement />} />
-                        <Route path="roles" element={<RoleManagement />} />
-                        <Route path="permissions" element={<PermissionManagement />} />
+                     {/* 🔒 PROTECTED ROUTE WRAPPER */}
+                    <Route element={<ProtectedRoute />}>
+                            {/* Dashboard Routes Protegées */}
+                            <Route path="/dashboard" element={<DashboardLayout />}>
+                                <Route index element={<Navigate to="home" replace />} />
+                                <Route path="home" element={<DashboardHome />} />
+                                <Route path="users" element={<UserManagement />} />
+                                <Route path="roles" element={<RoleManagement />} />
+                                <Route path="permissions" element={<PermissionManagement />} />
 
-                        {/* Routes Workflow */}
-                        <Route path="workflow/historique" element={<WorkflowHistory />} />
-                        <Route path="workflow/:id" element={<WorkflowDetail />} />
-                        <Route path="workflow/Workflow/creer" element={<CreateGlobalWorkflow />} />
-                        <Route path="planning-audit" element={<PlanningAudit />} />
-                        <Route path="planning-audit/:planningId" element={<PlanningWorkflowDetail />} />
+                                {/* Routes Workflow */}
+                                <Route path="workflow/historique" element={<WorkflowHistory />} />
+                                <Route path="workflow/:id" element={<WorkflowDetail />} />
+                                <Route path="workflow/Workflow/creer" element={<CreateGlobalWorkflow />} />
+                                <Route path="planning-audit" element={<PlanningAudit />} />
+                                <Route path="planning-audit/:planningId" element={<PlanningWorkflowDetail />} />
 
-                        {/* Contenus OP-Saisie */}
-                        <Route path="OP-home" element={<OP_home />} />
-                        <Route path="Planning" element={<Planning />} />
-                        <Route path="Planning/:id" element={<Planning />} />
-                        <Route path="CreerTravail" element={<Creer_Travail />} />
+                                {/* Contenus OP-Saisie */}
+                                <Route path="OP-home" element={<OP_home />} />
+                                <Route path="Planning" element={<Planning />} />
+                                <Route path="Planning/:id" element={<Planning />} />
+                                <Route path="CreerTravail" element={<Creer_Travail />} />
 
-                        {/* Contenus pour G-Plan */}
-                        <Route path="dashboard-plan"       element={<Dashboard_Plan />} />
-                        <Route path="Calendar"             element={<Calendar />} />
-                        <Route path="alertes"              element={<AlertesView />} />
-                        <Route path="advanced-gantt"       element={<AdvancedGantt />} />
-                        <Route path="reajustement-avance"  element={<ReajustementAvance />} />
-                        {/* Contenus Responsable d'exploitation */}
-                        <Route path='Accueil' element={<Accueil />} />
-                        <Route path='Notifications' element={<Notifications />} />
-                        <Route path='historique' element={<Historique />} />
-                        <Route path='consultation/ddr/:id'  element={<ConsultationPage type="DDR"  />} />
-                        <Route path='consultation/napt/:id' element={<ConsultationPage type="NAPT" />} />
-                        <Route path='ddr/:ddrId' element={<DDRDetailPage />} />
-                        <Route path='ddr/:ddrId/valider' element={<DDRValiderPage />} />
+                                {/* Contenus pour G-Plan */}
+                                <Route path="dashboard-plan"       element={<Dashboard_Plan />} />
+                                <Route path="Calendar"             element={<Calendar />} />
+                                <Route path="alertes"              element={<AlertesView />} />
+                                <Route path="advanced-gantt"       element={<AdvancedGantt />} />
+                                <Route path="reajustement-avance"  element={<ReajustementAvance />} />
+                                {/* Contenus Responsable d'exploitation */}
+                                <Route path='Accueil' element={<Accueil />} />
+                                <Route path='Notifications' element={<Notifications />} />
+                                <Route path='historique' element={<Historique />} />
+                                <Route path='consultation/ddr/:id'  element={<ConsultationPage type="DDR"  />} />
+                                <Route path='consultation/napt/:id' element={<ConsultationPage type="NAPT" />} />
+                                <Route path='ddr/:ddrId' element={<DDRDetailPage />} />
+                                <Route path='ddr/:ddrId/valider' element={<DDRValiderPage />} />
 
-                        {/* Contenus Communication */}
-                        <Route path='comm-accueil' element={<CommAccueil />} />
-                        <Route path='comm-napt'    element={<CommNAPTPage />} />
+                                {/* Contenus Communication */}
+                                <Route path='comm-accueil' element={<CommAccueil />} />
+                                <Route path='comm-napt'    element={<CommNAPTPage />} />
 
                         {/* Contenus Chargé de consignation */}
                         <Route path='charge-consig/travaux'          element={<MesTravaux />} />
@@ -109,7 +115,12 @@ function App() {
                         <Route path='ccr/ddr/:ddrId'          element={<CcrDDRActionPage />} />
                         <Route path='ccr/ddr/:ddrId/refuser'  element={<CcrDDRRefusPage />} />
                         <Route path='ccr/napt/:naptId'        element={<CcrNAPTPage />} />
-                    </Route>
+                          {/* Contenu KPI */}
+                        <Route path='kpi' element={<KPI />} /></Route>
+                           </Route> {/* 🔒 END OF PROTECTED ROUTE WRAPPER */}
+
+                            {/* Catch-all for stray URLs */}
+                                <Route path="*" element={<Navigate to="/login" replace />} />
                 </Routes>
             </Router>
         </div>
