@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'sonner';
 import { getDDR, deciderDDR } from '../../../services/exploitationService';
@@ -13,6 +13,7 @@ const fmtDate = (iso) => {
 
 const statusMeta = {
   EN_ATTENTE: { label: 'En attente',  color: 'orange' },
+  COMPLETEE:  { label: 'En attente',  color: 'green'  },
   AUTORISE:   { label: 'Autorisé',    color: 'green'  },
   REFUSE:     { label: 'Refusé',      color: 'red'    },
   REPORTE:    { label: 'Reporté',     color: 'orange' },
@@ -25,6 +26,7 @@ const CcrDDRActionPage = () => {
   const [ddr,        setDdr]        = useState(null);
   const [loading,    setLoading]    = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const submittingRef               = useRef(false);
 
   useEffect(() => {
     if (!ddrId) return;
@@ -36,6 +38,8 @@ const CcrDDRActionPage = () => {
 
   /* ── Valider ── */
   const handleValider = async () => {
+    if (submittingRef.current) return;
+    submittingRef.current = true;
     setSubmitting(true);
     try {
       const res = await deciderDDR(ddrId, { decision: 'AUTORISE' });
@@ -49,6 +53,7 @@ const CcrDDRActionPage = () => {
     } catch (err) {
       toast.error(err?.response?.data?.error || 'Erreur lors de la validation.');
     } finally {
+      submittingRef.current = false;
       setSubmitting(false);
     }
   };
@@ -59,7 +64,7 @@ const CcrDDRActionPage = () => {
   const travail  = ddr.travail;
   const planning = travail?.planning;
   const statut   = statusMeta[ddr.statut] || { label: ddr.statut, color: 'grey' };
-  const isEnAttente = ddr.statut === 'EN_ATTENTE';
+  const isEnAttente = ddr.statut === 'COMPLETEE';
 
   return (
     <div className="cp-layout">

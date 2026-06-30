@@ -6,7 +6,7 @@ const TraitementDDR = () => {
   const navigate = useNavigate();
 
   const handleRowClick = (item) => {
-    if (item.type === 'DDR' && item.statut === 'EN_ATTENTE') {
+    if (item.type === 'DDR' && item.statut === 'COMPLETEE') {
       navigate(`/dashboard/ccr/ddr/${item.id}`);
     } else if (item.type === 'DDR') {
       navigate(`/dashboard/consultation/ddr/${item.id}`);
@@ -15,7 +15,7 @@ const TraitementDDR = () => {
     }
   };
 
-  return <Historique ddrOnly onRowClick={handleRowClick} />;
+  return <Historique ddrOnly ddrStatut="COMPLETEE" onRowClick={handleRowClick} />;
 };
 
 export default TraitementDDR;

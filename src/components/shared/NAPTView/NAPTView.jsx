@@ -96,10 +96,13 @@ const NAPTView = forwardRef(({ naptId, readOnly = false }, ref) => {
     observations:           '',
     securite:               SECURITE_DEFAULT,
     nomSignataire:          '',
-    /* Transport */
-    previsionConsignation:    '',
-    previsionRealisation:     '',
-    previsionDeconsignation:  '',
+    /* Transport (SONATREL) */
+    previsionConsignation:       '',
+    prodThermiqueConsignation:   '',
+    previsionRealisation:        '',
+    prodThermiqueRealisation:    '',
+    previsionDeconsignation:     '',
+    prodThermiqueDeconsignation: '',
     /* Distribution */
     zonesImpactees:  '',
     previsionEnfMwh: '',
@@ -131,17 +134,20 @@ const NAPTView = forwardRef(({ naptId, readOnly = false }, ref) => {
           nomDemandeur:           data.nom_demandeur             || data.genere_par_nom || '',
           debutConsignationDate:  debutCons ? debutCons.toISOString().split('T')[0] : '',
           debutConsignationHeure: debutCons ? debutCons.toTimeString().slice(0, 5)   : '',
-          retourExploitationDate: data.retour_exploitation       || '',
+          retourExploitationDate: data.retour_exploitation ? data.retour_exploitation.split('T')[0] : '',
           delaiRestitution:       data.delai_restitution_urgence || '',
           observations:           data.observations_generales    || '',
           securite:               data.points_separation         || SECURITE_DEFAULT,
-          nomSignataire:          '',
-          previsionConsignation:  '',
-          previsionRealisation:   '',
-          previsionDeconsignation:'',
-          zonesImpactees:         data.quartiers_impactes        || '',
-          previsionEnfMwh:        '',
-          previsionEnfPct:        '',
+          nomSignataire:               data.nom_signataire                  || '',
+          previsionConsignation:       data.prevision_consignation          || '',
+          prodThermiqueConsignation:   data.prod_thermique_consignation     || '',
+          previsionRealisation:        data.prevision_realisation           || '',
+          prodThermiqueRealisation:    data.prod_thermique_realisation      || '',
+          previsionDeconsignation:     data.prevision_deconsignation        || '',
+          prodThermiqueDeconsignation: data.prod_thermique_deconsignation   || '',
+          zonesImpactees:              data.quartiers_impactes              || '',
+          previsionEnfMwh:             data.prevision_enf_mwh              || '',
+          previsionEnfPct:             data.prevision_enf_pct              || '',
         });
 
         /* Rôles depuis napt.ddr.roles — toujours lecture seule */
@@ -528,29 +534,47 @@ const NAPTView = forwardRef(({ naptId, readOnly = false }, ref) => {
                 </thead>
                 <tbody>
                   {[
-                    ['Consignation',        'previsionConsignation'],
-                    ['Réalisation travaux', 'previsionRealisation'],
-                    ['Déconsignation',      'previsionDeconsignation'],
-                  ].map(([label, key]) => (
-                    <tr key={key}>
-                      <td>{label}</td>
-                      <td className="napt-td-center">—</td>
-                      <td>
-                        {readOnly
-                          ? <span className="ddr-ro">{fields[key] || '—'}</span>
-                          : <input className="ddr-input-sm napt-input-narrow" value={fields[key]}
-                              onChange={e => setField(key, e.target.value)} placeholder="0" />
-                        }
-                      </td>
-                      <td className="napt-td-center">—</td>
-                    </tr>
-                  ))}
-                  <tr className="napt-prev-total">
-                    <td><strong>TOTAL</strong></td>
-                    <td className="napt-td-center">—</td>
-                    <td><strong>{totalEnf > 0 ? totalEnf : '—'}</strong></td>
-                    <td className="napt-td-center">—</td>
-                  </tr>
+                    ['Consignation',        'previsionConsignation',   'prodThermiqueConsignation'],
+                    ['Réalisation travaux', 'previsionRealisation',    'prodThermiqueRealisation'],
+                    ['Déconsignation',      'previsionDeconsignation', 'prodThermiqueDeconsignation'],
+                  ].map(([label, enfKey, prodKey]) => {
+                    const enf  = parseFloat(fields[enfKey])  || 0;
+                    const prod = parseFloat(fields[prodKey]) || 0;
+                    const pct  = prod > 0 ? ((enf / prod) * 100).toFixed(1) + ' %' : '—';
+                    return (
+                      <tr key={enfKey}>
+                        <td>{label}</td>
+                        <td>
+                          {readOnly
+                            ? <span className="ddr-ro">{fields[prodKey] || '—'}</span>
+                            : <input className="ddr-input-sm napt-input-narrow" value={fields[prodKey]}
+                                onChange={e => setField(prodKey, e.target.value)} placeholder="0" />
+                          }
+                        </td>
+                        <td>
+                          {readOnly
+                            ? <span className="ddr-ro">{fields[enfKey] || '—'}</span>
+                            : <input className="ddr-input-sm napt-input-narrow" value={fields[enfKey]}
+                                onChange={e => setField(enfKey, e.target.value)} placeholder="0" />
+                          }
+                        </td>
+                        <td className="napt-td-center">{pct}</td>
+                      </tr>
+                    );
+                  })}
+                  {(() => {
+                    const totalProd = ['prodThermiqueConsignation','prodThermiqueRealisation','prodThermiqueDeconsignation']
+                      .map(k => parseFloat(fields[k]) || 0).reduce((a,b) => a+b, 0);
+                    const totalPct  = totalProd > 0 ? ((totalEnf / totalProd) * 100).toFixed(1) + ' %' : '—';
+                    return (
+                      <tr className="napt-prev-total">
+                        <td><strong>TOTAL</strong></td>
+                        <td><strong>{totalProd > 0 ? totalProd : '—'}</strong></td>
+                        <td><strong>{totalEnf  > 0 ? totalEnf  : '—'}</strong></td>
+                        <td><strong>{totalPct}</strong></td>
+                      </tr>
+                    );
+                  })()}
                 </tbody>
               </table>
             </div>

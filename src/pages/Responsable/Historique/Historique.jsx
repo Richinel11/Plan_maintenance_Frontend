@@ -20,6 +20,7 @@ const initials = (name) => {
 const statusMeta = {
   /* DDR */
   EN_ATTENTE: { label: 'En attente', color: 'orange' },
+  COMPLETEE:  { label: 'Complétée',  color: 'green'  },
   AUTORISE:   { label: 'Autorisé',   color: 'green'  },
   REFUSE:     { label: 'Refusé',     color: 'red'    },
   REPORTE:    { label: 'Reporté',    color: 'orange' },
@@ -44,7 +45,7 @@ const isWithinPeriod = (iso, period) => {
 const PAGE_SIZE = 10;
 
 /* ── composant ───────────────────────────────────────────── */
-const Historique = ({ ddrOnly = false, naptOnly = false, naptStatut = null, onRowClick = null }) => {
+const Historique = ({ ddrOnly = false, naptOnly = false, naptStatut = null, ddrStatut = null, ddrExcludeStatut = null, onRowClick = null }) => {
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -67,7 +68,12 @@ const Historique = ({ ddrOnly = false, naptOnly = false, naptStatut = null, onRo
   useEffect(() => {
     if (ddrOnly) {
       getDDRList()
-        .then(res => setDdrs(res.data || []))
+        .then(res => {
+          let all = res.data || [];
+          if (ddrStatut) all = all.filter(d => d.statut === ddrStatut);
+          if (ddrExcludeStatut) all = all.filter(d => d.statut !== ddrExcludeStatut);
+          setDdrs(all);
+        })
         .catch(() => toast.error('Impossible de charger les DDR.'))
         .finally(() => setLoading(false));
     } else if (naptOnly) {
@@ -82,7 +88,8 @@ const Historique = ({ ddrOnly = false, naptOnly = false, naptStatut = null, onRo
     } else {
       Promise.all([getDDRList(), getNAPTList()])
         .then(([ddrRes, naptRes]) => {
-          const allDdrs  = ddrRes.data  || [];
+          let allDdrs  = ddrRes.data  || [];
+          if (ddrExcludeStatut) allDdrs = allDdrs.filter(d => d.statut !== ddrExcludeStatut);
           const allNapts = naptRes.data || [];
           setDdrs(allDdrs);
           const travailIds = new Set(allDdrs.map(d => d.travail?.id));

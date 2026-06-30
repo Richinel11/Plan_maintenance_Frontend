@@ -104,7 +104,10 @@ const getFieldsForService = (service) => {
 const getRefItem = (travail, typeNom) => {
   const items = travail.reference?.items;
   if (!Array.isArray(items)) return "";
-  const item = items.find(i => i.type?.nom === typeNom);
+  const normalize = (s) =>
+    (s || '').toLowerCase().normalize('NFD').replace(/\p{Diacritic}/gu, '');
+  const target = normalize(typeNom);
+  const item = items.find(i => normalize(i.type?.nom) === target);
   return item?.valeur || "";
 };
 
