@@ -3,7 +3,7 @@ import { COLORS, styles } from "./components/kpi";
 import { DonutChart, MiniBar, BarChart } from "./components/charts";
 
 import Page1 from './KPI1/Kpi1';
-import Page2 from './KPI2/KPI2';
+import Page2 from './KPI2/Kpi2';
 import Page3 from './KPI3/Kpi3';
 import Page4 from './KPI4/Kpi4';
 import Page5 from './KPI5/Kpi5';
