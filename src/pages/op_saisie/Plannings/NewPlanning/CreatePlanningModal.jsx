@@ -1,15 +1,30 @@
 // CreatePlanningModal.jsx
 import React, { useState, useEffect } from "react";
-import { createPlanning } from "../../../../services/planningService";
+import { createPlanning, updatePlanning } from "../../../../services/planningService";
 import { getEntites } from "../../../../services/userService";
 import { toast } from "sonner";
 
-const CreatePlanningModal = ({ isOpen, onClose, onSuccess }) => {
+const CreatePlanningModal = ({ isOpen, onClose, onSuccess, planningId = null, initialData = null }) => {
+  const isEditMode = !!planningId;
+
   const [formData, setFormData] = useState({
     nom: "",
     entite_metier_id: "",
     code: "",
   });
+
+  useEffect(() => {
+    if (isOpen && initialData) {
+      setFormData({
+        nom: initialData.nom || "",
+        entite_metier_id: initialData.entite_metier?.id || initialData.entite_metier_id || "",
+        code: initialData.code || "",
+      });
+    }
+    if (!isOpen) {
+      setFormData({ nom: "", entite_metier_id: "", code: "" });
+    }
+  }, [isOpen, initialData]);
 
   const [entites, setEntites] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -65,15 +80,16 @@ const handleSubmit = async (e) => {
     try {
       const payload = {
         nom: formData.nom.trim(),
-        entite_metier: formData.entite_metier_id, // 👈 Remplacez entite_metier_id par entite_metier si votre serializer l'attend ainsi
-        cree_par: currentUserId,                 // 👈 Obligatoire selon votre modèle Django
+        entite_metier_id: formData.entite_metier_id,
         ...(formData.code?.trim() && { code: formData.code.trim() }),
+        ...(!isEditMode && { cree_par: currentUserId }),
       };
 
-      console.log("Payload sent to createPlanning:", payload); // Debug tool
+      const response = isEditMode
+        ? await updatePlanning(planningId, payload)
+        : await createPlanning(payload);
 
-      const response = await createPlanning(payload);
-      toast.success("Planning créé avec succès !");
+      toast.success(isEditMode ? "Planning modifié avec succès !" : "Planning créé avec succès !");
       onSuccess?.(response.data);
       onClose();
       setFormData({ nom: "", entite_metier_id: "", code: "" });
@@ -93,7 +109,7 @@ const handleSubmit = async (e) => {
     <div className="modal-overlay" style={{ zIndex: 10000 }}>
       <div className="modal-content" style={{ maxWidth: "520px" }}>
         <div className="modal-header">
-          <h2>Créer un nouveau Planning</h2>
+          <h2>{isEditMode ? "Modifier le Planning" : "Créer un nouveau Planning"}</h2>
           <button onClick={onClose} className="close-btn">✕</button>
         </div>
 
@@ -117,8 +133,8 @@ const handleSubmit = async (e) => {
               value={formData.entite_metier_id}
               onChange={handleChange}
               required
-              disabled={loading}
-              style={{ padding: "12px 16px", borderRadius: "8px", width: "100%" }}
+              disabled={loading || isEditMode}
+              style={{ padding: "12px 16px", borderRadius: "8px", width: "100%", opacity: isEditMode ? 0.6 : 1 }}
             >
               <option value="">Sélectionner un service...</option>
               {entites.map((ent) => (
@@ -144,7 +160,8 @@ const handleSubmit = async (e) => {
                 value={formData.code}
                 onChange={handleChange}
                 placeholder="PLAN-06-24-2026"
-                style={{ flex: 1 }}
+                style={{ flex: 1, opacity: isEditMode ? 0.6 : 1 }}
+                disabled={isEditMode}
               />
               <button type="button" onClick={() => setFormData(p => ({ ...p, code: generateCode() }))} className="btn-secondary">
                 Générer
@@ -155,7 +172,7 @@ const handleSubmit = async (e) => {
           <div className="modal-actions">
             <button type="button" onClick={onClose} className="btn-cancel">Annuler</button>
             <button type="submit" className="btn-submit" disabled={submitting}>
-              {submitting ? "Création..." : "Créer le Planning"}
+              {submitting ? (isEditMode ? "Enregistrement..." : "Création...") : (isEditMode ? "Enregistrer" : "Créer le Planning")}
             </button>
           </div>
         </form>

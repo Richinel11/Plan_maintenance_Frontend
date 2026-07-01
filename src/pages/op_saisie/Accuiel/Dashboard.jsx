@@ -4,6 +4,7 @@ import './Dashboard.css';
 import Footer from '../Plannings/footer/footer';
 import { getPlannings, deletePlanning } from "../../../services/planningService";
 import PlanningTable from "../../../components/shared/PlanningTable/PlanningTable";
+import CreatePlanningModal from "../Plannings/NewPlanning/CreatePlanningModal";
 import { toast } from "sonner";
 
 const ITEMS_PER_PAGE = 10;
@@ -16,6 +17,7 @@ const Dashboard = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
+  const [editingPlanning, setEditingPlanning] = useState(null);
 
   const fetchPlannings = async (page = 1) => {
     try {
@@ -49,7 +51,7 @@ const Dashboard = () => {
 
   const handleEdit = (planning, e) => {
     e.stopPropagation();
-    console.log("Edit planning:", planning.id);
+    setEditingPlanning(planning);
   };
 
   const handleDelete = (planning, e) => {
@@ -133,6 +135,17 @@ const Dashboard = () => {
 
         <Footer />
       </div>
+
+      <CreatePlanningModal
+        isOpen={!!editingPlanning}
+        onClose={() => setEditingPlanning(null)}
+        planningId={editingPlanning?.id}
+        initialData={editingPlanning}
+        onSuccess={() => {
+          setEditingPlanning(null);
+          fetchPlannings(currentPage);
+        }}
+      />
     </div>
   );
 };

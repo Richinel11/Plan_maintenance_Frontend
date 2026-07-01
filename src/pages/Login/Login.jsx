@@ -23,7 +23,7 @@ const Login = () => {
             console.log(data);
             console.log(user);
 
-            if (!user.ldap_req && user.first_connection) {
+            if (!user.is_ldap && user.first_connection) {
                 navigate('/change-password', { state: { userId: user.id } });
             } else {
                 navigate('/select-role');

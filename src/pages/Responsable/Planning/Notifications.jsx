@@ -23,10 +23,16 @@ export default function Notifications() {
         const results = data.results || data;
         const all = Array.isArray(results) ? results : [];
 
-        // Filtrer par entité métier de l'utilisateur connecté
+        // Le responsable ne voit que les plannings VALIDÉS par le gestionnaire,
+        // c'est-à-dire ceux qui ont quitté l'étape CREER (EN_ATTENTE et au-delà).
+        const valides = all.filter(
+          p => p.current_step && p.current_step.code !== 'CREER'
+        );
+
+        // Puis filtrer par entité métier de l'utilisateur connecté
         const filtered = userEntiteId
-          ? all.filter(p => p.entite_metier?.id === userEntiteId)
-          : all;
+          ? valides.filter(p => p.entite_metier?.id === userEntiteId)
+          : valides;
 
         setPlannings(filtered);
       } catch (error) {

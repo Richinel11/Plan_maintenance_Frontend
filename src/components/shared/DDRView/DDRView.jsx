@@ -150,8 +150,9 @@ const DDRView = forwardRef(({ ddrId, readOnly = false }, ref) => {
   const t = ddr.travail;
   const nomOuvrage = t?.reference?.items?.find(it => it.type?.nom?.toLowerCase() === 'ouvrage')?.valeur || '—';
   const isTransport = t?.segment === 'TRANSPORT';
-  const companyLogo = isTransport ? '/logosonarel.png' : '/socadel.jpg';
-  const companyAlt  = isTransport ? 'SONATREL' : 'SOCADEL';
+  const segment = t?.segment;
+  const companyLogo = segment === 'TRANSPORT' ? '/logosonarel.png' : '/Socadel.jpg';
+  const companyAlt  = segment === 'TRANSPORT' ? 'SONATREL' : 'SOCADEL';
   const orgLabel    = isTransport
     ? "DIRECTION DE L'EXPLOITATION DES SYSTÈMES ÉLECTRIQUES\nSOUS-DIRECTION CONDUITE EN TEMPS RÉEL"
     : "Direction de l'Exploitation et de la Maintenance Réseaux";

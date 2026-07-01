@@ -188,9 +188,6 @@ const DDRDetailPage = () => {
               Annuler
             </button>
             <div className="ddr-footer-right">
-              <button className="ddr-btn-annuler" onClick={handleImprimer}>
-                🖨 Imprimer
-              </button>
               <button className="ddr-btn-valider" onClick={handleValider} disabled={saving}>
                 {saving ? 'Enregistrement...' : 'Valider'}
               </button>

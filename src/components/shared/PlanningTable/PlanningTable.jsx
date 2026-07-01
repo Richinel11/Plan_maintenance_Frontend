@@ -2,16 +2,27 @@ import React, { useState } from 'react';
 import './PlanningTable.css';
 import PaginationControls from '../PaginationControls/PaginationControls';
 
-const getStatusClass = (status) => {
-    if (!status) return 'status-brouillon';
-    switch (status.toLowerCase()) {
-        case 'brouillon':  return 'status-brouillon';
-        case 'soumis':     return 'status-soumis';
-        case 'en cours':   return 'status-encours';
-        case 'clôturé':    return 'status-cloture';
+// L'état d'un planning vient de son étape de workflow (current_step),
+// pas d'un champ "statut" (qui n'existe pas dans l'API).
+const getStepLabel = (planning) =>
+    planning.current_step?.name || planning.statut || 'Créer';
+
+const getStatusClass = (planning) => {
+    const code = planning.current_step?.code;
+    switch (code) {
+        case 'CREER':      return 'status-brouillon';
+        case 'EN_ATTENTE': return 'status-soumis';
+        case 'COMPLETE':   return 'status-encours';
+        case 'VALIDE':     return 'status-encours';
+        case 'TERMINE':    return 'status-cloture';
         default:           return 'status-brouillon';
     }
 };
+
+// Un planning est verrouillé (non éditable) quand il a atteint l'étape terminale.
+const isPlanningLocked = (planning) =>
+    planning.current_step?.is_terminal === true ||
+    planning.current_step?.code === 'TERMINE';
 
 const PlanningTable = ({ plannings = [], loading = false, onRowClick, onEdit, onDelete, currentPage = 1, totalPages = 1, totalItems = 0, onPageChange }) => {
     const [searchTerm, setSearchTerm] = useState('');
@@ -21,7 +32,7 @@ const PlanningTable = ({ plannings = [], loading = false, onRowClick, onEdit, on
         (p.nom || p.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
         (p.code || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
         (p.entite_metier?.name || p.service || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (p.statut || '').toLowerCase().includes(searchTerm.toLowerCase())
+        getStepLabel(p).toLowerCase().includes(searchTerm.toLowerCase())
     );
 
     const displayedPlannings = searchTerm ? filtered : plannings;
@@ -72,13 +83,13 @@ const PlanningTable = ({ plannings = [], loading = false, onRowClick, onEdit, on
                                 <td><span className="pt-ref">{planning.code || '—'}</span></td>
                                 <td>{planning.entite_metier?.name || planning.service || '—'}</td>
                                 <td>
-                                    <span className={`pt-status ${getStatusClass(planning.statut)}`}>
-                                        {planning.statut || 'Brouillon'}
+                                    <span className={`pt-status ${getStatusClass(planning)}`}>
+                                        {getStepLabel(planning)}
                                     </span>
                                 </td>
                                 {showActions && (
                                     <td>
-                                        {(planning.statut || '').toLowerCase() !== 'clôturé' ? (
+                                        {!isPlanningLocked(planning) ? (
                                             <div className="pt-actions">
                                                 {onEdit && (
                                                     <button className="pt-btn pt-edit-btn" title="Modifier" onClick={(e) => onEdit(planning, e)}>

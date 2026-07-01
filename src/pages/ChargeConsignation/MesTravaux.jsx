@@ -84,8 +84,8 @@ export default function MesTravaux() {
               {travaux.map(t => {
                 const estTermine = t.statut_travaux === 'TERMINE';
                 const statut = STATUT_LABELS[t.statut_travaux] || { label: t.statut_travaux, color: '#6B7280' };
-                const naptGeneree = t.demande_retrait?.statut === 'AUTORISE';
-                const ddrGeneree  = !!t.demande_retrait && !naptGeneree;
+                const naptDiffusee = t.note_arret?.statut === 'DIFFUSEE';
+                const ddrGeneree   = !!t.demande_retrait && !naptDiffusee;
 
                 return (
                   <tr
@@ -127,7 +127,7 @@ export default function MesTravaux() {
                       </span>
                     </td>
                     <td style={{ ...td, textAlign: 'center' }}>
-                      {naptGeneree ? (
+                      {naptDiffusee ? (
                         <button
                           onClick={() => handleTerminer(t)}
                           title="Marquer ce travail comme terminé"

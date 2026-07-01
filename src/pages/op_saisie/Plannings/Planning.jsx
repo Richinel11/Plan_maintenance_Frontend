@@ -7,6 +7,7 @@ import { genererDDR } from "../../../services/exploitationService";
 
 import FileInput from "../Importer_Plannings/importation";
 import readExcel from "./readFile";
+import PlanningValidationBar from "../../../components/Workflow/PlanningValidationBar";
 
 import "./Planning.css";
 import "./TableauxDeBord/Tableaux.css";
@@ -1096,7 +1097,7 @@ const prevStep = () => {
     });
   };
 
-  // Marquer un travail comme terminé (NAPT générée → bouton Terminer).
+  // Marquer un travail comme terminé (NAPT diffusée → bouton Terminer).
   const handleTerminer = (row) => {
     const travail = row.__travail;
     if (!travail?.id) return;
@@ -1514,6 +1515,14 @@ const handleAddPlanningRow = () => {
 
           </div>
 
+          {/* Barre de validation Gestionnaire (CREER -> EN_ATTENTE) */}
+          {id && (
+            <PlanningValidationBar
+              planningId={id}
+              currentStepCode={planningDetail?.current_step?.code}
+            />
+          )}
+
           {/* FILTRES AVANCÉS */}
           <Filter
             filterType={filterType}       setFilterType={setFilterType}
@@ -1653,8 +1662,8 @@ const handleAddPlanningRow = () => {
                       <td className="action-cell">
                         {id ? (
                           // Mode visualisation : handlers backend (PATCH / DELETE)
-                          row.__travail?.demande_retrait?.statut === 'AUTORISE' ? (
-                            // NAPT générée — bouton Terminer
+                          row.__travail?.note_arret?.statut === 'DIFFUSEE' ? (
+                            // NAPT diffusée — bouton Terminer
                             <button
                               className="action-btn"
                               title="Marquer ce travail comme terminé"

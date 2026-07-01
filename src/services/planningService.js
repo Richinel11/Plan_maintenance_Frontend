@@ -74,6 +74,10 @@ export const deletePlanning = (id) => {
   return api.delete(`/plannings/${id}/`);
 };
 
+export const updatePlanning = (id, data) => {
+  return api.patch(`/plannings/${id}/`, data);
+};
+
 /* ============================================================
    TRAVAUX
    ============================================================ */
