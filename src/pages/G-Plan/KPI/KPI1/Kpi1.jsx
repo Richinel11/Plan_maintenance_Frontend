@@ -1,177 +1,161 @@
+// KPI1/kpi1.jsx
 import React, { useState, useEffect } from "react";
-import { COLORS, styles } from "../components/kpi";
-import { DonutChart } from "../components/charts"; // 🟢 Chemin corrigé sans extension .js pour éviter le bug de Vite
-import { MaintenanceService } from "../../../../services/KpiData"; // Assurez-vous que le chemin est correct
-export default function Page1({ selectedMonth = "Avril 2026" }) {
-  // États dynamiques reliés au mois sélectionné
+import { MaintenanceService } from "../../../../services/KpiData";
+import { DonutChart } from "../components/charts";
+
+export default function Page1({ selectedMonth = "Juin 2026" }) {
   const [secteurData, setSecteurData] = useState([]);
   const [segmentData, setSegmentData] = useState([]);
-  const [donutPct, setDonutPct] = useState(65); // Taux par défaut ou dynamique
-  const [loading, setLoading] = useState(false);
+  const [donutPct, setDonutPct] = useState(0);
+  const [annuelCount, setAnnuelCount] = useState(0);
+  const [mensuelCount, setMensuelCount] = useState(0);
+  const [hebdoCount, setHebdoCount] = useState(0);
+  const [totalPlannings, setTotalPlannings] = useState(0);
+  const [loading, setLoading] = useState(true);
 
-  // Déclenché automatiquement dès que l'utilisateur change de mois dans KpiResults
-  useEffect(() => {
-    const loadKpiData = async () => {
-      try {
-        setLoading(true);
-        // Décommentez ceci dès que votre backend Django est prêt :
-        const res = await MaintenanceService.getPlanningsSecteur(selectedMonth);
-        setSecteurData(res.secteurs);
-        setSegmentData(res.segments);
-        setDonutPct(res.tauxDispo);
-        
-        console.log("Filtrage mis à jour pour la base de données :", selectedMonth);
-      } catch (err) {
-        console.error("Erreur de chargement du planning", err);
-      } finally {
-        setLoading(false);
+  // KPI1/kpi1.jsx
+useEffect(() => {
+  const loadData = async () => {
+    try {
+      setLoading(true);
+      const result = await MaintenanceService.getPlanningsKPI(selectedMonth);
+
+      // On extrait la liste réelle des secteurs de manière sécurisée
+      let secteursListe = [];
+      if (Array.isArray(result.secteurs)) {
+        secteursListe = result.secteurs;
+      } else if (result.secteurs && Array.isArray(result.secteurs.results)) {
+        secteursListe = result.secteurs.results; // Pour la pagination Django Rest Framework
+      } else if (result.secteurs && Array.isArray(result.secteurs.data)) {
+        secteursListe = result.secteurs.data;
       }
-    };
 
-    loadKpiData();
-  }, [selectedMonth]); 
+      // Même sécurité pour les segments
+      let segmentsListe = [];
+      if (Array.isArray(result.segments)) {
+        segmentsListe = result.segments;
+      } else if (result.segments && Array.isArray(result.segments.results)) {
+        segmentsListe = result.segments.results;
+      } else if (result.segments && Array.isArray(result.segments.data)) {
+        segmentsListe = result.segments.data;
+      }
 
-  if (loading) return <div style={{ padding: 20 }}>Mise à jour des indicateurs...</div>;
+      let a = 0, m = 0, h = 0;
+      
+      // On boucle sur notre liste sécurisée sous forme d'objets
+      secteursListe.forEach((row) => {
+        a += row.annuel || 0;
+        m += row.mensuel || 0;
+        h += row.hebdo || 0;
+      });
+
+      setSecteurData(secteursListe);
+      setSegmentData(segmentsListe);
+      setDonutPct(result.tauxDispo || 0);
+      setTotalPlannings(result.totalPlannings || 0);
+      setAnnuelCount(a);
+      setMensuelCount(m);
+      setHebdoCount(h);
+    } catch (err) {
+      console.error("Erreur lors de la récupération des KPIs :", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  loadData();
+}, [selectedMonth]);
+
+  if (loading) return <div style={{ padding: 40, textAlign: "center" }}>Chargement...</div>;
 
   return (
-    <>
-      <div style={styles.page}>
-        <div style={styles.header}>
-          <div style={styles.pageTitle}>Disponibilité des plannings du secteur</div>
+    <div style={{ padding: "20px" }}>
+      <h2>Disponibilité des Plannings - {selectedMonth}</h2>
+
+
+
+      {/* Tables */}
+      <div style={{ marginTop: "40px", display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px" }}>
+        
+        {/* Par Secteur */}
+        <div style={{ border: "1px solid #ddd", borderRadius: "8px", padding: "15px" }}>
+          <h3>Par Secteur</h3>
+          <table style={{ width: "100%", borderCollapse: "collapse" }}>
+            <thead>
+              <tr style={{ textAlign: "left", borderBottom: "2px solid #ddd" }}>
+                <th style={{ padding: "8px" }}>Secteur</th>
+                <th style={{ padding: "8px" }}>Entité Métier</th>
+                <th style={{ padding: "8px" }}>Annuel</th>
+                <th style={{ padding: "8px" }}>Mensuel</th>
+                <th style={{ padding: "8px" }}>Hebdo</th>
+              </tr>
+            </thead>
+            <tbody>
+        {/* Extrait pour la table Secteur */}
+        {secteurData.map((row, i) => (
+          <tr key={i} style={{ borderBottom: "1px solid #eee" }}>
+            <td style={{ padding: "8px" }}><strong>{row.nomSecteur || row.region}</strong></td> {/* Affiche le Secteur réel */}
+            <td style={{ padding: "8px" }}>{row.entite}</td>                     {/* Affiche l'Entité Métier */}
+            <td style={{ padding: "8px" }}>{row.annuel}</td>
+            <td style={{ padding: "8px" }}>{row.mensuel}</td>
+            <td style={{ padding: "8px" }}>{row.hebdo}</td>
+          </tr>
+        ))}
+            </tbody>
+          </table>
         </div>
 
-        {/* Print-only month */}
-        <div 
-          style={{ 
-            marginBottom: "15px", 
-            fontSize: "12px", 
-            color: COLORS.textMuted, 
-            display: "none" 
-          }} 
-          className="print-only"
-        >
-          Rapport de Maintenance — Période : {selectedMonth}
+      <div style={{ display: "flex", gap: "60px", marginTop: "30px", alignItems: "center", flexWrap: "wrap", border: "1px solid #ddd", borderRadius: "8px", padding: "15px" }}>
+        <div style={{ textAlign: "center" }}>
+          <DonutChart pct={donutPct} />
+          <h3 style={{ margin: "15px 0 5px" }}>{donutPct}%</h3>
+          <p>Planning reçus</p>
         </div>
 
-        {/* Utilisation de styles.row2 qui bénéficie maintenant d'un grand espace (gap: 24px) */}
-        <div style={styles.row2}>
-          
-          {/* Secteur Table */}
-          <div style={styles.card}>
-            <div style={styles.cardTitle}>Par Secteur ({selectedMonth})</div>
-            <table style={styles.table}>
-              <thead>
-                <tr>
-                  <th style={styles.th}>SECTEUR</th>
-                  <th style={{ ...styles.th, textAlign: "center" }}>PLANNING ANNUEL</th>
-                  <th style={{ ...styles.th, textAlign: "center" }}>PLANNINGS MENSUELS</th>
-                  <th style={{ ...styles.th, textAlign: "center" }}>PROGRAMME HEBDOMADAIRE</th>
-                  <th style={styles.th}>COMMENTAIRES</th>
-                </tr>
-              </thead>
-              <tbody>
-                {secteurData.length === 0 ? (
-                  <tr>
-                    <td colSpan="5" style={{ ...styles.td, textAlign: "center", color: COLORS.textMuted, padding: "20px" }}>
-                      Aucune donnée disponible en base de données pour {selectedMonth}
-                    </td>
-                  </tr>
-                ) : (
-                  secteurData.map(([s, a, m, h, c], i) => (
-                    <tr key={i} style={{ background: i % 2 === 0 ? COLORS.white : "#fafafa" }}>
-                      <td style={{ ...styles.td, fontWeight: 600 }}>{s}</td>
-                      <td style={styles.tdCenter}>{a}</td>
-                      <td style={styles.tdCenter}>{m}</td>
-                      <td style={styles.tdCenter}>{h}</td>
-                      <td style={{ ...styles.td, fontSize: 10, color: COLORS.textMuted }}>{c}</td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
-
-          {/* Donut Chart Card */}
-          <div style={styles.card}>
-            <div style={styles.cardTitle}>Taux de disponibilité des plannings</div>
-            <div style={{ display: "flex", justifyContent: "center", padding: "20px 0" }}>
-              <DonutChart pct={donutPct} color={COLORS.blue} label="Planning reçu" />
-            </div>
-            <div style={{ marginTop: 12 }}>
-              {[
-                { label: "Plan annuel (5/7)", color: COLORS.blue },
-                { label: "Plan mensuel (4/7)", color: COLORS.green },
-                { label: "Programme hebdo (4/5)", color: COLORS.teal },
-                { label: "Non disponible", color: "#ccc" },
-              ].map((item, i) => (
-                <div key={i} style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
-                  <div style={{ width: 10, height: 10, borderRadius: 2, background: item.color }} />
-                  <span style={{ fontSize: 11, color: COLORS.textMuted }}>{item.label}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Segment Table */}
-          <div style={styles.card}>
-            <div style={styles.cardTitle}>Par Segment</div>
-            <table style={styles.table}>
-              <thead>
-                <tr>
-                  <th style={styles.th}>SEGMENT</th>
-                  <th style={{ ...styles.th, textAlign: "center" }}>PLAN. ANNUEL</th>
-                  <th style={{ ...styles.th, textAlign: "center" }}>PLAN. MENS.</th>
-                  <th style={{ ...styles.th, textAlign: "center" }}>PROG. HEBDO</th>
-                  <th style={styles.th}>COMMENTAIRES</th>
-                </tr>
-              </thead>
-              <tbody>
-                {segmentData.length === 0 ? (
-                  <tr>
-                    <td colSpan="5" style={{ ...styles.td, textAlign: "center", color: COLORS.textMuted, padding: "20px" }}>
-                      Aucun segment trouvé.
-                    </td>
-                  </tr>
-                ) : (
-                  segmentData.map(([s, a, m, h, c], i) => (
-                    <tr key={i} style={{ background: i % 2 === 0 ? COLORS.white : "#fafafa" }}>
-                      <td style={{ ...styles.td, fontWeight: 600, fontSize: 10 }}>{s}</td>
-                      <td style={styles.tdCenter}>{a}</td>
-                      <td style={styles.tdCenter}>{m}</td>
-                      <td style={styles.tdCenter}>{h}</td>
-                      <td style={{ ...styles.td, fontSize: 10, color: COLORS.textMuted }}>{c}</td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
-
-          {/* Commentaires Card */}
-          <div style={styles.card}>
-            <h1 style={{ fontSize: "13px", fontWeight: "600", marginBottom: "8px" }}>Commentaires:</h1>
-            <ul style={{ fontSize: 11, color: COLORS.textMuted, paddingLeft: 20, lineHeight: "1.6" }}>
-              <li>Les plannings annuels sont disponibles pour 5 secteurs sur 7.</li>
-              <li>Les plannings mensuels sont disponibles pour 4 secteurs sur 7.</li>
-              <li>Les programmes hebdomadaires sont disponibles pour 4 secteurs sur 5.</li>
-              <li>Des efforts doivent être faits pour améliorer la disponibilité des plannings...</li>
-            </ul>
-          </div>
+        <div>
+          <h3 style={{ marginBottom: "20px" }}>Répartition des plannings</h3>
+          <LegendItem color="#3b82f6" label="Plan annuel" count={annuelCount} total={totalPlannings} />
+          <LegendItem color="#22c55e" label="Plan mensuel" count={mensuelCount} total={totalPlannings} />
+          <LegendItem color="#8b5cf6" label="Programme hebdo" count={hebdoCount} total={totalPlannings} />
+          <LegendItem color="#94a3b8" label="Non disponible" count={0} total={totalPlannings} />
         </div>
-
-        {/* Print Styles */}
-        <style>{`
-          .print-only { display: none; }
-          @media print {
-            .no-print { display: none !important; }
-            .print-only { display: block !important; }
-            div[style*="card"] {
-              page-break-inside: avoid;
-              break-inside: avoid;
-            }
-          }
-        `}</style>
       </div>
-    </>
+
+        {/* Par Segment */}
+        <div style={{ border: "1px solid #ddd", borderRadius: "8px", padding: "15px" }}>
+          <h3>Par Segment</h3>
+          <table style={{ width: "100%", borderCollapse: "collapse" }}>
+            <thead>
+              <tr style={{ textAlign: "left", borderBottom: "2px solid #ddd" }}>
+                <th style={{ padding: "8px" }}>Segment</th>
+                <th style={{ padding: "8px" }}>Entité Métier</th>
+                <th style={{ padding: "8px" }}>Annuel</th>
+                <th style={{ padding: "8px" }}>Mensuel</th>
+                <th style={{ padding: "8px" }}>Hebdo</th>
+              </tr>
+            </thead>
+            <tbody>
+        {/* Extrait pour la table Segment */}
+        {segmentData.map((row, i) => (
+          <tr key={i} style={{ borderBottom: "1px solid #eee" }}>
+            <td style={{ padding: "8px" }}><strong>{row.nomSegment}</strong></td> {/* Affiche le Segment réel */}
+            <td style={{ padding: "8px" }}>{row.entite}</td>                     {/* Affiche l'Entité Métier */}
+            <td style={{ padding: "8px" }}>{row.annuel}</td>
+            <td style={{ padding: "8px" }}>{row.mensuel}</td>
+            <td style={{ padding: "8px" }}>{row.hebdo}</td>
+          </tr>
+        ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
   );
-}
+};
+
+const LegendItem = ({ color, label, count, total }) => (
+  <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "14px", fontSize: "15px" }}>
+    <div style={{ width: "18px", height: "18px", backgroundColor: color, borderRadius: "4px" }} />
+    <span><strong>{label}</strong> ({count}/{total})</span>
+  </div>
+);

@@ -1,23 +1,41 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { COLORS, styles } from "../components/kpi";
-// import { LineBarChart } from "../components/charts";
-// 
-// ─── PAGE 2: Exécution des activités de maintenance DCP ───────────────────────
-export default function Page2({ selectedMonth = "Avril 2026" }) {
-  const tableData = [
-    ["SONGLOULOU", 111, 111, 100, 566, 566, 100],
-    ["EDEA", 67, 56, 84, 314, 296, 94],
-    ["LAGDO", 104, 75, 72, 367, 347, 90],
-    ["THERMAL GRID", 421, 416, 99, 1671, 1592, 95],
-    ["REMOTES", 500, 484, 97, 1810, 1693, 94],
-    ["HYBRIDS", 66, 57, 82, 224, 194, 87],
-    ["GLOBAL GENERATION", 1269, 1199, 94.48, 4952, 4673, 94.37],
-  ];
+import { LineBarChart } from "../components/charts";
+import { MaintenanceService } from "../../../../services/KpiData";
 
+export default function Page2({ selectedMonth = "Avril 2026" }) {
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchMaintenanceData = async () => {
+      try {
+        setLoading(true);
+        const result = await MaintenanceService.getExecutionMaintenanceDCP(selectedMonth);
+        setData(result);
+      } catch (error) {
+        console.error("Erreur chargement Page 2:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchMaintenanceData();
+  }, [selectedMonth]);
+
+  if (loading) return <div style={{ padding: 40, textAlign: "center" }}>Chargement des indicateurs DCP...</div>;
+  if (!data) return <div style={{ padding: 40, textAlign: "center" }}>Aucune donnée disponible.</div>;
+
+  const { tableData, totals } = data;
+
+  // Extraction dynamique des données pour le composant graphique (sans la ligne globale)
+  const chartItems = tableData.slice(0, -1);
   const chartData = {
-    labels: ["SONGLOULOU", "EDEA", "LAGDO", "THERMAL", "REMOTES", "HYBRIDS"],
-    bars: { budget: [111, 67, 104, 421, 500, 66], actual: [111, 56, 75, 416, 484, 57] },
-    line: [100, 84, 72, 99, 97, 82],
+    labels: chartItems.map(row => row[0]),
+    bars: {
+      budget: chartItems.map(row => row[1]),
+      actual: chartItems.map(row => row[2])
+    },
+    line: chartItems.map(row => row[3])
   };
 
   return (
@@ -27,12 +45,13 @@ export default function Page2({ selectedMonth = "Avril 2026" }) {
         <span style={styles.pill}>{selectedMonth}</span>
       </div>
 
+      {/* Cartes KPI Dynamiques */}
       <div style={styles.kpiGrid}>
         {[
-          { val: "94,48%", label: "Taux de réalisation (MTD)", sub: "vs Mars 96,61% ↓", color: COLORS.blue },
-          { val: "1 199", label: "Activités MTD", sub: "/ 1 269 planifiées", color: COLORS.text },
-          { val: "4 673", label: "Activités YTD", sub: "/ 4 952 planifiées", color: COLORS.text },
-          { val: "94,37%", label: "Taux de réalisation (YTD)", sub: "vs Mars 95,00% ↓", color: COLORS.green },
+          { val: `${totals.mtdPct}%`, label: "Taux de réalisation (MTD)", sub: "Ajusté ce mois", color: COLORS.blue },
+          { val: totals.mtdActual.toLocaleString(), label: "Activités MTD", sub: `/ ${totals.mtdBudget} planifiées`, color: COLORS.text },
+          { val: totals.ytdActual.toLocaleString(), label: "Activités YTD", sub: `/ ${totals.ytdBudget} planifiées`, color: COLORS.text },
+          { val: `${totals.ytdPct}%`, label: "Taux de réalisation (YTD)", sub: "Cumulé annuel", color: COLORS.green },
         ].map((k, i) => (
           <div key={i} style={styles.kpiCard(k.color)}>
             <div style={styles.kpiVal(k.color)}>{k.val}</div>
@@ -43,15 +62,15 @@ export default function Page2({ selectedMonth = "Avril 2026" }) {
       </div>
 
       <div style={styles.row2}>
-        {/* Left Card - Table */}
+        {/* Tableau d'exécution de la maintenance */}
         <div style={styles.card}>
           <div style={styles.cardTitle}>Maintenance Execution Status (Nber of Activity)</div>
           <table style={styles.table}>
             <thead>
               <tr>
                 <th style={styles.th}></th>
-                <th style={{ ...styles.th, textAlign: "center" }} colSpan={3}>MTD Avril</th>
-                <th style={{ ...styles.th, textAlign: "center" }} colSpan={3}>YTD Avril</th>
+                <th style={{ ...styles.th, textAlign: "center" }} colSpan={3}>MTD {selectedMonth.split(" ")[0]}</th>
+                <th style={{ ...styles.th, textAlign: "center" }} colSpan={3}>YTD {selectedMonth.split(" ")[0]}</th>
               </tr>
               <tr>
                 <th style={styles.th}></th>
@@ -77,7 +96,7 @@ export default function Page2({ selectedMonth = "Avril 2026" }) {
                   <td style={styles.tdCenter}>{ma}</td>
                   <td style={styles.tdCenter}>
                     <span style={styles.badge(mc >= 95 ? COLORS.teal : mc >= 80 ? COLORS.amber : COLORS.red, 
-                                             mc >= 95 ? COLORS.tealLight : mc >= 80 ? COLORS.amberLight : COLORS.redLight)}>
+                                              mc >= 95 ? COLORS.tealLight : mc >= 80 ? COLORS.amberLight : COLORS.redLight)}>
                       {mc}%
                     </span>
                   </td>
@@ -94,9 +113,9 @@ export default function Page2({ selectedMonth = "Avril 2026" }) {
           </table>
         </div>
 
-        {/* Right Card - Chart */}
+        {/* Graphique d'analyse */}
         <div style={styles.card}>
-          <div style={styles.cardTitle}>Activités MTD Avril 2026</div>
+          <div style={styles.cardTitle}>Activités MTD {selectedMonth}</div>
           
           <div style={{ display: "flex", gap: 12, marginBottom: 12 }}>
             {[
@@ -116,28 +135,20 @@ export default function Page2({ selectedMonth = "Avril 2026" }) {
           </div>
 
           <div style={{ padding: "10px", background: "#fff8e1", borderRadius: 6, fontSize: 11, color: COLORS.amber }}>
-            ↓ Taux de réalisation des travaux en fonction du Nombre d'activités : 94,48%, en baisse par rapport à mars 2026 (96,61%)
+            ↓ Taux de réalisation global basé sur le volume d'activité : {totals.mtdPct}% pour le mois ciblé.
           </div>
         </div>
       </div>
 
-      {/* Print-specific styles for this page */}
       <style>{`
         @media print {
           .print-area, .print-area * {
             visibility: visible !important;
           }
-          
           ${styles.card} {
             page-break-inside: avoid !important;
             break-inside: avoid !important;
             margin-bottom: 25px !important;
-          }
-          
-          canvas, svg {
-            max-width: 100% !important;
-            height: auto !important;
-            display: block !important;
           }
         }
       `}</style>

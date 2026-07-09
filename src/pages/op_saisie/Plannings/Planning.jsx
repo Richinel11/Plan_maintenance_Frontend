@@ -1354,6 +1354,8 @@ const handleAddPlanningRow = () => {
           console.log(`ENVOI TRAVAIL ${i + 1}/${totalToSubmit} =>`, payload);
           setSubmissionStatus(`Envoi du travail ${i + 1} / ${totalToSubmit}...`);
           
+          
+
           await createTravail(payload);
           successCount++;
         } catch (rowError) {
