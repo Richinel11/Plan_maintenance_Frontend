@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { analyserMois } from '../../../services/gplanService';
 import './AlertesView.css';
 
@@ -59,7 +59,6 @@ function buildGroupe(chev) {
 
 const AlertesView = () => {
     const navigate = useNavigate();
-    const location = useLocation();
 
     const now = new Date();
     const [mois,         setMois]         = useState(now.getMonth() + 1);
@@ -91,10 +90,11 @@ const AlertesView = () => {
         }
     }, []);
 
-    // Chargement automatique à l'arrivée sur la page (mois en cours)
+    // Chargement automatique à l'arrivée sur la page et à chaque changement
+    // de mois/année (plus besoin de cliquer sur "Analyser" pour voir le résultat).
     useEffect(() => {
-        fetchData(now.getFullYear(), now.getMonth() + 1);
-    }, [location.key]); // eslint-disable-line react-hooks/exhaustive-deps
+        fetchData(annee, mois);
+    }, [annee, mois]); // eslint-disable-line react-hooks/exhaustive-deps
 
     const handleAnalyse = () => fetchData(annee, mois);
 

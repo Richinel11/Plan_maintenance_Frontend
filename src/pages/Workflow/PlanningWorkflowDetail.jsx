@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getPlanningById } from '../../services/planningService';
-import { getWorkflowById, getPlanningWorkflowHistory, getPlanningCurrentStep } from '../../services/workflowService';
+import { getWorkflowById, getPlanningWorkflowHistory } from '../../services/workflowService';
 import './PlanningWorkflowDetail.css';
 
 /**
@@ -25,9 +25,9 @@ const PlanningWorkflowDetail = () => {
                 // 1. Récupérer les détails du planning et son étape actuelle
                 const planningData = await getPlanningById(planningId);
                 setPlanning(planningData);
-                
-                const stepData = await getPlanningCurrentStep(planningId);
-                setCurrentStep(stepData.current_step);
+
+                // current_step est déjà sérialisé complet (avec id) dans le planning
+                setCurrentStep(planningData.current_step);
 
                 // 2. Récupérer l'historique des transitions
                 const historyData = await getPlanningWorkflowHistory(planningId);
@@ -129,7 +129,7 @@ const PlanningWorkflowDetail = () => {
                                 <div className="entry-marker"></div>
                                 <div className="entry-content">
                                     <div className="entry-header">
-                                        <span className="entry-action">{entry.transition?.name || "Transition"}</span>
+                                        <span className="entry-action">{entry.transition_name || "Transition"}</span>
                                         <span className="entry-user">par <strong>{entry.performed_by?.username || "Système"}</strong></span>
                                     </div>
                                     <div className="entry-path">

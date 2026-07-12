@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { createUser, updateUser, update_userrole } from '../../../../services/userService';
+import { createUser, updateUser, assignRoleToUser, removeRoleFromUser } from '../../../../services/userService';
 import { toast } from 'sonner';
 import './Modals.css';
 
@@ -12,7 +12,7 @@ const UserModal = ({ isOpen, onClose, user, roles, entites, regions = [], onSucc
         username: '',
         email: '',
         password: '',
-        code_role: '',
+        code_roles: [],
         entite_metier: '',
         region: '',
         is_ldap: false
@@ -25,14 +25,14 @@ const UserModal = ({ isOpen, onClose, user, roles, entites, regions = [], onSucc
     useEffect(() => {
         if (isOpen) {
             if (user && isEditMode) {
-                const firstRole = user.roles?.[0]?.code_role || '';
+                const currentRoles = (user.roles || []).map(r => r.code_role);
                 setFormData({
                     last_name: user.last_name || '',
                     first_name: user.first_name || '',
                     username: user.username || '',
                     email: user.email || '',
                     password: '',
-                    code_role: firstRole,
+                    code_roles: currentRoles,
                     entite_metier: user.entite_metier?.id || user.entite_metier || '',
                     region: user.region?.id ?? user.region ?? '',
                     is_ldap: user.is_ldap || false
@@ -44,7 +44,7 @@ const UserModal = ({ isOpen, onClose, user, roles, entites, regions = [], onSucc
                     username: '',
                     email: '',
                     password: '',
-                    code_role: '',
+                    code_roles: [],
                     entite_metier: '',
                     region: '',
                     is_ldap: false
@@ -60,7 +60,12 @@ const UserModal = ({ isOpen, onClose, user, roles, entites, regions = [], onSucc
     };
 
     const handleRoleToggle = (code) => {
-        setFormData(prev => ({ ...prev, code_role: prev.code_role === code ? '' : code }));
+        setFormData(prev => ({
+            ...prev,
+            code_roles: prev.code_roles.includes(code)
+                ? prev.code_roles.filter(c => c !== code)
+                : [...prev.code_roles, code]
+        }));
     };
 
     const handleSubmit = async (e) => {
@@ -79,10 +84,15 @@ const UserModal = ({ isOpen, onClose, user, roles, entites, regions = [], onSucc
                     is_ldap: formData.is_ldap,
                 };
                 await updateUser(user.id, payload);
-                const payload2 = {
-                    role: formData.code_role
-                };
-                await update_userrole(user.id, payload2);
+
+                const currentRoles = (user.roles || []).map(r => r.code_role);
+                const rolesToAdd = formData.code_roles.filter(c => !currentRoles.includes(c));
+                const rolesToRemove = currentRoles.filter(c => !formData.code_roles.includes(c));
+                await Promise.all([
+                    ...rolesToAdd.map(code => assignRoleToUser(user.id, code)),
+                    ...rolesToRemove.map(code => removeRoleFromUser(user.id, code)),
+                ]);
+
                 toast.success(`Utilisateur "${formData.username}" mis à jour avec succès.`);
             } else {
                 const payload = {
@@ -90,7 +100,7 @@ const UserModal = ({ isOpen, onClose, user, roles, entites, regions = [], onSucc
                     first_name: formData.first_name,
                     last_name: formData.last_name,
                     email: formData.email,
-                    code_role: formData.code_role,
+                    code_roles: formData.code_roles,
                     entite_metier: formData.entite_metier,
                     region: formData.region,
                     is_ldap: formData.is_ldap
@@ -243,8 +253,10 @@ const UserModal = ({ isOpen, onClose, user, roles, entites, regions = [], onSucc
                                 <div className="checklist-header">
                                     <label>
                                         Rôles associés
-                                        {formData.code_role && (
-                                            <span className="checklist-counter" style={{ marginLeft: '8px' }}>1 sélectionné</span>
+                                        {formData.code_roles.length > 0 && (
+                                            <span className="checklist-counter" style={{ marginLeft: '8px' }}>
+                                                {formData.code_roles.length} sélectionné{formData.code_roles.length > 1 ? 's' : ''}
+                                            </span>
                                         )}
                                     </label>
                                     <div className="checklist-search">
@@ -261,7 +273,7 @@ const UserModal = ({ isOpen, onClose, user, roles, entites, regions = [], onSucc
                                     {filteredRoles.length === 0 ? (
                                         <div className="checklist-empty">Aucun rôle trouvé</div>
                                     ) : filteredRoles.map(r => {
-                                        const isChecked = formData.code_role === r.code_role;
+                                        const isChecked = formData.code_roles.includes(r.code_role);
                                         return (
                                             <div
                                                 key={r.code_role}

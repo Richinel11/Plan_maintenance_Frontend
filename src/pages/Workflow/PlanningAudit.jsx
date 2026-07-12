@@ -18,7 +18,8 @@ const PlanningAudit = () => {
             try {
                 // On récupère la liste des plannings (ceux qui ont un workflow associé)
                 const response = await getPlannings();
-                const allPlannings = response.results || [];
+                // L'API renvoie un tableau brut (pas de pagination DRF configurée)
+                const allPlannings = Array.isArray(response) ? response : (response.results || []);
                 const workflowPlannings = allPlannings.filter(p => p.workflow !== null);
                 setPlannings(workflowPlannings);
             } catch (error) {

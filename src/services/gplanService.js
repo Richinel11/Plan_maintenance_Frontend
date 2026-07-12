@@ -90,7 +90,8 @@ export const fetchAllPlannings = async () => {
 };
 
 /**
- * Récupère les IDs des travaux en conflit et en opportunité d'harmonisation.
+ * Récupère les IDs des travaux en conflit sur le mois en cours, en s'appuyant
+ * sur analyser-mois (source unique de détection des conflits/chevauchements).
  * Résultat mis en cache 5 min.
  *
  * @returns {Promise<{ conflitIds: Set<string>, opportuniteIds: Set<string> }>}
@@ -98,11 +99,15 @@ export const fetchAllPlannings = async () => {
 export const fetchConflitIds = async () => {
     const cached = getCached('conflitIds');
     if (cached) return cached;
-    const response = await api.get('/travaux/conflits/');
-    const data = {
-        conflitIds:     new Set(response.data?.conflits                    || []),
-        opportuniteIds: new Set(response.data?.opportunites_harmonisation  || []),
-    };
+    const analyse = await analyserMois();
+    const conflitIds = new Set();
+    (analyse.chevauchements || []).forEach(chev => {
+        if (chev.reference?.id) conflitIds.add(chev.reference.id);
+        (chev.travaux_en_conflit || []).forEach(t => conflitIds.add(t.id));
+    });
+    // opportunites_harmonisation n'a jamais été produit par le backend :
+    // conservé pour compatibilité avec les consommateurs existants.
+    const data = { conflitIds, opportuniteIds: new Set() };
     setCached('conflitIds', data);
     return data;
 };
@@ -177,23 +182,6 @@ export const fetchAlertes = async () => {
         fetchAllTravaux(),
     ]);
     return buildGroupes(travaux, conflitIds);
-};
-
-/**
- * Lance l'analyse des chevauchements d'un planning et génère les propositions d'alignement.
- * POST /plannings/<planningId>/analyser-chevauchements/
- * Résultat mis en cache 5 min par planning (clé = planningId).
- *
- * @param {string} planningId
- * @returns {{ message, resume, chevauchements, propositions }}
- */
-export const analyserChevauchements = async (planningId) => {
-    const key = `chevauchements_${planningId}`;
-    const cached = getCached(key);
-    if (cached) return cached;
-    const response = await api.post(`/plannings/${planningId}/analyser-chevauchements/`);
-    setCached(key, response.data);
-    return response.data;
 };
 
 /**
