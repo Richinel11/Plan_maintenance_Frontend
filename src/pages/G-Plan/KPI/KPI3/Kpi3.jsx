@@ -1,29 +1,26 @@
 import React, { useState, useEffect } from 'react';
-import { MaintenanceService } from '../../../../services/KpiData'; // Ajustez le chemin d'accès
+import { DonutChart } from '../components/charts';
+import { MaintenanceService } from '../../../../services/KpiData';
 
-export default function Page3({ styles, COLORS, BarChart, selectedMonth }) {
-  const [data, setData] = useState(null);
+export default function Page3({ styles, COLORS, selectedMonth }) {
+  const [parOuvrage, setParOuvrage] = useState(null);
+  const [ippInterne, setIppInterne] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const barData = {
-    labels: data?.chartData?.labels || [],
-    datasets: [
-      { 
-        label: "Puiss. Moy. Disponible", 
-        color: COLORS.barBlue, 
-        data: data?.chartData?.disponible || [] 
-      },
-      // ...
-    ],
-  };
+
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const result = await MaintenanceService.getDispoIPPs();
-        setData(result);
+        setError(null);
+        const [ouvrage, ipp] = await Promise.all([
+          MaintenanceService.getTravauxParOuvrage(selectedMonth),
+          MaintenanceService.getCentralesIppInterne(selectedMonth),
+        ]);
+        setParOuvrage(ouvrage);
+        setIppInterne(ipp);
       } catch (err) {
-        console.error("Erreur lors de la récupération des IPPs:", err);
+        console.error("Erreur lors de la récupération des KPI ouvrage/IPP:", err);
         setError("Impossible de charger les données.");
       } finally {
         setLoading(false);
@@ -31,66 +28,76 @@ export default function Page3({ styles, COLORS, BarChart, selectedMonth }) {
     };
 
     fetchData();
-   }, []);
+  }, [selectedMonth]);
 
-  if (loading) return <div style={{ padding: 20 }}>Chargement des données IPP...</div>;
+  if (loading) return <div style={{ padding: 20 }}>Chargement des données...</div>;
   if (error) return <div style={{ padding: 20, color: COLORS.red }}>{error}</div>;
-  if (!data) return <div style={{ padding: 20 }}>Aucune donnée disponible</div>;
-  // Formatage des données pour le composant BarChart à partir du backend
-  // const barData = {
-  //   labels: data.chartData.labels, // ex: ["KPOC", "OPDC", "NHPC"]
-  //   datasets: [
-  //     { label: "Puiss. Moy. Disponible", color: COLORS.barBlue, data: data.chartData.disponible },
-  //     { label: "Puiss. Moy. Planifiée", color: COLORS.barGreen, data: data.chartData.planifie },
-  //     { label: "Puiss. Moy. Sollicitée", color: COLORS.barPurple, data: data.chartData.sollicite },
-  //   ],
-  // };
+  if (!parOuvrage || !ippInterne) return <div style={{ padding: 20 }}>Aucune donnée disponible</div>;
+
+  const totalCentrales = ippInterne.total || 0;
+  const pctIpp = totalCentrales > 0 ? Math.round((ippInterne.ipp / totalCentrales) * 100) : 0;
 
   return (
     <div style={styles.page}>
       <div style={styles.header}>
-        <div style={styles.pageTitle}>Disponibilité des IPPs</div>
+        <div style={styles.pageTitle}>Travaux par ouvrage & centrales IPP / internes</div>
         <span style={styles.pill}>{selectedMonth}</span>
-      </div>
-      
-      <div style={{ ...styles.kpiGrid, gridTemplateColumns: "repeat(4, 1fr)" }}>
-        {data.kpis.map((k, i) => (
-          <div key={i} style={styles.kpiCard(k.color || COLORS.blue)}>
-            <div style={styles.kpiVal(k.color || COLORS.blue)}>{k.val}</div>
-            <div style={styles.kpiLabel}>{k.label}</div>
-            {k.sub && <div style={styles.kpiSub}>{k.sub}</div>}
-          </div>
-        ))}
       </div>
 
       <div style={styles.row2}>
         <div style={styles.card}>
-          <div style={styles.cardTitle}>Puissance (MW)</div>
-          <BarChart data={barData} height={180} />
-        </div>
-
-        <div style={styles.card}>
-          <div style={styles.cardTitle}>Maintenance en cours / réalisée</div>
+          <div style={styles.cardTitle}>Travaux programmés par ouvrage</div>
           <table style={styles.table}>
             <thead>
               <tr>
-                <th style={styles.th}>IPP</th>
-                <th style={styles.th}>Type maintenance</th>
-                <th style={styles.th}>Période</th>
-                <th style={{ ...styles.th, textAlign: "center" }}>Disponibilité mécanique</th>
-                <th style={{ ...styles.th, textAlign: "center" }}>Puissance horaire max sollicitée</th>
+                <th style={styles.th}>Ouvrage</th>
+                <th style={{ ...styles.th, textAlign: "center" }}>Travaux</th>
               </tr>
             </thead>
             <tbody>
-              {data.maintenances.map((m, i) => (
-                <tr key={i} style={{ background: i % 2 === 0 ? COLORS.white : "#fafafa" }}>
-                  <td style={{ ...styles.td, fontWeight: 600 }}>{m.ipp}</td>
-                  <td style={styles.td}>{m.type}</td>
-                  <td style={styles.td}>{m.periode}</td>
-                  <td style={styles.tdCenter}>{m.dispo_meca}</td>
-                  <td style={styles.tdCenter}>{m.puissance_max}</td>
+              {parOuvrage.par_ouvrage.length === 0 ? (
+                <tr>
+                  <td colSpan="2" style={{ ...styles.td, textAlign: "center", color: COLORS.textMuted, padding: "20px" }}>
+                    Aucune donnée disponible
+                  </td>
                 </tr>
-              ))}
+              ) : (
+                parOuvrage.par_ouvrage.map((o, i) => (
+                  <tr key={i} style={{ background: i % 2 === 0 ? COLORS.white : "#f8fafc" }}>
+                    <td style={{ ...styles.td, fontWeight: 600 }}>{o.ouvrage}</td>
+                    <td style={styles.tdCenter}>{o.total}</td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+
+        <div style={styles.card}>
+          <div style={styles.cardTitle}>Centrales thermiques : IPP vs interne</div>
+          <div style={{ display: "flex", justifyContent: "center", padding: "20px 0" }}>
+            <DonutChart pct={pctIpp} color={COLORS.amber} label="Part IPP" />
+          </div>
+          <table style={styles.table}>
+            <tbody>
+              <tr>
+                <td style={styles.td}>Centrales internes (ENEO)</td>
+                <td style={styles.tdCenter}>{ippInterne.interne}</td>
+              </tr>
+              <tr style={{ background: "#f8fafc" }}>
+                <td style={styles.td}>Centrales IPP</td>
+                <td style={styles.tdCenter}>{ippInterne.ipp}</td>
+              </tr>
+              {ippInterne.non_renseigne > 0 && (
+                <tr>
+                  <td style={styles.td}>Non renseigné</td>
+                  <td style={styles.tdCenter}>{ippInterne.non_renseigne}</td>
+                </tr>
+              )}
+              <tr style={{ background: "#f8fafc" }}>
+                <td style={{ ...styles.td, fontWeight: 600 }}>Total travaux Production</td>
+                <td style={{ ...styles.tdCenter, fontWeight: 600 }}>{totalCentrales}</td>
+              </tr>
             </tbody>
           </table>
         </div>
