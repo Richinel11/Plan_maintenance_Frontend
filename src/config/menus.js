@@ -45,6 +45,7 @@ export const menuConfig = {
         { path: '/dashboard/users', name: 'Utilisateurs', icon: 'group' },
         { path: '/dashboard/roles', name: 'Rôles', icon: 'security' },
         { path: '/dashboard/permissions', name: 'Permissions', icon: 'shield_locked' },
+        { path: '/dashboard/referentiel', name: 'Référentiel', icon: 'inventory_2' },
         { path: '/dashboard/workflow/historique', name: 'Workflows', icon: 'account_tree' },
         { path: '/dashboard/planning-audit', name: 'Audit Plannings', icon: 'fact_check' },
     ]

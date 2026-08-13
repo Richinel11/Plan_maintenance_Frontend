@@ -10,6 +10,7 @@ import DashboardHome from './pages/DashboardHome/DashboardHome';
 import UserManagement from './pages/Security/UserManagement/UserManagement';
 import RoleManagement from './pages/Security/RoleManagement/RoleManagement';
 import PermissionManagement from './pages/Security/PermissionManagement/PermissionManagement';
+import ReferentielManagement from './pages/Security/Referentiel/ReferentielManagement';
 import WorkflowHistory from './pages/Workflow/WorkflowHistory/WorkflowHistory';
 import CreateGlobalWorkflow from './pages/Workflow/WorkflowHistory/createworkflo/createworkflo';
 import WorkflowDetail from './pages/Workflow/WorkflowHistory/WorkflowDetail/WorkflowDetail';
@@ -72,6 +73,7 @@ function App() {
                                 <Route path="users" element={<UserManagement />} />
                                 <Route path="roles" element={<RoleManagement />} />
                                 <Route path="permissions" element={<PermissionManagement />} />
+                                <Route path="referentiel" element={<ReferentielManagement />} />
 
                                 {/* Routes Workflow */}
                                 <Route path="workflow/historique" element={<WorkflowHistory />} />

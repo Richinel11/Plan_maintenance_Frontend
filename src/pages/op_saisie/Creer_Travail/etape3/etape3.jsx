@@ -28,12 +28,24 @@ const PlanningSection = ({ formData, onChange, fields, options, errors = {} }) =
               <label>
                 Tronçons / Consignes<span className="required-star">*</span>
               </label>
-              <input
-                type="text"
-                placeholder="ex: Tronçon A, Section B..."
-                value={formData.Troncons || ""}
-                onChange={(e) => onChange("Troncons", e.target.value)}
-                className={errors.Troncons ? "input-error" : ""}
+              <SearchableSelect
+                value={
+                  formData.troncon_id ||
+                  (options.Troncons || []).find(
+                    (t) => String(t.valeur) === String(formData.Troncons)
+                  )?.id ||
+                  ""
+                }
+                options={options.Troncons || []}
+                placeholder="Rechercher un tronçon..."
+                onChange={(val) => {
+                  onChange("troncon_id", val);
+                  const found = (options.Troncons || []).find(
+                    (t) => String(t.id) === String(val)
+                  );
+                  onChange("Troncons", found ? found.valeur : "");
+                }}
+                hasError={!!errors.Troncons}
               />
               {errors.Troncons && (
                 <span className="field-error">⚠️ {errors.Troncons}</span>

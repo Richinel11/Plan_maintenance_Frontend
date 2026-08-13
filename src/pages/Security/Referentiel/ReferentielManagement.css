@@ -1,0 +1,302 @@
+.referentiel-management-container {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+/* --- Onglets --- */
+.ref-tabs {
+    display: flex;
+    gap: 4px;
+    background-color: white;
+    padding: 6px;
+    border-radius: 12px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.02);
+    width: fit-content;
+}
+
+.ref-tab-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 18px;
+    border: none;
+    background: transparent;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #64748b;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: inherit;
+}
+
+.ref-tab-btn:hover {
+    background-color: #f8fafc;
+    color: #334155;
+}
+
+.ref-tab-btn.active {
+    background-color: #1B75BB;
+    color: white;
+    box-shadow: 0 2px 6px rgba(27, 117, 187, 0.3);
+}
+
+.ref-tab-btn .material-symbols-outlined {
+    font-size: 18px !important;
+}
+
+/* --- Panneau de section (formulaire de création + prévisualisation) --- */
+.ref-builder-card {
+    background-color: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+.ref-builder-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: #1e293b;
+    margin: 0;
+}
+
+.ref-builder-title .material-symbols-outlined {
+    color: #1B75BB;
+}
+
+/* --- Prévisualisation en direct de la Référence construite --- */
+.ref-preview-box {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: linear-gradient(135deg, rgba(27, 117, 187, 0.06), rgba(141, 198, 64, 0.06));
+    border: 1.5px dashed #93c5fd;
+    border-radius: 10px;
+    padding: 14px 18px;
+}
+
+.ref-preview-label {
+    font-size: 0.78rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #1B75BB;
+    flex-shrink: 0;
+}
+
+.ref-preview-value {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #1e293b;
+    word-break: break-word;
+}
+
+.ref-preview-value.empty {
+    color: #94a3b8;
+    font-weight: 400;
+    font-style: italic;
+}
+
+/* --- Pills d'items dans la liste des références --- */
+.ref-items-pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.ref-item-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background-color: #f1f5f9;
+    color: #475569;
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 3px 10px;
+    border-radius: 20px;
+}
+
+.ref-item-pill-type {
+    color: #1B75BB;
+    font-weight: 700;
+}
+
+/* --- Grille de champs simples (Segment / Ouvrage / Poste / Depart) --- */
+.ref-fields-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+}
+
+/* --- Champ recherche/création avec suggestions --- */
+.creatable-search-wrapper {
+    position: relative;
+}
+
+.creatable-suggestions {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    right: 0;
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+    z-index: 50;
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.creatable-suggestion-item {
+    padding: 9px 14px;
+    font-size: 0.85rem;
+    color: #334155;
+    cursor: pointer;
+    border-bottom: 1px solid #f1f5f9;
+    transition: background-color 0.15s;
+}
+
+.creatable-suggestion-item:last-child {
+    border-bottom: none;
+}
+
+.creatable-suggestion-item:hover {
+    background-color: #f0f7ff;
+    color: #1B75BB;
+}
+
+/* --- Grille de cartes (entités / catégories) --- */
+.entite-card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 16px;
+}
+
+.entite-card {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    background-color: white;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 14px;
+    padding: 20px;
+    cursor: pointer;
+    text-align: left;
+    font-family: inherit;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+}
+
+.entite-card:hover {
+    border-color: #1B75BB;
+    box-shadow: 0 6px 16px rgba(27, 117, 187, 0.12);
+    transform: translateY(-1px);
+}
+
+.entite-card-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    background: rgba(27, 117, 187, 0.1);
+    color: #1B75BB;
+    font-size: 24px !important;
+    flex-shrink: 0;
+}
+
+.entite-card-label {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #1e293b;
+    flex: 1;
+}
+
+.entite-card-arrow {
+    color: #cbd5e1;
+    font-size: 20px !important;
+    flex-shrink: 0;
+}
+
+/* --- Disposition triangle (page de sélection d'entité) --- */
+.entite-triangle {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 28px;
+    padding: 20px 0 40px;
+}
+
+.entite-triangle-top,
+.entite-triangle-bottom {
+    display: flex;
+    justify-content: center;
+    gap: 28px;
+    flex-wrap: wrap;
+}
+
+/* --- Cartes agrandies --- */
+.entite-card-lg {
+    flex-direction: column;
+    justify-content: center;
+    gap: 18px;
+    width: 220px;
+    height: 200px;
+    padding: 28px;
+    border-radius: 20px;
+}
+
+.entite-card-icon-lg {
+    width: 76px;
+    height: 76px;
+    border-radius: 20px;
+    font-size: 40px !important;
+}
+
+.entite-card-label-lg {
+    font-size: 1.15rem;
+    text-align: center;
+}
+
+/* --- Fil d'Ariane (entité > référentiel) --- */
+.ref-breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.9rem;
+}
+
+.ref-breadcrumb-link {
+    background: none;
+    border: none;
+    padding: 0;
+    color: #1B75BB;
+    font-weight: 700;
+    font-size: 0.9rem;
+    cursor: pointer;
+    font-family: inherit;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+}
+
+.ref-breadcrumb-link:hover {
+    color: #14689E;
+}
+
+.ref-breadcrumb-sep {
+    font-size: 16px !important;
+    color: #94a3b8;
+}
+
+.ref-breadcrumb-current {
+    color: #64748b;
+    font-weight: 600;
+}
