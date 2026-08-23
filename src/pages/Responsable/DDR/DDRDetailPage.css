@@ -128,6 +128,74 @@
     font-weight: 500;
 }
 
+/* ── Bandeau de refus CCR (affiché seulement si statut === REFUSE) ── */
+.ddr-refus-banner {
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    border-radius: 8px;
+    padding: 14px 16px;
+}
+
+.ddr-refus-head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+.ddr-refus-badge {
+    background: #dc2626;
+    color: #fff;
+    border-radius: 999px;
+    padding: 3px 10px;
+    font-size: 11px;
+    font-weight: 700;
+}
+
+.ddr-refus-meta { font-size: 12px; color: #9b6b6b; }
+
+.ddr-refus-label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: #b45252;
+    font-weight: 700;
+    margin-top: 8px;
+}
+
+.ddr-refus-motif {
+    font-size: 13px;
+    color: #7f1d1d;
+    line-height: 1.5;
+    margin-top: 4px;
+    white-space: pre-wrap;
+}
+
+.ddr-refus-files {
+    list-style: none;
+    padding: 0;
+    margin: 6px 0 0;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.ddr-refus-files li {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+}
+
+.ddr-refus-files a { color: #b91c1c; text-decoration: underline; }
+.ddr-refus-taille { font-size: 11px; color: #b48080; }
+
+.ddr-refus-hint {
+    font-size: 12px;
+    color: #9b6b6b;
+    margin-top: 12px;
+}
+
 /* ── Impression ── */
 @media print {
     .no-print { display: none !important; }

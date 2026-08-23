@@ -165,7 +165,22 @@
   .notif-item.blue   { background: #eff6ff; border-color: #bfdbfe; }
   .notif-item.red    { background: #fff1f2; border-color: #fecaca; }
   .notif-item.yellow { background: #fffbeb; border-color: #fde68a; }
- 
+  .notif-item.green  { background: #ecfdf5; border-color: #a7f3d0; }
+
+  /* Alerte non lue : liseré à gauche + titre appuyé */
+  .notif-item.unread { border-left-width: 3px; border-left-style: solid; }
+  .notif-item.unread .notif-name { font-weight: 700; }
+
+  .notif-item.clickable { cursor: pointer; transition: filter 0.15s; }
+  .notif-item.clickable:hover { filter: brightness(0.97); }
+
+  .notif-empty {
+    padding: 18px 12px;
+    text-align: center;
+    font-size: 13px;
+    color: #9aa3b2;
+  }
+
   .notif-icon { font-size: 18px; margin-top: 2px; }
  
   .notif-body { flex: 1; }

@@ -1,14 +1,21 @@
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import DDRView from '../../../components/shared/DDRView/DDRView';
 import {
-  completerDDR,
+  getDDR, completerDDR,
   ajouterChantierDDR, modifierChantierDDR, supprimerChantierDDR,
   ajouterRoleDDR, modifierRoleDDR, supprimerRoleDDR,
 } from '../../../services/exploitationService';
 import './DDRDetailPage.css';
 
 const isNew = (id) => String(id).startsWith('new_');
+
+const fmtTaille = (octets) => {
+  if (!octets) return '';
+  if (octets < 1024) return `${octets} o`;
+  if (octets < 1024 * 1024) return `${Math.round(octets / 1024)} Ko`;
+  return `${(octets / (1024 * 1024)).toFixed(1)} Mo`;
+};
 
 const anneeValide = (isoStr) => {
   if (!isoStr) return true;
@@ -23,8 +30,20 @@ const DDRDetailPage = () => {
   const ddrRef          = useRef();
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState(null);
+  const [ddr, setDdr] = useState(null);
 
   const isReadOnly = location.state?.readOnly === true;
+
+  // Chargé en plus de DDRView (qui gère son propre fetch) pour connaître
+  // le statut : une DDR refusée affiche le motif du CCR au-dessus du document.
+  useEffect(() => {
+    if (!ddrId) return;
+    getDDR(ddrId)
+      .then(res => setDdr(res.data))
+      .catch(() => {});
+  }, [ddrId]);
+
+  const estRefusee = ddr?.statut === 'REFUSE';
 
   const handleRetour   = () => navigate(-1);
   const handleImprimer = () => window.print();
@@ -158,6 +177,41 @@ const DDRDetailPage = () => {
   return (
     <div className="ddr-page">
 
+      {/* Bandeau visible uniquement tant que la DDR est refusée */}
+      {estRefusee && (
+        <div className="ddr-refus-banner no-print">
+          <div className="ddr-refus-head">
+            <span className="ddr-refus-badge">Refusée par le CCR</span>
+            {ddr.decide_par_nom && (
+              <span className="ddr-refus-meta">par {ddr.decide_par_nom}</span>
+            )}
+          </div>
+
+          <div className="ddr-refus-label">Motif du refus</div>
+          <p className="ddr-refus-motif">{ddr.motif_refus || '—'}</p>
+
+          {ddr.pieces_jointes?.length > 0 && (
+            <>
+              <div className="ddr-refus-label">Documents justificatifs</div>
+              <ul className="ddr-refus-files">
+                {ddr.pieces_jointes.map(p => (
+                  <li key={p.id}>
+                    <a href={p.url} target="_blank" rel="noopener noreferrer">
+                      {p.nom_original}
+                    </a>
+                    <span className="ddr-refus-taille">{fmtTaille(p.taille)}</span>
+                  </li>
+                ))}
+              </ul>
+            </>
+          )}
+
+          <p className="ddr-refus-hint">
+            Corrigez les informations ci-dessous puis resoumettez la DDR au CCR.
+          </p>
+        </div>
+      )}
+
       <div className="ddr-page-body">
         <DDRView ref={ddrRef} ddrId={ddrId} readOnly={isReadOnly} />
       </div>
@@ -189,7 +243,9 @@ const DDRDetailPage = () => {
             </button>
             <div className="ddr-footer-right">
               <button className="ddr-btn-valider" onClick={handleValider} disabled={saving}>
-                {saving ? 'Enregistrement...' : 'Valider'}
+                {saving
+                  ? 'Enregistrement...'
+                  : estRefusee ? 'Corriger et resoumettre' : 'Valider'}
               </button>
             </div>
           </>

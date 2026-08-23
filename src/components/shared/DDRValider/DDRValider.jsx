@@ -12,15 +12,17 @@ import './DDRValider.css';
  *   onSoumettre  {function} — reçoit { files, motif } en paramètre
  *   titre        {string}   — titre affiché en en-tête (défaut : "Planning Valider")
  *   submitLabel  {string}   — libellé du bouton soumettre (défaut : "SOUMETTRE")
- *   showMotif    {boolean}  — affiche la zone de texte motif (défaut : false)
+ *   showMotif    {boolean}  — affiche la zone de texte motif, obligatoire (défaut : false)
+ *   showDocuments {boolean} — affiche la zone d'import de documents (défaut : false)
  */
 const DDRValider = ({
   ddrId,
   onRetour,
   onSoumettre,
-  titre       = 'Planning Valider',
-  submitLabel = 'SOUMETTRE',
-  showMotif   = false,
+  titre         = 'Planning Valider',
+  submitLabel   = 'SOUMETTRE',
+  showMotif     = false,
+  showDocuments = false,
 }) => {
   const [ddr, setDdr]           = useState(null);
   const [files, setFiles]       = useState([]);
@@ -46,8 +48,9 @@ const DDRValider = ({
   };
 
   const handleSoumettre = async () => {
-    if (showMotif && !motif.trim() && files.length === 0) {
-      toast.error('Veuillez saisir un motif ou joindre un document.');
+    // Le motif est obligatoire ; le document justificatif ne l'est pas.
+    if (showMotif && !motif.trim()) {
+      toast.error('Le motif de refus est obligatoire.');
       return;
     }
     setLoading(true);
@@ -118,6 +121,7 @@ const DDRValider = ({
       </div>
 
       {/* ── DOCUMENTS ─── */}
+      {showDocuments && (
       <div className="ddrv-docs-grid">
 
         {/* Zone upload */}
@@ -171,6 +175,7 @@ const DDRValider = ({
         </div>
 
       </div>
+      )}
 
       {/* ── ZONE MOTIF (rejet) ─── */}
       {showMotif && (
@@ -180,12 +185,13 @@ const DDRValider = ({
             <textarea
               className="ddrv-motif-textarea"
               rows={4}
-              placeholder="Rédigez ici le motif du refus… (optionnel si un document est joint)"
+              placeholder="Rédigez ici le motif du refus…"
               value={motif}
               onChange={e => setMotif(e.target.value)}
             />
             <p className="ddrv-motif-hint">
-              Vous pouvez saisir un motif textuel, joindre un document ci-dessus, ou les deux.
+              Le motif est obligatoire. Vous pouvez également joindre un document
+              justificatif ci-dessus (facultatif).
             </p>
           </div>
         </div>
