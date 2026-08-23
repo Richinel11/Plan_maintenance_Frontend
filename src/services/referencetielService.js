@@ -79,16 +79,17 @@ export const getPostes = async () => [];
 export const getDeparts = async () => [];
 export const getLocalisations = async () => [];
 
-// Tronçons : items du référentiel de type "TRONCON", indépendamment de la Référence.
-// On résout d'abord l'id du TypeReferentiel "TRONCON", puis on récupère ses items.
+/* TRONCONS */
+// Les tronçons sont une liste totalement indépendante : ils ont leur propre
+// table (modèle Troncon) et leur propre endpoint `troncons/`. Ils n'ont AUCUN
+// lien avec Reference ni avec ReferentielItem/TypeReferentiel.
+// Ne jamais passer par `items/` ici : ReferentielItem.reference est un FK
+// obligatoire, donc un POST items/ sans référence est rejeté par le backend
+// avec {"reference": ["This field may not be null."]}.
+
 export const getTroncons = async () => {
   try {
-    const types = await getTypesReferentiel();
-    const tronconType = (types || []).find(
-      (t) => (t.nom || "").toUpperCase() === "TRONCON"
-    );
-    if (!tronconType) return [];
-    const response = await api.get(`items/?type_id=${tronconType.id}`);
+    const response = await api.get("troncons/");
     return response.data?.results || response.data || [];
   } catch {
     console.warn("Troncons endpoint not available, returning empty array");
@@ -96,17 +97,19 @@ export const getTroncons = async () => {
   }
 };
 
-// Création d'un tronçon : on résout d'abord l'id du TypeReferentiel "TRONCON",
-// puis on crée un ReferentielItem sans référence (liste indépendante).
 export const createTroncon = async (valeur) => {
-  const types = await getTypesReferentiel();
-  const tronconType = (types || []).find(
-    (t) => (t.nom || "").toUpperCase() === "TRONCON"
-  );
-  if (!tronconType) {
-    throw new Error('Le type "TRONCON" est introuvable dans le référentiel.');
-  }
-  return createReferentielItem({ valeur, type_id: tronconType.id });
+  const response = await api.post("troncons/", { valeur });
+  return response.data;
+};
+
+export const updateTroncon = async (id, { valeur }) => {
+  const response = await api.patch(`troncons/${id}/`, { valeur });
+  return response.data;
+};
+
+export const deleteTroncon = async (id) => {
+  const response = await api.delete(`troncons/${id}/`);
+  return response.data;
 };
 
 

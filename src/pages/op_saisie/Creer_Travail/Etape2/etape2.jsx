@@ -25,7 +25,7 @@ const Etape2 = ({ formData, onChange, fields = [], options = {}, errors = {} }) 
 
   const filteredTroncons = tronconsList.filter((opt) => {
     const label = typeof opt === "object"
-      ? opt.libelle || opt.nom || opt.code || opt.name || ""
+      ? opt.valeur || opt.libelle || opt.nom || opt.code || opt.name || ""
       : opt;
     return String(label).toLowerCase().includes(currentTypedVal.toLowerCase());
   });
@@ -85,7 +85,7 @@ const Etape2 = ({ formData, onChange, fields = [], options = {}, errors = {} }) 
                   filteredTroncons.map((opt) => {
                     const id = typeof opt === "object" ? opt.id : opt;
                     const label = typeof opt === "object"
-                      ? opt.libelle || opt.nom || opt.code || opt.name || ""
+                      ? opt.valeur || opt.libelle || opt.nom || opt.code || opt.name || ""
                       : opt;
                     const isSelected = String(formData.troncon_id) === String(id);
 

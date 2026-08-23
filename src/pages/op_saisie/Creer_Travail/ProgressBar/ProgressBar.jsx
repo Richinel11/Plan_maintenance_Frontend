@@ -45,8 +45,8 @@ export default function MultiStepForm() {
   const [references, setReferences] = useState([]);
   const [typesActivite, setTypesActivite] = useState([]);
   // ouvrages/postes/departs: ces données sont auto-remplies depuis les items
-  // de la Référence (plus d'endpoints dédiés). Troncons est indépendant de la
-  // Référence : liste chargée directement depuis le référentiel (type TRONCON).
+  // de la Référence (plus d'endpoints dédiés). Troncons est une liste
+  // totalement indépendante, chargée depuis son propre endpoint `troncons/`.
   const [ouvrages] = useState([]);
   const [postes] = useState([]);
   const [departs] = useState([]);

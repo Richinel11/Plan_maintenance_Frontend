@@ -5,8 +5,7 @@ import { getEntites } from '../../../services/userService';
 import {
     getUnites, createUnite, updateUnite, deleteUnite,
     getTypesActivite, createTypeActivite, updateTypeActivite, deleteTypeActivite,
-    getTroncons, createTroncon,
-    updateReferentielItem, deleteReferentielItem,
+    getTroncons, createTroncon, updateTroncon, deleteTroncon,
 } from '../../../services/referencetielService';
 import { getCentrales, createCentrale, updateCentrale, deleteCentrale } from '../../../services/planningService';
 import EntiteSelector from './components/EntiteSelector';
@@ -131,8 +130,8 @@ const ReferentielManagement = () => {
                         emptyLabel="Aucun tronçon configuré."
                         fetchItems={() => getTroncons()}
                         createItem={(valeur) => createTroncon(valeur)}
-                        updateItem={(id, valeur) => updateReferentielItem(id, { valeur })}
-                        deleteItem={(id) => deleteReferentielItem(id)}
+                        updateItem={(id, valeur) => updateTroncon(id, { valeur })}
+                        deleteItem={(id) => deleteTroncon(id)}
                         duplicateMessage="Ce tronçon existe déjà."
                         successMessage="Tronçon ajouté avec succès."
                     />
