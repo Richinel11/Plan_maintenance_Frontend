@@ -26,10 +26,15 @@
 - Vue Gantt avec surlignage des conflits
 
 ### Gestion des conflits
-- Détecter les chevauchements de travaux (`analyserChevauchements`)
+- Détecter les chevauchements de travaux (`analyser-mois`)
 - Consulter les alertes de conflits
 - Consulter les propositions d'harmonisation
 - Appliquer ou refuser une proposition d'harmonisation
+
+> Détail complet de l'algorithme de détection/génération, du cycle de vie
+> d'une proposition et des points critiques connus :
+> [`docs/module-harmonisation-plannings.md`](../../../Plan_maintenance_Backend/docs/module-harmonisation-plannings.md)
+> (dépôt backend).
 
 ---
 
@@ -44,12 +49,10 @@ GET    /planning/travaux/                      Tous les travaux (paginé)
 
 ### Conflits et harmonisation
 ```
-GET    /planning/conflits/ids/                 IDs des travaux en conflit
-GET    /planning/alertes/                      Alertes de conflits
-POST   /planning/plannings/:id/analyser/       Analyser les chevauchements
-GET    /planning/plannings/:id/propositions/   Propositions d'harmonisation
-POST   /planning/plannings/:id/propositions/:pid/appliquer/   Appliquer une proposition
-POST   /planning/plannings/:id/propositions/:pid/refuser/     Refuser une proposition
+POST   /planning/plannings/analyser-mois/                     Analyser les chevauchements (mois courant ou {annee, mois})
+GET    /planning/plannings/:id/propositions/?statut=...       Propositions d'harmonisation d'un planning
+POST   /planning/plannings/:id/appliquer-proposition/         Body {proposition_id} — appliquer une proposition
+POST   /planning/plannings/:id/refuser-proposition/           Body {proposition_id} — refuser une proposition
 ```
 
 ---

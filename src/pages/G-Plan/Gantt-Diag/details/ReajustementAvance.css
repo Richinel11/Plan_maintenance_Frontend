@@ -684,6 +684,23 @@
   gap: 4px;
 }
 
+.ra-lock-toggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #374151;
+  cursor: pointer;
+  user-select: none;
+}
+.ra-lock-toggle input[type="checkbox"] {
+  cursor: pointer;
+}
+.ra-lock-toggle input[type="checkbox"]:disabled {
+  cursor: not-allowed;
+}
+
 .ra-field-label {
   font-size: 10px;
   font-weight: 700;
@@ -708,6 +725,14 @@
   background: #fff5f5;
   color: #ef4444;
   font-weight: 700;
+}
+
+.ra-field-input:disabled,
+.ra-counter-btn:disabled {
+  background: #f3f4f6;
+  color: #9ca3af;
+  cursor: not-allowed;
+  opacity: 0.7;
 }
 
 /* ── Duration Counter ── */

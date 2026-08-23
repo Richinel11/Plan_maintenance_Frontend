@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import CalendarComponent from './components/calendar';
-import { fetchAllTravaux, fetchConflitIds, buildGroupes } from '../../../services/gplanService';
+import { fetchAllTravaux, fetchConflitIds, fetchGroupesConflits } from '../../../services/gplanService';
 import { mapTravauxToCalendarEvents } from '../../../services/travailMapper';
 
 const CalendarView = () => {
@@ -17,14 +17,15 @@ const CalendarView = () => {
                 setLoading(true);
                 setError(null);
 
-                const [travaux, { conflitIds, opportuniteIds }] = await Promise.all([
+                const [travaux, { conflitIds, opportuniteIds }, groupes] = await Promise.all([
                     fetchAllTravaux(),
                     fetchConflitIds(),
+                    fetchGroupesConflits(),
                 ]);
 
                 if (cancelled) return;
                 setEvents(mapTravauxToCalendarEvents(travaux, conflitIds, opportuniteIds));
-                setGroupes(buildGroupes(travaux, conflitIds));
+                setGroupes(groupes);
             } catch (err) {
                 if (cancelled) return;
                 console.error('[CalendarView] Erreur de chargement :', err);

@@ -9,6 +9,7 @@ import {
     fetchPropositions,
     appliquerProposition,
     refuserProposition,
+    modifierProposition,
 } from "../../../../services/gplanService";
 
 const SEGMENT_ICON = { TRANSPORT: <FaBolt />, DISTRIBUTION: <FaBell />, PRODUCTION: <FaBolt /> };
@@ -20,10 +21,58 @@ const fmt = (iso) => {
     return `${d.toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' })} ${d.getHours().toString().padStart(2,'0')}h${d.getMinutes().toString().padStart(2,'0')}`;
 };
 
+// Format attendu par <input type="datetime-local"> : "YYYY-MM-DDTHH:mm"
+const toDatetimeLocal = (iso) => {
+    if (!iso) return '';
+    const d = new Date(iso);
+    if (isNaN(d.getTime())) return '';
+    const p2 = (n) => String(n).padStart(2, '0');
+    return `${d.getFullYear()}-${p2(d.getMonth() + 1)}-${p2(d.getDate())}T${p2(d.getHours())}:${p2(d.getMinutes())}`;
+};
+
 // ── Carte proposition ──────────────────────────────────────────────────────────
-function PropCard({ p, actionLoading, onAppliquer, onRefuser, onReajuster }) {
+function PropCard({ p, actionLoading, onAppliquer, onRefuser, onModifier, onReajuster }) {
     const isBloquee      = p.statut === 'BLOQUEE';
     const isChargeConfl  = p.conflit_charge_consignation;
+    // Éditer les dates n'a de sens que si le travail peut bouger : une
+    // proposition BLOQUEE parce que le travail est non déplaçable
+    // (TRANSPORT/P1) ne peut jamais devenir applicable, quelle que soit la
+    // date choisie — le backend refuse d'ailleurs cette modification.
+    const modifiable = p.statut === 'EN_ATTENTE' || (isBloquee && isChargeConfl);
+
+    const [editing,    setEditing]    = useState(false);
+    const [editDebut,  setEditDebut]  = useState(() => toDatetimeLocal(p.nouveau_debut));
+    const [editFin,    setEditFin]    = useState(() => toDatetimeLocal(p.nouvelle_fin));
+    const [saving,     setSaving]     = useState(false);
+    const [editError,  setEditError]  = useState(null);
+
+    const ouvrirEdition = () => {
+        setEditDebut(toDatetimeLocal(p.nouveau_debut));
+        setEditFin(toDatetimeLocal(p.nouvelle_fin));
+        setEditError(null);
+        setEditing(true);
+    };
+
+    const enregistrer = async () => {
+        if (!editDebut || !editFin) {
+            setEditError('Début et fin sont requis.');
+            return;
+        }
+        if (editDebut >= editFin) {
+            setEditError('Le début doit être avant la fin.');
+            return;
+        }
+        setSaving(true);
+        setEditError(null);
+        try {
+            await onModifier(p, editDebut, editFin);
+            setEditing(false);
+        } catch (err) {
+            setEditError(err?.response?.data?.error || err?.response?.data?.['error-fr'] || 'Erreur lors de la modification.');
+        } finally {
+            setSaving(false);
+        }
+    };
 
     return (
         <div className={`ag-prop-card ${isBloquee ? 'ag-prop-bloquee' : 'ag-prop-libre'}`}>
@@ -55,19 +104,51 @@ function PropCard({ p, actionLoading, onAppliquer, onRefuser, onReajuster }) {
                 </div>
 
                 {/* Timeline */}
-                <div className="ag-prop-timeline">
-                    <div className="ag-prop-time-block old">
-                        <span className="ag-tl-label">AVANT</span>
-                        <span className="ag-tl-main">{fmt(p.ancien_debut)}</span>
-                        <span className="ag-tl-end">→ {fmt(p.ancienne_fin)}</span>
+                {editing ? (
+                    <div className="ag-prop-edit">
+                        <div className="ag-prop-edit-field">
+                            <span className="ag-tl-label">NOUVEAU DÉBUT</span>
+                            <input
+                                type="datetime-local"
+                                value={editDebut}
+                                onChange={(e) => setEditDebut(e.target.value)}
+                                disabled={saving}
+                            />
+                        </div>
+                        <div className="ag-prop-edit-field">
+                            <span className="ag-tl-label">NOUVELLE FIN</span>
+                            <input
+                                type="datetime-local"
+                                value={editFin}
+                                onChange={(e) => setEditFin(e.target.value)}
+                                disabled={saving}
+                            />
+                        </div>
+                        {editError && <p className="ag-prop-edit-error">{editError}</p>}
+                        <div className="ag-prop-actions">
+                            <button className="ag-btn-validate" disabled={saving} onClick={enregistrer}>
+                                {saving ? 'Enregistrement…' : 'Enregistrer'}
+                            </button>
+                            <button className="ag-btn-reject" disabled={saving} onClick={() => setEditing(false)}>
+                                Annuler
+                            </button>
+                        </div>
                     </div>
-                    <div className="ag-tl-arrow">→</div>
-                    <div className={`ag-prop-time-block ${isBloquee ? 'proposed-blocked' : 'proposed-free'}`}>
-                        <span className="ag-tl-label">PROPOSÉ</span>
-                        <span className="ag-tl-main">{fmt(p.nouveau_debut)}</span>
-                        <span className="ag-tl-end">→ {fmt(p.nouvelle_fin)}</span>
+                ) : (
+                    <div className="ag-prop-timeline">
+                        <div className="ag-prop-time-block old">
+                            <span className="ag-tl-label">AVANT</span>
+                            <span className="ag-tl-main">{fmt(p.ancien_debut)}</span>
+                            <span className="ag-tl-end">→ {fmt(p.ancienne_fin)}</span>
+                        </div>
+                        <div className="ag-tl-arrow">→</div>
+                        <div className={`ag-prop-time-block ${isBloquee ? 'proposed-blocked' : 'proposed-free'}`}>
+                            <span className="ag-tl-label">PROPOSÉ</span>
+                            <span className="ag-tl-main">{fmt(p.nouveau_debut)}</span>
+                            <span className="ag-tl-end">→ {fmt(p.nouvelle_fin)}</span>
+                        </div>
                     </div>
-                </div>
+                )}
 
                 {/* Raison du blocage */}
                 {isBloquee && (
@@ -94,7 +175,7 @@ function PropCard({ p, actionLoading, onAppliquer, onRefuser, onReajuster }) {
                 )}
 
                 {/* Actions EN_ATTENTE */}
-                {p.statut === 'EN_ATTENTE' && (
+                {!editing && p.statut === 'EN_ATTENTE' && (
                     <div className="ag-prop-actions">
                         <button
                             className="ag-btn-validate"
@@ -103,6 +184,13 @@ function PropCard({ p, actionLoading, onAppliquer, onRefuser, onReajuster }) {
                         >
                             <BsCheckCircleFill size={13} />
                             {actionLoading === p.id ? 'Application…' : 'Appliquer'}
+                        </button>
+                        <button
+                            className="ag-btn-manual"
+                            disabled={actionLoading === p.id}
+                            onClick={ouvrirEdition}
+                        >
+                            <AiOutlineTool size={13} /> Modifier
                         </button>
                         <button
                             className="ag-btn-reject"
@@ -115,9 +203,14 @@ function PropCard({ p, actionLoading, onAppliquer, onRefuser, onReajuster }) {
                 )}
 
                 {/* CTA manuel BLOQUEE */}
-                {isBloquee && (
+                {!editing && isBloquee && (
                     <div className="ag-prop-manual-cta">
                         <span className="ag-manual-label">Résolution manuelle requise</span>
+                        {modifiable && (
+                            <button className="ag-btn-manual" onClick={ouvrirEdition}>
+                                <AiOutlineTool size={13} /> Modifier la date
+                            </button>
+                        )}
                         <button className="ag-btn-manual" onClick={onReajuster}>
                             <AiOutlineTool size={13} /> Réajuster manuellement
                         </button>
@@ -186,6 +279,18 @@ export default function AdvancedGantt() {
         } finally {
             setActionLoading(null);
         }
+    };
+
+    // Contrairement à Appliquer/Refuser, la proposition n'est pas retirée de
+    // la liste mais mise à jour en place (le statut peut changer suite à la
+    // revalidation de la charge de consignation par le backend). Les erreurs
+    // remontent au PropCard pour un affichage inline (pas de message global).
+    const handleModifier = async (p, nouveauDebut, nouvelleFin) => {
+        const pid = p.planning;
+        if (!pid) throw new Error('planning manquant');
+        const result = await modifierProposition(pid, p.id, nouveauDebut, nouvelleFin);
+        setPropositions(prev => prev.map(x => (x.id === p.id ? result.proposition : x)));
+        setMessage({ type: 'ok', text: 'Proposition modifiée.' });
     };
 
     const goReajuster = () =>
@@ -331,6 +436,7 @@ export default function AdvancedGantt() {
                         actionLoading={actionLoading}
                         onAppliquer={handleAppliquer}
                         onRefuser={handleRefuser}
+                        onModifier={handleModifier}
                         onReajuster={goReajuster}
                     />
                 ))}

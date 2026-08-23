@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { analyserMois } from '../../../services/gplanService';
+import { analyserMois, buildGroupesDepuisChevauchements } from '../../../services/gplanService';
 import './AlertesView.css';
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -21,39 +21,6 @@ const FILTRES = [
     { key: 'TOUS',    label: 'Tous'     },
     { key: 'CONFLIT', label: 'Conflits' },
 ];
-
-// Construit un groupe uniforme depuis un chevauchement retourné par analyser-mois
-function buildGroupe(chev) {
-    const ref = chev.reference;
-    return {
-        id_groupe:           ref.id.slice(0, 12),
-        type:                'CONFLIT',
-        statut:              'OUVERT',
-        ressources_communes: [ref.ressource],
-        chevauchement:       `${ref.debut} → ${ref.fin}`,
-        nb_travaux:          1 + chev.travaux_en_conflit.length,
-        travaux: [
-            {
-                id:          ref.id,
-                reference:   ref.ressource,
-                segment:     ref.segment,
-                planning_nom: ref.planning_nom,
-                debut:       ref.debut,
-                fin:         ref.fin,
-                peut_bouger: ref.peut_bouger,
-            },
-            ...chev.travaux_en_conflit.map(t => ({
-                id:          t.id,
-                reference:   t.ressource,
-                segment:     t.segment,
-                planning_nom: t.planning_nom,
-                debut:       t.debut,
-                fin:         t.fin,
-                peut_bouger: t.peut_bouger,
-            })),
-        ],
-    };
-}
 
 // ── Composant ─────────────────────────────────────────────────────────────────
 
@@ -78,7 +45,7 @@ const AlertesView = () => {
         setError(null);
         try {
             const data = await analyserMois(a, m);
-            setGroupes((data.chevauchements || []).map(buildGroupe));
+            setGroupes(buildGroupesDepuisChevauchements(data.chevauchements));
             setPropositions(data.propositions || []);
             setResume(data.resume || null);
             setAnalyse(true);

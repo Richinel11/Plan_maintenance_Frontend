@@ -53,7 +53,7 @@ export default function ReajustementAvance() {
   const location = useLocation();
   const groupe = location.state?.groupe ?? null;
 
-  // État éditable : un objet par travail { debut (datetime-local), duree (h) }
+  // État éditable : un objet par travail { debut (datetime-local), duree (h), verrouille }
   const [edits, setEdits] = useState(() => {
     if (!groupe) return {};
     return Object.fromEntries(
@@ -62,6 +62,7 @@ export default function ReajustementAvance() {
         {
           debut: toDatetimeLocal(t.debut),
           duree: calcDureeH(t.debut, t.fin),
+          verrouille: false,
         },
       ])
     );
@@ -112,21 +113,39 @@ export default function ReajustementAvance() {
 
   // ── Handlers ─────────────────────────────────────────────────────────────
 
-  const updateDebut = (id, value) =>
-    setEdits((prev) => ({ ...prev, [id]: { ...prev[id], debut: value } }));
+  // TRANSPORT et P1 ne bougent jamais (règle métier, cf. alignement_service._peut_bouger) :
+  // l'écran de réajustement manuel ne doit pas permettre de contourner cette règle.
+  const peutBouger = (id) =>
+    groupe.travaux.find((t) => t.id === id)?.peut_bouger !== false;
 
-  const updateDuree = (id, delta) =>
+  const updateDebut = (id, value) => {
+    if (!peutBouger(id)) return;
+    setEdits((prev) => ({ ...prev, [id]: { ...prev[id], debut: value } }));
+  };
+
+  const updateDuree = (id, delta) => {
+    if (!peutBouger(id)) return;
     setEdits((prev) => ({
       ...prev,
       [id]: { ...prev[id], duree: Math.max(1, prev[id].duree + delta) },
     }));
+  };
+
+  // Fixer un alignement comme définitif : le travail ne sera plus jamais
+  // proposé au déplacement par le système (même règle que TRANSPORT/P1,
+  // cf. alignement_service._peut_bouger), et deviendra prioritaire comme
+  // référence pour aligner les autres travaux d'un futur groupe de conflit.
+  const updateVerrouille = (id, value) => {
+    if (!peutBouger(id)) return;
+    setEdits((prev) => ({ ...prev, [id]: { ...prev[id], verrouille: value } }));
+  };
 
   const handleReinitialiser = () => {
     setEdits(
       Object.fromEntries(
         groupe.travaux.map((t) => [
           t.id,
-          { debut: toDatetimeLocal(t.debut), duree: calcDureeH(t.debut, t.fin) },
+          { debut: toDatetimeLocal(t.debut), duree: calcDureeH(t.debut, t.fin), verrouille: false },
         ])
       )
     );
@@ -138,20 +157,26 @@ export default function ReajustementAvance() {
     setMessage(null);
     try {
       await Promise.all(
-        groupe.travaux.map((t) =>
-          patchTravail(t.id, {
-            heure_debut_planifie: edits[t.id].debut,
-            duree: edits[t.id].duree,
-            unite_duree: "HEURES",
-          })
-        )
+        groupe.travaux
+          .filter((t) => peutBouger(t.id))
+          .map((t) =>
+            patchTravail(t.id, {
+              heure_debut_planifie: edits[t.id].debut,
+              duree: edits[t.id].duree,
+              unite_duree: "HEURES",
+              ...(edits[t.id].verrouille ? { alignement_verrouille: true } : {}),
+            })
+          )
       );
       setMessage({ type: "ok", text: "Modifications enregistrées avec succès." });
       setTimeout(() => navigate("/dashboard/alertes"), 1800);
-    } catch {
+    } catch (err) {
+      const chargeError = err?.response?.data?.charge_consignation;
       setMessage({
         type: "err",
-        text: "Erreur lors de la sauvegarde. Vérifiez votre connexion.",
+        text: Array.isArray(chargeError) && chargeError.length
+          ? chargeError[0]
+          : "Erreur lors de la sauvegarde. Vérifiez votre connexion.",
       });
     } finally {
       setSaving(false);
@@ -333,6 +358,7 @@ export default function ReajustementAvance() {
         {groupe.travaux.map((t, idx) => {
           const edit = edits[t.id] || {};
           const isFirst = idx === 0;
+          const nonDeplacable = t.peut_bouger === false;
           return (
             <div
               key={t.id}
@@ -356,6 +382,15 @@ export default function ReajustementAvance() {
                     {isFirst && (
                       <span className="ra-ref-badge">RÉFÉRENCE</span>
                     )}
+                    {nonDeplacable && (
+                      <span className="ra-ref-badge" title={
+                        t.alignement_verrouille
+                          ? "Alignement fixé manuellement par un gestionnaire"
+                          : "TRANSPORT et P1 ne sont jamais déplaçables"
+                      }>
+                        {t.alignement_verrouille ? "🔒 ALIGNEMENT FIXÉ" : "🔒 NON DÉPLAÇABLE"}
+                      </span>
+                    )}
                   </span>
                   <span className="ra-config-name">{t.reference}</span>
                 </div>
@@ -368,6 +403,8 @@ export default function ReajustementAvance() {
                     type="datetime-local"
                     value={edit.debut || ""}
                     onChange={(e) => updateDebut(t.id, e.target.value)}
+                    disabled={nonDeplacable}
+                    title={nonDeplacable ? "Horaire non modifiable" : undefined}
                     className={`ra-field-input ${
                       !isFirst ? "input-conflict" : ""
                     }`}
@@ -379,6 +416,7 @@ export default function ReajustementAvance() {
                     <button
                       className="ra-counter-btn"
                       onClick={() => updateDuree(t.id, -1)}
+                      disabled={nonDeplacable}
                     >
                       −
                     </button>
@@ -388,10 +426,23 @@ export default function ReajustementAvance() {
                     <button
                       className="ra-counter-btn"
                       onClick={() => updateDuree(t.id, 1)}
+                      disabled={nonDeplacable}
                     >
                       +
                     </button>
                   </div>
+                </div>
+                <div className="ra-config-field ra-config-lock">
+                  <span className="ra-field-label">DÉFINITIF</span>
+                  <label className="ra-lock-toggle" title="Fixer cet alignement : le système ne le déplacera plus jamais et alignera les autres travaux dessus en priorité.">
+                    <input
+                      type="checkbox"
+                      checked={!!edit.verrouille}
+                      disabled={nonDeplacable}
+                      onChange={(e) => updateVerrouille(t.id, e.target.checked)}
+                    />
+                    🔒 Fixer
+                  </label>
                 </div>
                 {isFirst ? (
                   <BsCheckCircleFill className="ra-status-ok" />
@@ -412,7 +463,9 @@ export default function ReajustementAvance() {
           travaux en conflit pour supprimer le chevauchement. La nouvelle heure
           de fin est calculée automatiquement par le système. Le travail marqué{" "}
           <strong>RÉFÉRENCE</strong> est le plus prioritaire — déplacez de
-          préférence les autres.
+          préférence les autres. Cochez <strong>🔒 Fixer</strong> pour rendre un
+          alignement définitif : le système ne le déplacera plus jamais et
+          alignera les futurs conflits sur lui en priorité.
         </p>
       </div>
 

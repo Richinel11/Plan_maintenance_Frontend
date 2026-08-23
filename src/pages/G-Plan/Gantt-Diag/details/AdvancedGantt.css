@@ -608,6 +608,35 @@
   border-radius: 8px;
   padding:     10px 14px;
 }
+
+/* Mode édition (modifier une proposition avant application) */
+.ag-prop-edit {
+  display:        flex;
+  flex-direction: column;
+  gap:            10px;
+  background:     #f8fafc;
+  border-radius:  8px;
+  padding:        12px 14px;
+}
+.ag-prop-edit-field {
+  display:        flex;
+  flex-direction: column;
+  gap:            4px;
+}
+.ag-prop-edit-field input {
+  padding:      6px 8px;
+  border:       1px solid #e2e8f0;
+  border-radius: 6px;
+  font-size:    13px;
+  font-weight:  600;
+  color:        #0f172a;
+}
+.ag-prop-edit-error {
+  margin:    0;
+  font-size: 12px;
+  color:     #dc2626;
+  font-weight: 600;
+}
 .ag-prop-time-block {
   display:        flex;
   flex-direction: column;

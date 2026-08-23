@@ -90,6 +90,31 @@ export const fetchAllPlannings = async () => {
 };
 
 /**
+ * Récupère (et met en cache 5 min) le résultat brut d'analyser-mois pour le
+ * mois en cours. Source unique utilisée par fetchConflitIds et
+ * fetchGroupesConflits pour éviter d'appeler deux fois le même endpoint et,
+ * surtout, pour ne jamais laisser un consommateur reconstruire les groupes
+ * de conflits avec sa propre logique (voir buildGroupesDepuisChevauchements).
+ */
+let _analyseMoisEnCours = null;
+
+const fetchAnalyseMoisCourant = async () => {
+    const cached = getCached('analyseMois');
+    if (cached) return cached;
+    // fetchConflitIds et fetchGroupesConflits sont souvent appelés ensemble
+    // (Promise.all) : on mutualise la requête en vol pour ne pas déclencher
+    // deux POST /plannings/analyser-mois/ identiques en parallèle.
+    if (_analyseMoisEnCours) return _analyseMoisEnCours;
+    _analyseMoisEnCours = analyserMois()
+        .then(data => {
+            setCached('analyseMois', data);
+            return data;
+        })
+        .finally(() => { _analyseMoisEnCours = null; });
+    return _analyseMoisEnCours;
+};
+
+/**
  * Récupère les IDs des travaux en conflit sur le mois en cours, en s'appuyant
  * sur analyser-mois (source unique de détection des conflits/chevauchements).
  * Résultat mis en cache 5 min.
@@ -97,9 +122,7 @@ export const fetchAllPlannings = async () => {
  * @returns {Promise<{ conflitIds: Set<string>, opportuniteIds: Set<string> }>}
  */
 export const fetchConflitIds = async () => {
-    const cached = getCached('conflitIds');
-    if (cached) return cached;
-    const analyse = await analyserMois();
+    const analyse = await fetchAnalyseMoisCourant();
     const conflitIds = new Set();
     (analyse.chevauchements || []).forEach(chev => {
         if (chev.reference?.id) conflitIds.add(chev.reference.id);
@@ -107,82 +130,80 @@ export const fetchConflitIds = async () => {
     });
     // opportunites_harmonisation n'a jamais été produit par le backend :
     // conservé pour compatibilité avec les consommateurs existants.
-    const data = { conflitIds, opportuniteIds: new Set() };
-    setCached('conflitIds', data);
-    return data;
+    return { conflitIds, opportuniteIds: new Set() };
 };
 
 /**
- * Construit des groupes d'alerte depuis la liste des travaux et les IDs en conflit.
- * Regroupe les travaux par référence commune.
+ * Construit les groupes de conflit à partir des `chevauchements` renvoyés par
+ * analyser-mois (référence + travaux_en_conflit) — la seule source qui
+ * applique la vraie règle métier d'alignement (région + poste + compatibilité
+ * rame/départ, cf. planning/alignement_service.py::_partage_ressource).
+ *
+ * Ne PAS réimplémenter le regroupement côté client à partir de la liste des
+ * travaux (ex. par égalité de reference.id) : deux travaux alignables (un
+ * Transport sur un poste source et un Distribution sur un départ de ce même
+ * poste) n'ont jamais la même référence — un tel regroupement les manquerait
+ * silencieusement.
+ *
+ * @param {Array} chevauchements
+ * @returns {Array}
  */
-export function buildGroupes(travaux, conflitIds) {
-    console.log('[buildGroupes] conflitIds:', [...conflitIds]);
-    console.log('[buildGroupes] total travaux:', travaux.length);
-    const enConflit = travaux.filter(t => conflitIds.has(t.id));
-    console.log('[buildGroupes] travaux en conflit trouvés:', enConflit.length);
-    enConflit.forEach(t => console.log('  ->', t.id, '| reference:', t.reference?.id, t.reference?.valeur));
-
-    const now = new Date();
-    const byRef = {};
-    for (const t of enConflit.filter(t => t.segment !== 'PRODUCTION' && new Date(t.heure_fin_planifie) >= now)) {
-        const key = t.reference?.id ?? `_${t.id}`;
-        if (!byRef[key]) byRef[key] = [];
-        byRef[key].push(t);
-    }
-
-    const fmtD = (iso) => new Date(iso).toLocaleString('fr-FR', {
-        weekday: 'short', day: '2-digit', month: '2-digit',
-        hour: '2-digit', minute: '2-digit',
-    });
-
-    return Object.entries(byRef)
-        .filter(([, grp]) => grp.length > 1)
-        .map(([key, grp]) => {
-            const refValeur = grp[0].reference?.valeur || 'Référence inconnue';
-            const statut = grp.every(t => t.travail_en_alignement) ? 'RESOLU' : 'OUVERT';
-
-            const debuts = grp.map(t => new Date(t.heure_debut_planifie).getTime());
-            const fins   = grp.map(t => new Date(t.heure_fin_planifie).getTime());
-            const overlapStart = new Date(Math.max(...debuts));
-            const overlapEnd   = new Date(Math.min(...fins));
-            const chevauchement = overlapStart < overlapEnd
-                ? `${fmtD(overlapStart)} → ${fmtD(overlapEnd)}`
-                : '—';
-
-            return {
-                id_groupe:           key.slice(0, 12),
-                type:                'CONFLIT',
-                statut,
-                ressources_communes: [refValeur],
-                chevauchement,
-                nb_travaux:          grp.length,
-                travaux: grp.map(t => ({
+export function buildGroupesDepuisChevauchements(chevauchements) {
+    return (chevauchements || []).map(chev => {
+        const ref = chev.reference;
+        return {
+            id_groupe:           ref.id.slice(0, 12),
+            type:                'CONFLIT',
+            statut:              'OUVERT',
+            ressources_communes: [ref.ressource],
+            chevauchement:       `${ref.debut} → ${ref.fin}`,
+            nb_travaux:          1 + chev.travaux_en_conflit.length,
+            travaux: [
+                {
+                    id:           ref.id,
+                    reference:    ref.ressource,
+                    segment:      ref.segment,
+                    planning_id:  ref.planning_id ?? null,
+                    planning_nom: ref.planning_nom,
+                    debut:        ref.debut,
+                    fin:          ref.fin,
+                    peut_bouger:  ref.peut_bouger,
+                    alignement_verrouille: ref.alignement_verrouille ?? false,
+                },
+                ...chev.travaux_en_conflit.map(t => ({
                     id:           t.id,
-                    reference:    t.reference?.valeur || `Travail ${t.id.slice(0, 8)}`,
+                    reference:    t.ressource,
                     segment:      t.segment,
-                    planning_id:  t.planning?.id  ?? null,
-                    planning_nom: t.planning?.nom ?? '—',
-                    debut:        t.heure_debut_planifie,
-                    fin:          t.heure_fin_planifie,
+                    planning_id:  t.planning_id ?? null,
+                    planning_nom: t.planning_nom,
+                    debut:        t.debut,
+                    fin:          t.fin,
+                    peut_bouger:  t.peut_bouger,
+                    alignement_verrouille: t.alignement_verrouille ?? false,
                 })),
-            };
-        });
+            ],
+        };
+    });
 }
 
 /**
- * Récupère les groupes de conflits en combinant les IDs en conflit
- * et les détails des travaux — sans endpoint supplémentaire côté backend.
+ * Récupère les groupes de conflits du mois en cours, construits depuis
+ * analyser-mois (cf. buildGroupesDepuisChevauchements).
  *
  * @returns {Promise<Array>}
  */
-export const fetchAlertes = async () => {
-    const [{ conflitIds }, travaux] = await Promise.all([
-        fetchConflitIds(),
-        fetchAllTravaux(),
-    ]);
-    return buildGroupes(travaux, conflitIds);
+export const fetchGroupesConflits = async () => {
+    const analyse = await fetchAnalyseMoisCourant();
+    return buildGroupesDepuisChevauchements(analyse.chevauchements);
 };
+
+/**
+ * Alias de fetchGroupesConflits, conservé pour les consommateurs existants
+ * (widget "Alertes actives" du dashboard).
+ *
+ * @returns {Promise<Array>}
+ */
+export const fetchAlertes = fetchGroupesConflits;
 
 /**
  * Récupère les propositions d'un planning.
@@ -229,6 +250,27 @@ export const refuserProposition = async (planningId, propositionId) => {
 };
 
 /**
+ * Ajuste la date proposée d'une proposition EN_ATTENTE/BLOQUEE avant application
+ * (le travail n'est pas modifié). Le backend revalide la disponibilité du chargé
+ * de consignation sur le nouveau créneau : le statut peut changer en conséquence.
+ * POST /plannings/<planningId>/modifier-proposition/
+ *
+ * @param {string} planningId
+ * @param {string} propositionId
+ * @param {string} nouveauDebut - ISO 8601 (ex: "2026-08-20T14:00")
+ * @param {string} nouvelleFin - ISO 8601
+ * @returns {{ message, proposition }}
+ */
+export const modifierProposition = async (planningId, propositionId, nouveauDebut, nouvelleFin) => {
+    const response = await api.post(`/plannings/${planningId}/modifier-proposition/`, {
+        proposition_id: propositionId,
+        nouveau_debut: nouveauDebut,
+        nouvelle_fin: nouvelleFin,
+    });
+    return response.data;
+};
+
+/**
  * Modifie partiellement un travail (réajustement manuel des horaires).
  * PATCH /travaux/<travailId>/
  *
@@ -236,6 +278,9 @@ export const refuserProposition = async (planningId, propositionId) => {
  *   heure_debut_planifie  — ISO 8601 (ex: "2024-04-03T08:30")
  *   duree                 — entier positif
  *   unite_duree           — "HEURES" | "JOURS" | "SEMAINES"
+ *   alignement_verrouille — true pour fixer l'alignement définitivement
+ *                           (le système ne proposera plus jamais de déplacer
+ *                           ce travail, cf. alignement_service._peut_bouger)
  *
  * heure_fin_planifie est calculée automatiquement par le backend (save()).
  *
