@@ -7,7 +7,6 @@ import { genererDDR } from "../../../services/exploitationService";
 
 import FileInput from "../Importer_Plannings/importation";
 import readExcel from "./readFile";
-import PlanningValidationBar from "../../../components/Workflow/PlanningValidationBar";
 
 import "./Planning.css";
 import "./TableauxDeBord/Tableaux.css";
@@ -15,7 +14,7 @@ import PlanningForm from "../Creer_Travail/components/PlanningForm";
 import SearchBar from "../components/Filter_search/search";
 import Filter from "./filterCards/filter";
 import useServiceRole from "../../../pages/ComponentsRole/ServiceRole";
-import { createPlanning, createTravail, updateTravail, deleteTravail, getPlanningById, getTravaux, getCentrales, terminerTravail } from "../../../services/planningService";
+import { createPlanning, createTravail, updateTravail, deleteTravail, getPlanningById, getTravaux, getCentrales, terminerTravail, transmettrePlanningAuResponsable } from "../../../services/planningService";
 import { mapPlanningPayload } from "../../../utils/planningMapper";
 import Etape3 from "../Creer_Travail/etape3/etape3";
 import {
@@ -27,6 +26,7 @@ import {
   getTypesReferentiel,
   createReferentielItem,
   getReferenceById,
+  getTroncons,
 } from "../../../services/referencetielService";
 import { getEntites } from "../../../services/userService";
 
@@ -268,6 +268,7 @@ const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [unites, setUnites] = useState([]);
   const [typesActivite, setTypesActivite] = useState([]);
   const [centrales, setCentrales] = useState([]);
+  const [troncons, setTroncons] = useState([]);
 
   /* SUBMISSION PROGRESS */
   const [isSubmissionModalOpen, setIsSubmissionModalOpen] = useState(false);
@@ -343,7 +344,7 @@ const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
         // const user = getCurrentUser();
         // const entiteMetierId = user?.entite_metier?.id;
 
-        const [refs, tps, units, ents, centralesData, chargesData, typesRef] = await Promise.all([
+        const [refs, tps, units, ents, centralesData, chargesData, typesRef, tronconsData] = await Promise.all([
           getReferences(),
           getTypesActivite(),
           getUnites(),
@@ -351,6 +352,7 @@ const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
           getCentrales(),
           getChargesConsignation(),
           getTypesReferentiel(),
+          getTroncons(),
         ]);
         setReferences(Array.isArray(refs) ? refs : (refs?.results || []));
         setTypesActivite(Array.isArray(tps) ? tps : (tps?.results || []));
@@ -359,6 +361,7 @@ const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
         setCentrales(Array.isArray(centralesData) ? centralesData : (centralesData?.results || []));
         setUsers(Array.isArray(chargesData) ? chargesData : (chargesData?.results || chargesData?.data || []));
         setTypesReferentiel(Array.isArray(typesRef) ? typesRef : (typesRef?.results || []));
+        setTroncons(Array.isArray(tronconsData) ? tronconsData : (tronconsData?.results || []));
       } catch (err) { console.error("Referentiel load error", err); }
     };
     fetchData();
@@ -623,7 +626,8 @@ const planningFormOptions = useMemo(() => ({
   Unite_demanderesse: unites,
   Charges_de_consignation: users,
   Centrale_thermique: centrales,
-}), [options, unites, users, centrales]);
+  Troncons: troncons,
+}), [options, unites, users, centrales, troncons]);
 
 /* RÉFÉRENCES FILTRÉES PAR ENTITÉ MÉTIER COURANTE — utilisées dans le modal d'ajout
    pour n'afficher que les références du service en cours d'import. */
@@ -1365,7 +1369,13 @@ const handleAddPlanningRow = () => {
         setSubmissionProgress(progress);
       }
 
-      setSubmissionStatus(errorCount > 0 ? `Terminé avec ${errorCount} erreurs` : "Terminé !");
+      if (successCount === totalToSubmit && totalToSubmit > 0) {
+        setSubmissionStatus("Transmission au responsable...");
+        await transmettrePlanningAuResponsable(planningId);
+        setSubmissionStatus("Terminé !");
+      } else {
+        setSubmissionStatus(`Terminé avec ${errorCount} erreurs`);
+      }
       
       setTimeout(() => {
         setIsSubmissionModalOpen(false);
@@ -1514,14 +1524,6 @@ const handleAddPlanningRow = () => {
             </div>
 
           </div>
-
-          {/* Barre de validation Gestionnaire (CREER -> EN_ATTENTE) */}
-          {id && (
-            <PlanningValidationBar
-              planningId={id}
-              currentStepCode={planningDetail?.current_step?.code}
-            />
-          )}
 
           {/* FILTRES AVANCÉS */}
           <Filter

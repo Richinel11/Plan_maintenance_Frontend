@@ -161,8 +161,9 @@ const Historique = ({ ddrOnly = false, naptOnly = false, naptStatut = null, ddrS
   const handleRowClick = (item) => {
     if (onRowClick) { onRowClick(item); return; }
     if (item.type === 'DDR') {
-      // DDR en attente → DDRDetailPage (éditable) ; autres statuts → consultation (lecture seule)
-      if (item.statut === 'EN_ATTENTE') {
+      // DDR en attente ou refusée par le CCR → DDRDetailPage (éditable, pour
+      // compléter ou corriger) ; autres statuts → consultation (lecture seule)
+      if (item.statut === 'EN_ATTENTE' || item.statut === 'REFUSE') {
         navigate(`/dashboard/ddr/${item.id}`);
       } else {
         navigate(`/dashboard/consultation/ddr/${item.id}`);

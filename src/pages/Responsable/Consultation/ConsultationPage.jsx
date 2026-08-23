@@ -12,6 +12,13 @@ const fmtDate = (iso) => {
   return new Date(iso).toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' });
 };
 
+const fmtTaille = (octets) => {
+  if (!octets) return '';
+  if (octets < 1024) return `${octets} o`;
+  if (octets < 1024 * 1024) return `${Math.round(octets / 1024)} Ko`;
+  return `${(octets / (1024 * 1024)).toFixed(1)} Mo`;
+};
+
 const statusMeta = {
   EN_ATTENTE: { label: 'En attente',  color: 'orange' },
   AUTORISE:   { label: 'Autorisé',    color: 'green'  },
@@ -102,6 +109,14 @@ const ConsultationPage = ({ type = 'DDR' }) => {
           )}
         </div>
 
+        {/* Motif — renseigné lors d'un refus ou d'un report */}
+        {data.motif_refus && (
+          <div className="cp-block">
+            <div className="cp-block-label">MOTIF DE LA DÉCISION</div>
+            <p className="cp-motif">{data.motif_refus}</p>
+          </div>
+        )}
+
         {/* Métadonnées */}
         <div className="cp-block">
           <div className="cp-block-label">MÉTADONNÉES</div>
@@ -147,10 +162,22 @@ const ConsultationPage = ({ type = 'DDR' }) => {
             <p className="cp-doc-empty">Aucun planning associé</p>
           )}
 
-          {/* Placeholder — futurs documents uploadés */}
-          <p className="cp-doc-hint">
-            Les documents justificatifs uploadés apparaîtront ici.
-          </p>
+          {/* Documents justificatifs joints à la DDR */}
+          {data.pieces_jointes?.length > 0 ? (
+            <ul className="cp-pj-list">
+              {data.pieces_jointes.map(p => (
+                <li key={p.id} className="cp-pj-item">
+                  <span className="material-symbols-outlined cp-pj-icon">attach_file</span>
+                  <a href={p.url} target="_blank" rel="noopener noreferrer" className="cp-pj-link">
+                    {p.nom_original}
+                  </a>
+                  <span className="cp-pj-taille">{fmtTaille(p.taille)}</span>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="cp-doc-hint">Aucun document justificatif joint.</p>
+          )}
         </div>
 
       </aside>

@@ -5,8 +5,11 @@ import { getCurrentUser } from "../../../services/Authservice";
 import PlanningTable from "../../../components/shared/PlanningTable/PlanningTable";
 import "./Notifications.css";
 
-const notifications = [];
-
+/**
+ * Page « Plannings » du responsable d'exploitation.
+ * Liste seule : les alertes (plannings reçus, DDR refusées, NAPT reçues)
+ * sont regroupées sur la page d'accueil.
+ */
 export default function Notifications() {
   const navigate = useNavigate();
   const [plannings, setPlannings] = useState([]);
@@ -21,20 +24,7 @@ export default function Notifications() {
         setLoading(true);
         const data = await getPlannings(1);
         const results = data.results || data;
-        const all = Array.isArray(results) ? results : [];
-
-        // Le responsable ne voit que les plannings VALIDÉS par le gestionnaire,
-        // c'est-à-dire ceux qui ont quitté l'étape CREER (EN_ATTENTE et au-delà).
-        const valides = all.filter(
-          p => p.current_step && p.current_step.code !== 'CREER'
-        );
-
-        // Puis filtrer par entité métier de l'utilisateur connecté
-        const filtered = userEntiteId
-          ? valides.filter(p => p.entite_metier?.id === userEntiteId)
-          : valides;
-
-        setPlannings(filtered);
+        setPlannings(Array.isArray(results) ? results : []);
       } catch (error) {
         console.error("Erreur plannings:", error);
       } finally {
@@ -51,37 +41,11 @@ export default function Notifications() {
 
   return (
     <div className="notifications-wrapper">
-
-      {/* Notifications récentes */}
-      <div className="notif-card">
-        <div className="notif-header">
-          <div className="notif-title">📢 Alertes et Notifications</div>
-          <button className="mark-read-btn">Tout marquer comme lu</button>
-        </div>
-        <div className="notif-list">
-          {notifications.map((n, i) => (
-            <div key={i} className={`notif-item ${n.cls}`}>
-              <span className="notif-icon">{n.icon}</span>
-              <div className="notif-body">
-                <div className="notif-name">{n.title}</div>
-                <div className="notif-desc">{n.desc}</div>
-              </div>
-              <span className="notif-time">{n.time}</span>
-            </div>
-          ))}
-        </div>
-        <div className="see-all">
-          <button>Voir tout l'historique</button>
-        </div>
-      </div>
-
-      {/* Plannings de l'entité */}
       <PlanningTable
         plannings={plannings}
         loading={loading}
         onRowClick={handlePlanningClick}
       />
-
     </div>
   );
 }

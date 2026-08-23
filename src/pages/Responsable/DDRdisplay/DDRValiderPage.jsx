@@ -7,8 +7,9 @@ const DDRValiderPage = () => {
   const { ddrId } = useParams();
   const navigate  = useNavigate();
 
-  const handleSoumettre = async ({ files }) => {
-    // TODO : appeler l'endpoint d'upload de documents quand il sera disponible
+  // La DDR a déjà été enregistrée et passée à COMPLETEE par DDRDetailPage :
+  // cet écran est une confirmation, sans import de documents.
+  const handleSoumettre = async () => {
     toast.success('DDR soumise avec succès.');
     navigate('/dashboard/Notifications');
   };

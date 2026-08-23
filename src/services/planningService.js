@@ -78,6 +78,10 @@ export const updatePlanning = (id, data) => {
   return api.patch(`/plannings/${id}/`, data);
 };
 
+export const transmettrePlanningAuResponsable = (id) => {
+  return api.post(`/plannings/${id}/transmettre-au-responsable/`);
+};
+
 /* ============================================================
    TRAVAUX
    ============================================================ */
@@ -177,6 +181,21 @@ export const getCentrales = async () => {
     console.warn("Centrales endpoint not available:", err?.response?.status);
     return [];
   }
+};
+
+export const createCentrale = async ({ valeur }) => {
+  const response = await api.post("/centrales/", { valeur });
+  return response.data;
+};
+
+export const updateCentrale = async (id, { valeur }) => {
+  const response = await api.patch(`/centrales/${id}/`, { valeur });
+  return response.data;
+};
+
+export const deleteCentrale = async (id) => {
+  const response = await api.delete(`/centrales/${id}/`);
+  return response.data;
 };
 
 /**

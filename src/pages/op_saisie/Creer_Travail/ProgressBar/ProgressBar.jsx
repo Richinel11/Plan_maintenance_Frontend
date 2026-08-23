@@ -18,6 +18,7 @@ import {
   getTypesActivite,
   getChargesConsignation,
   getUnites,
+  getTroncons,
 } from "../../../../services/referencetielService";
 
 import { mapPlanningPayload } from "../../../../utils/planningMapper";
@@ -43,12 +44,13 @@ export default function MultiStepForm() {
   /* ---------------- STATES RÉFÉRENTIEL ---------------- */
   const [references, setReferences] = useState([]);
   const [typesActivite, setTypesActivite] = useState([]);
-  // ouvrages/postes/departs/troncons: ces données sont désormais
-  // auto-remplies depuis les items de la Référence (plus d'endpoints dédiés)
+  // ouvrages/postes/departs: ces données sont auto-remplies depuis les items
+  // de la Référence (plus d'endpoints dédiés). Troncons est une liste
+  // totalement indépendante, chargée depuis son propre endpoint `troncons/`.
   const [ouvrages] = useState([]);
   const [postes] = useState([]);
   const [departs] = useState([]);
-  const [troncons] = useState([]);
+  const [troncons, setTroncons] = useState([]);
   const [segments, setSegments] = useState([]);
   const [chargesConsignation, setChargesConsignation] = useState([]);
   const [unitesDemanderesse, setUnitesDemanderesse] = useState([]);
@@ -138,6 +140,7 @@ export default function MultiStepForm() {
           chargesData,
           unitesData,
           centralesData,
+          tronconsData,
         ] = await Promise.all([
           getReferences(entitemetier_id),
           getTypesActivite(),
@@ -145,6 +148,7 @@ export default function MultiStepForm() {
           getChargesConsignation(entitemetier_id),
           getUnites(entitemetier_id),
           getCentrales(),
+          getTroncons(),
         ]);
 
         setReferences(referencesData?.results || referencesData || []);
@@ -161,6 +165,7 @@ export default function MultiStepForm() {
         setChargesConsignation(chargesData?.results || chargesData?.data || chargesData || []);
         setUnitesDemanderesse(unitesData?.results || unitesData || []);
         setCentrales(centralesData?.results || centralesData || []);
+        setTroncons(tronconsData?.results || tronconsData || []);
       } catch (error) {
         console.error("Erreur chargement référentiel :", error);
       }
