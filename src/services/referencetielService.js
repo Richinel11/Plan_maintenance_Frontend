@@ -1,14 +1,15 @@
 import api from "../API/axiosInstance";
 
 /* REFERENCES */
-// N'ajoute le filtre entite_metier_id QUE si la valeur est définie et non nulle.
-// Sans cette garde, un entiteMetierId=undefined produisait la chaîne littérale
+// N'ajoute les filtres entite_metier_id / region_id QUE s'ils sont définis et non nuls.
+// Sans cette garde, une valeur undefined produirait la chaîne littérale
 // "undefined" dans l'URL → ValidationError Django côté backend.
-export const getReferences = async (entiteMetierId) => {
-  const url = entiteMetierId
-    ? `references/?entite_metier_id=${entiteMetierId}`
-    : `references/`;
-  const response = await api.get(url);
+export const getReferences = async (entiteMetierId, regionId) => {
+  const params = new URLSearchParams();
+  if (entiteMetierId) params.append('entite_metier_id', entiteMetierId);
+  if (regionId) params.append('region_id', regionId);
+  const query = params.toString();
+  const response = await api.get(query ? `references/?${query}` : `references/`);
   return response.data;
 };
 
