@@ -158,12 +158,16 @@ function PropCard({ p, actionLoading, onAppliquer, onRefuser, onModifier, onReaj
                             <span className="ag-blocage-title">
                                 {isChargeConfl
                                     ? 'Conflit — Chargé de consignation indisponible'
-                                    : 'Travail non déplaçable (Transport ou P1)'}
+                                    : p.travail_a_modifier_verrouille
+                                        ? 'Alignement fixé manuellement'
+                                        : 'Travail non déplaçable (Transport ou P1)'}
                             </span>
                             <p className="ag-blocage-detail">
                                 {isChargeConfl
                                     ? (p.detail_conflit || 'Le chargé de consignation est déjà affecté à ce créneau.')
-                                    : 'Ce travail ne peut pas être rééchelonné automatiquement. Un réajustement manuel est nécessaire.'}
+                                    : p.travail_a_modifier_verrouille
+                                        ? 'Un gestionnaire a fixé cet alignement comme définitif : le système ne le déplacera plus.'
+                                        : 'Ce travail ne peut pas être rééchelonné automatiquement. Un réajustement manuel est nécessaire.'}
                             </p>
                         </div>
                     </div>
@@ -386,8 +390,8 @@ export default function AdvancedGantt() {
                                 </td>
                                 <td><strong>{t.reference}</strong></td>
                                 <td>{t.planning_nom}</td>
-                                <td>{t.debut}</td>
-                                <td>{t.fin}</td>
+                                <td>{fmt(t.debut)}</td>
+                                <td>{fmt(t.fin)}</td>
                                 <td>{t.peut_bouger ? '✅ Oui' : '🔒 Non'}</td>
                             </tr>
                         ))}

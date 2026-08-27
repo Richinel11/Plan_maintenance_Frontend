@@ -148,6 +148,22 @@ export const fetchConflitIds = async () => {
  * @param {Array} chevauchements
  * @returns {Array}
  */
+/**
+ * Formate une date ISO en texte lisible "JJ/MM/AAAA HH:mm", pour l'affichage
+ * uniquement. Ne jamais utiliser la valeur retournée pour un calcul — passer
+ * la date ISO d'origine à `new Date(...)` pour ça.
+ *
+ * @param {string} iso
+ * @returns {string}
+ */
+export function formatDateTimeCourt(iso) {
+    if (!iso) return '';
+    const d = new Date(iso);
+    if (isNaN(d.getTime())) return iso;
+    const p = (n) => String(n).padStart(2, '0');
+    return `${p(d.getDate())}/${p(d.getMonth() + 1)}/${d.getFullYear()} ${p(d.getHours())}:${p(d.getMinutes())}`;
+}
+
 export function buildGroupesDepuisChevauchements(chevauchements) {
     return (chevauchements || []).map(chev => {
         const ref = chev.reference;
@@ -156,7 +172,7 @@ export function buildGroupesDepuisChevauchements(chevauchements) {
             type:                'CONFLIT',
             statut:              'OUVERT',
             ressources_communes: [ref.ressource],
-            chevauchement:       `${ref.debut} → ${ref.fin}`,
+            chevauchement:       `${formatDateTimeCourt(ref.debut)} → ${formatDateTimeCourt(ref.fin)}`,
             nb_travaux:          1 + chev.travaux_en_conflit.length,
             travaux: [
                 {
