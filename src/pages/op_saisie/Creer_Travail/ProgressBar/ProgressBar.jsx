@@ -31,7 +31,7 @@ import {
   getCentrales,
 } from "../../../../services/planningService";
 
-import { getEntites } from "../../../../services/userService";
+import { getEntites, getRegions } from "../../../../services/userService";
 
 export default function MultiStepForm() {
   const navigate = useNavigate();
@@ -57,6 +57,9 @@ export default function MultiStepForm() {
   const [centrales, setCentrales] = useState([]);
   /* Options dynamiques chargées selon le service choisi */
   const [serviceOptions, setServiceOptions] = useState({});
+  /* Régions (chargées à l'ouverture de la page, indépendamment du service) */
+  const [regions, setRegions] = useState([]);
+  const [regionId, setRegionId] = useState("");
 
   const {
     service,
@@ -116,7 +119,21 @@ export default function MultiStepForm() {
     Jour_avant_travaux: null,
   });
 
-  /* ---------------- LOAD RÉFÉRENTIEL AU CHANGEMENT DE SERVICE ---------------- */
+  /* ---------------- LOAD RÉGIONS À L'OUVERTURE DE LA PAGE ---------------- */
+  useEffect(() => {
+    const fetchRegions = async () => {
+      try {
+        const data = await getRegions();
+        setRegions(data?.results || data || []);
+      } catch (error) {
+        console.error("Erreur chargement des régions :", error);
+        setRegions([]);
+      }
+    };
+    fetchRegions();
+  }, []);
+
+  /* ---------------- LOAD RÉFÉRENTIEL AU CHANGEMENT DE SERVICE OU DE RÉGION ---------------- */
   useEffect(() => {
     if (!service) return;
 
@@ -132,7 +149,7 @@ export default function MultiStepForm() {
           });
           return ent ? ent.id : null;
         });
-        console.log("Entité métier ID pour le service", service, ":", entitemetier_id);
+        console.log("Entité métier ID pour le service", service, ":", entitemetier_id, "| Région :", regionId);
         const [
           referencesData,
           typesData,
@@ -142,7 +159,7 @@ export default function MultiStepForm() {
           centralesData,
           tronconsData,
         ] = await Promise.all([
-          getReferences(entitemetier_id),
+          getReferences(entitemetier_id, regionId || null),
           getTypesActivite(),
           getPlannings(),
           getChargesConsignation(entitemetier_id),
@@ -184,7 +201,7 @@ export default function MultiStepForm() {
     };
 
     fetchReferentielData();
-  }, [service]);
+  }, [service, regionId]);
 
   /* ---------------- SYNC SERVICE → FORM DATA ---------------- */
   useEffect(() => {
@@ -373,6 +390,40 @@ export default function MultiStepForm() {
                 <option value="transport">Transport</option>
                 <option value="distribution">Distribution</option>
                 <option value="production">Production</option>
+              </select>
+              <svg className="chevron" viewBox="0 0 20 20" fill="currentColor" width="16" height="16">
+                <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
+              </svg>
+            </div>
+          </div>
+
+          {/* ── Sélection de la région ── */}
+          <div className="associate-card">
+            <div className="associate-card-label">
+              <svg viewBox="0 0 20 20" fill="currentColor" width="16" height="16">
+                <path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
+              </svg>
+              Région
+            </div>
+            <div className="associate-select-wrapper">
+              <select
+                value={regionId}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  setRegionId(val);
+                  setFormData(prev => ({
+                    ...prev,
+                    Reference: "", reference_id: null,
+                    segment_id: null, ouvrage_id: null, poste_id: null, depart_id: null, troncon_id: null,
+                    Segments: "", Ouvrages: "", Poste: "", Departs: "", Troncons: "",
+                  }));
+                  setErrors((prev) => { const e2 = { ...prev }; delete e2.Reference; return e2; });
+                }}
+              >
+                <option value="">-- Toutes les régions --</option>
+                {regions.map((r) => (
+                  <option key={r.id} value={r.id}>{r.code}</option>
+                ))}
               </select>
               <svg className="chevron" viewBox="0 0 20 20" fill="currentColor" width="16" height="16">
                 <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { analyserMois, buildGroupesDepuisChevauchements } from '../../../services/gplanService';
+import { analyserMois, buildGroupesDepuisChevauchements, formatDateTimeCourt } from '../../../services/gplanService';
 import './AlertesView.css';
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -218,7 +218,7 @@ const AlertesView = () => {
                                                 </span>
                                                 <span className="al-travail-planning">{t.planning_nom}</span>
                                                 <span className="al-travail-dates">
-                                                    {t.debut} → {t.fin}
+                                                    {formatDateTimeCourt(t.debut)} → {formatDateTimeCourt(t.fin)}
                                                 </span>
                                             </div>
                                         );
