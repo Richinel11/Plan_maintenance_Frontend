@@ -1,6 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getDDRList, getNAPTList } from '../../../services/exploitationService';
+import {
+  getDDRList, getNAPTList,
+  mesNotifications, marquerLue, marquerToutesLues,
+} from '../../../services/exploitationService';
 import './CcrAccueil.css';
 
 const timeAgo = (iso) => {
@@ -12,46 +15,85 @@ const timeAgo = (iso) => {
   return `Il y a ${Math.floor(h / 24)} jour${Math.floor(h / 24) > 1 ? 's' : ''}`;
 };
 
-const buildAlerts = (ddrs) =>
-  ddrs.slice(0, 6).map(ddr => {
-    if (ddr.statut === 'REFUSE') {
-      return {
-        id: ddr.id,
-        title: 'DDR Refusée',
-        desc: `La demande [${ddr.reference}] a été refusée.${ddr.motif_refus ? ' Motif : ' + ddr.motif_refus : ''}`,
-        time: ddr.date_decision,
-      };
-    }
-    return {
-      id: ddr.id,
-      title: 'DDR reçue',
-      desc: `La DDR [${ddr.reference}] est en attente de traitement.`,
-      time: ddr.date_emission,
-    };
-  });
+/**
+ * Alertes qui concernent le CCR. Les autres types (NAPT, planning) visent le
+ * responsable ou la communication : un utilisateur cumulant plusieurs rôles ne
+ * doit pas les voir remonter ici.
+ *
+ * `resoutAuClic` — voir le même mécanisme dans l'accueil responsable :
+ *   false : l'alerte est une tâche, elle reste tant que le travail n'est pas
+ *           fait. C'est `decider_ddr` qui la clot, une fois la décision prise.
+ *   true  : l'alerte est une information, la lire suffit à la clore.
+ */
+const ALERTES = {
+  DDR_SOUMISE: { icon: 'description', resoutAuClic: false },
+};
+
+// Une DDR soumise s'ouvre sur la page de traitement : c'est là que le CCR
+// valide ou refuse, donc là que l'alerte trouve sa réponse.
+const routeObjet = (notif) => {
+  if (!notif.objet_id) return null;
+  if (notif.objet_type === 'DDR') return `/dashboard/ccr/ddr/${notif.objet_id}`;
+  return null;
+};
 
 const CcrAccueil = () => {
   const navigate = useNavigate();
-  const [ddrs, setDdrs]       = useState([]);
-  const [napts, setNapts]     = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [ddrs, setDdrs]                   = useState([]);
+  const [napts, setNapts]                 = useState([]);
+  const [notifications, setNotifications] = useState([]);
+  const [loading, setLoading]             = useState(true);
 
   useEffect(() => {
-    Promise.all([getDDRList(), getNAPTList()])
-      .then(([ddrRes, naptRes]) => {
+    // Les DDR/NAPT alimentent les compteurs ; les alertes viennent désormais des
+    // vraies notifications, pas d'une reconstruction à partir des statuts.
+    Promise.all([getDDRList(), getNAPTList(), mesNotifications()])
+      .then(([ddrRes, naptRes, notifRes]) => {
         const all = Array.isArray(ddrRes.data) ? ddrRes.data : [];
         setDdrs(all.filter(d => d.statut !== 'EN_ATTENTE'));
         setNapts(Array.isArray(naptRes.data) ? naptRes.data : []);
+        setNotifications(notifRes.data?.notifications || []);
       })
       .catch(() => {})
       .finally(() => setLoading(false));
   }, []);
 
+  const alerts = useMemo(
+    () => notifications.filter(n => ALERTES[n.type_alerte] && !n.lue),
+    [notifications]
+  );
+
+  const handleMarkAllRead = async () => {
+    try {
+      await marquerToutesLues();
+      setNotifications(current => current.map(n => ({ ...n, lue: true })));
+    } catch (error) {
+      console.error('Erreur de mise à jour des notifications:', error);
+    }
+  };
+
+  const handleAlertClick = async (notif) => {
+    const route = routeObjet(notif);
+    if (!route) return;
+
+    if (ALERTES[notif.type_alerte]?.resoutAuClic) {
+      setNotifications(current =>
+        current.map(n => (n.id === notif.id ? { ...n, lue: true } : n))
+      );
+      try {
+        await marquerLue(notif.id);
+      } catch (error) {
+        console.error('Erreur marquage notification:', error);
+      }
+    }
+
+    navigate(route);
+  };
+
   const totalDDR     = ddrs.length;
   const enCours      = ddrs.filter(d => d.statut === 'COMPLETEE').length;
   const tauxValid    = ddrs.filter(d => d.statut === 'AUTORISE').length;
   const naptPrets    = napts.filter(n => n.statut === 'GENEREE').length;
-  const alerts       = buildAlerts(ddrs);
 
   return (
     <div className="ccr-accueil">
@@ -89,7 +131,9 @@ const CcrAccueil = () => {
             <span className="material-symbols-outlined ccr-notif-icon">campaign</span>
             Alertes et Notifications
           </span>
-          <button className="ccr-mark-read-btn">Tout marquer comme lu</button>
+          <button className="ccr-mark-read-btn" onClick={handleMarkAllRead}>
+            Tout marquer comme lu
+          </button>
         </div>
 
         <div className="ccr-notif-list">
@@ -98,18 +142,27 @@ const CcrAccueil = () => {
           ) : alerts.length === 0 ? (
             <div className="ccr-notif-empty">Aucune alerte pour le moment.</div>
           ) : (
-            alerts.map(alert => (
-              <div key={alert.id} className="ccr-notif-item">
-                <div className="ccr-notif-item-icon">
-                  <span className="material-symbols-outlined">warning</span>
+            alerts.map(notif => {
+              const meta      = ALERTES[notif.type_alerte];
+              const clickable = routeObjet(notif) !== null;
+              return (
+                <div
+                  key={notif.id}
+                  className={`ccr-notif-item${clickable ? ' ccr-notif-item--clickable' : ''}`}
+                  onClick={() => handleAlertClick(notif)}
+                  title={clickable ? 'Cliquez pour traiter la DDR' : undefined}
+                >
+                  <div className="ccr-notif-item-icon">
+                    <span className="material-symbols-outlined">{meta.icon}</span>
+                  </div>
+                  <div className="ccr-notif-item-body">
+                    <div className="ccr-notif-item-title">{notif.titre}</div>
+                    <div className="ccr-notif-item-desc">{notif.message}</div>
+                  </div>
+                  <div className="ccr-notif-item-time">{timeAgo(notif.created_at)}</div>
                 </div>
-                <div className="ccr-notif-item-body">
-                  <div className="ccr-notif-item-title">{alert.title}</div>
-                  <div className="ccr-notif-item-desc">{alert.desc}</div>
-                </div>
-                <div className="ccr-notif-item-time">{timeAgo(alert.time)}</div>
-              </div>
-            ))
+              );
+            })
           )}
         </div>
 

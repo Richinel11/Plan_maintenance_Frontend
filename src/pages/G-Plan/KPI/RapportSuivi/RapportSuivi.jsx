@@ -1,7 +1,9 @@
 import React, { useCallback, useEffect, useState } from 'react';
+import { toast } from 'sonner';
 import { RapportSuiviService } from '../../../../services/RapportSuiviService';
 import { s } from './components/styles';
-import { MOIS_LIBELLES, dateDuJour } from './components/format';
+import { MOIS_LIBELLES, libelleMoisAnnee } from './components/format';
+import { exporterRapportExcel } from './components/exportExcel';
 import Tuiles from './components/Tuiles';
 import {
   TableauMatrice,
@@ -59,13 +61,27 @@ export default function RapportSuivi() {
 
   const imprimer = () => window.print();
 
+  const exporterExcel = () => {
+    try {
+      exporterRapportExcel(rapport, annee, mois);
+      toast.success('Rapport exporté en Excel.');
+    } catch (err) {
+      console.error("Erreur lors de l'export Excel du rapport", err);
+      toast.error("Échec de l'export Excel.");
+    }
+  };
+
   const periode = rapport?.periode;
 
   return (
-    <div style={s.page}>
+    <div className="rs-page" style={s.page}>
       <div style={s.bandeau}>
         <h1 style={s.bandeauTitre}>Rapport suivi des travaux prévisionnels</h1>
-        <span style={s.bandeauDate}>Données au {dateDuJour()}</span>
+        {/* Suit le sélecteur, pas la date du jour : le bandeau annonce la
+            période affichée par le rapport. Basé sur l'état local plutôt que
+            sur `periode` renvoyé par l'API, pour changer dès la sélection sans
+            attendre la réponse. */}
+        <span style={s.bandeauDate}>Données de {libelleMoisAnnee(annee, mois)}</span>
       </div>
 
       <div style={s.toolbar} className="no-print">
@@ -96,6 +112,13 @@ export default function RapportSuivi() {
 
         <button style={s.bouton} onClick={charger} disabled={chargement}>
           {chargement ? 'Chargement…' : 'Actualiser'}
+        </button>
+        <button
+          style={{ ...s.bouton, background: '#1D9E75' }}
+          onClick={exporterExcel}
+          disabled={chargement || !rapport}
+        >
+          Exporter Excel
         </button>
         <button
           style={{ ...s.bouton, background: '#475569' }}
@@ -141,12 +164,57 @@ export default function RapportSuivi() {
         </div>
       )}
 
+      {/* Styles d'impression.
+          Le rapport vit dans DashboardLayout, dont la structure empêche une
+          impression correcte : `.dashboard-layout` est en `height:100vh;
+          overflow:hidden` et `.content` est un conteneur défilant. Sans les
+          règles ci-dessous, le navigateur n'imprime que la partie visible à
+          l'écran, sidebar et topbar comprises. On neutralise donc ces
+          contraintes le temps de l'impression. */}
       <style>{`
         @media print {
-          .no-print { display: none !important; }
-          body { background: #fff !important; }
-          table { page-break-inside: auto; }
-          tr { page-break-inside: avoid; }
+          @page { size: A4 landscape; margin: 8mm; }
+
+          .no-print,
+          .sidebar,
+          .topbar { display: none !important; }
+
+          html, body {
+            height: auto !important;
+            overflow: visible !important;
+            background: #fff !important;
+          }
+
+          .dashboard-layout,
+          .main-area,
+          .content {
+            display: block !important;
+            height: auto !important;
+            max-height: none !important;
+            width: auto !important;
+            overflow: visible !important;
+            padding: 0 !important;
+            margin: 0 !important;
+            background: #fff !important;
+          }
+
+          .rs-page { min-height: 0 !important; background: #fff !important; }
+
+          /* Sans ça, les tableaux larges (région x mois) sont rognés au lieu
+             de s'imprimer en entier. */
+          .rs-scroll { overflow: visible !important; }
+
+          .rs-bloc,
+          tr { break-inside: avoid; page-break-inside: avoid; }
+
+          /* Répète l'en-tête du tableau quand il s'étale sur plusieurs pages. */
+          thead { display: table-header-group; }
+
+          /* Conserve les aplats de couleur (bandeaux, tuiles) à l'impression. */
+          * {
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+          }
         }
       `}</style>
     </div>

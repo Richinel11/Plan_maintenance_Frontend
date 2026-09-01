@@ -1,21 +1,16 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import DDRView from '../../../components/shared/DDRView/DDRView';
+import DDRContextAside from '../../../components/shared/DDRContextAside/DDRContextAside';
 import {
   getDDR, completerDDR,
   ajouterChantierDDR, modifierChantierDDR, supprimerChantierDDR,
   ajouterRoleDDR, modifierRoleDDR, supprimerRoleDDR,
 } from '../../../services/exploitationService';
+import '../Consultation/ConsultationPage.css';
 import './DDRDetailPage.css';
 
 const isNew = (id) => String(id).startsWith('new_');
-
-const fmtTaille = (octets) => {
-  if (!octets) return '';
-  if (octets < 1024) return `${octets} o`;
-  if (octets < 1024 * 1024) return `${Math.round(octets / 1024)} Ko`;
-  return `${(octets / (1024 * 1024)).toFixed(1)} Mo`;
-};
 
 const anneeValide = (isoStr) => {
   if (!isoStr) return true;
@@ -175,83 +170,71 @@ const DDRDetailPage = () => {
   };
 
   return (
-    <div className="ddr-page">
+    <div className="cp-layout">
 
-      {/* Bandeau visible uniquement tant que la DDR est refusée */}
-      {estRefusee && (
-        <div className="ddr-refus-banner no-print">
-          <div className="ddr-refus-head">
-            <span className="ddr-refus-badge">Refusée par le CCR</span>
-            {ddr.decide_par_nom && (
-              <span className="ddr-refus-meta">par {ddr.decide_par_nom}</span>
-            )}
+      {/* Le contexte (statut, motif du refus, pièces jointes, métadonnées,
+          planning lié) vit dans l'aside sticky : il reste sous les yeux pendant
+          que le responsable fait défiler un formulaire long pour le corriger. */}
+      <DDRContextAside
+        ddr={ddr}
+        titre={estRefusee ? 'CORRECTION DDR' : 'DDR'}
+        retourLabel="Retour"
+        onRetour={handleRetour}
+      />
+
+      <main className="cp-main">
+
+        {/* La consigne accompagne le formulaire ; l'information, elle, est dans
+            l'aside — on ne répète pas le motif à deux endroits. */}
+        {estRefusee && !isReadOnly && (
+          <div className="ddr-consigne no-print">
+            <span className="material-symbols-outlined">edit_note</span>
+            Corrigez les informations ci-dessous, puis resoumettez la DDR au CCR.
           </div>
+        )}
 
-          <div className="ddr-refus-label">Motif du refus</div>
-          <p className="ddr-refus-motif">{ddr.motif_refus || '—'}</p>
+        <div className="cp-print-zone">
+          <DDRView ref={ddrRef} ddrId={ddrId} readOnly={isReadOnly} />
+        </div>
 
-          {ddr.pieces_jointes?.length > 0 && (
+        {saveError && (
+          <div className="ddr-save-error no-print">{saveError}</div>
+        )}
+
+        <div className="ddr-footer no-print">
+
+          {isReadOnly ? (
             <>
-              <div className="ddr-refus-label">Documents justificatifs</div>
-              <ul className="ddr-refus-files">
-                {ddr.pieces_jointes.map(p => (
-                  <li key={p.id}>
-                    <a href={p.url} target="_blank" rel="noopener noreferrer">
-                      {p.nom_original}
-                    </a>
-                    <span className="ddr-refus-taille">{fmtTaille(p.taille)}</span>
-                  </li>
-                ))}
-              </ul>
+              <button className="ddr-btn-annuler" onClick={handleRetour}>
+                ← Retour
+              </button>
+              <div className="ddr-footer-right">
+                <button className="ddr-btn-annuler" onClick={handleImprimer}>
+                  🖨 Imprimer
+                </button>
+                <button className="ddr-btn-annuler" onClick={handleImprimer}>
+                  ⬇ Exporter
+                </button>
+              </div>
+            </>
+          ) : (
+            <>
+              <button className="ddr-btn-annuler" onClick={handleRetour} disabled={saving}>
+                Annuler
+              </button>
+              <div className="ddr-footer-right">
+                <button className="ddr-btn-valider" onClick={handleValider} disabled={saving}>
+                  {saving
+                    ? 'Enregistrement...'
+                    : estRefusee ? 'Corriger et resoumettre' : 'Valider'}
+                </button>
+              </div>
             </>
           )}
 
-          <p className="ddr-refus-hint">
-            Corrigez les informations ci-dessous puis resoumettez la DDR au CCR.
-          </p>
         </div>
-      )}
 
-      <div className="ddr-page-body">
-        <DDRView ref={ddrRef} ddrId={ddrId} readOnly={isReadOnly} />
-      </div>
-
-      {saveError && (
-        <div className="ddr-save-error no-print">{saveError}</div>
-      )}
-
-      <div className="ddr-footer no-print">
-
-        {isReadOnly ? (
-          <>
-            <button className="ddr-btn-annuler" onClick={handleRetour}>
-              ← Retour
-            </button>
-            <div className="ddr-footer-right">
-              <button className="ddr-btn-annuler" onClick={handleImprimer}>
-                🖨 Imprimer
-              </button>
-              <button className="ddr-btn-annuler" onClick={handleImprimer}>
-                ⬇ Exporter
-              </button>
-            </div>
-          </>
-        ) : (
-          <>
-            <button className="ddr-btn-annuler" onClick={handleRetour} disabled={saving}>
-              Annuler
-            </button>
-            <div className="ddr-footer-right">
-              <button className="ddr-btn-valider" onClick={handleValider} disabled={saving}>
-                {saving
-                  ? 'Enregistrement...'
-                  : estRefusee ? 'Corriger et resoumettre' : 'Valider'}
-              </button>
-            </div>
-          </>
-        )}
-
-      </div>
+      </main>
 
     </div>
   );

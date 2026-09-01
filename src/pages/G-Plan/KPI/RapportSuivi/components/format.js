@@ -31,6 +31,9 @@ export const MOIS_LIBELLES = [
 export const libelleMois = (annee, mois) =>
   !annee || !mois ? '' : `Mois de ${MOIS_LIBELLES[mois - 1]} ${annee}`;
 
-/** Date du jour au format long, pour le bandeau « Données au ... ». */
-export const dateDuJour = () =>
-  new Date().toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
+/** (2026, 9) -> "Septembre 2026". Utilisé par le bandeau « Données de ... ». */
+export const libelleMoisAnnee = (annee, mois) => {
+  if (!annee || !mois) return '';
+  const nom = MOIS_LIBELLES[mois - 1];
+  return `${nom.charAt(0).toUpperCase()}${nom.slice(1)} ${annee}`;
+};

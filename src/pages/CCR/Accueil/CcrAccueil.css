@@ -192,3 +192,8 @@
 }
 
 .ccr-voir-historique-btn:hover { color: #374151; }
+
+/* Une alerte n'est cliquable que si elle porte un objet metier a ouvrir :
+   les notifications anterieures a la migration 0013 n'en ont pas. */
+.ccr-notif-item--clickable { cursor: pointer; transition: background 0.15s; }
+.ccr-notif-item--clickable:hover { background: #f8fafc; }

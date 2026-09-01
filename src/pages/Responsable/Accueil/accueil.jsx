@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { getPlannings } from "../../../services/planningService";
-import { mesNotifications, marquerToutesLues } from "../../../services/exploitationService";
+import { mesNotifications, marquerLue, marquerToutesLues } from "../../../services/exploitationService";
 import "./accueil.css";
 
 /**
@@ -9,10 +9,17 @@ import "./accueil.css";
  * plannings reçus, DDR refusées par le CCR, NAPT reçues.
  * Les autres types de notification ne concernent pas cette page.
  */
+// `resoutAuClic` distingue deux natures d'alerte :
+//   false — l'alerte est une tâche. L'ouvrir ne la termine pas : elle reste
+//           visible jusqu'à ce que le travail soit fait, et c'est le backend
+//           qui la clot à ce moment-là (voir resoudre_notifications).
+//   true  — l'alerte est une information à consulter : la lire suffit à la clore.
 const ALERTES = {
-  PLANNING_TRANSMIS: { icon: "📅", cls: "blue" },
-  DDR_REFUSEE: { icon: "❌", cls: "red" },
-  NAPT_DISPONIBLE: { icon: "📄", cls: "green" },
+  // Provisoire : aucun point d'accroche backend n'existe encore pour clore une
+  // alerte de planning transmis, on la clot donc à la lecture en attendant.
+  PLANNING_TRANSMIS: { icon: "📅", cls: "blue",  resoutAuClic: true  },
+  DDR_REFUSEE:       { icon: "❌", cls: "red",   resoutAuClic: false },
+  NAPT_DISPONIBLE:   { icon: "📄", cls: "green", resoutAuClic: true  },
 };
 
 // Destination selon l'objet métier porté par la notification.
@@ -82,7 +89,7 @@ export default function Accueil() {
 
   /* ── Alertes : uniquement les 3 types qui concernent le responsable ── */
   const alertes = useMemo(
-    () => notifications.filter(n => ALERTES[n.type_alerte]),
+    () => notifications.filter(n => ALERTES[n.type_alerte] && !n.lue),
     [notifications]
   );
 
@@ -95,9 +102,24 @@ export default function Accueil() {
     }
   };
 
-  const handleAlertClick = (notif) => {
+  const handleAlertClick = async (notif) => {
     const route = routeObjet(notif);
-    if (route) navigate(route);
+    if (!route) return;
+
+    if (ALERTES[notif.type_alerte]?.resoutAuClic) {
+      // Marquage optimiste : ouvrir le document ne doit ni attendre le réseau,
+      // ni échouer parce que le marquage a échoué.
+      setNotifications(current =>
+        current.map(n => (n.id === notif.id ? { ...n, lue: true } : n))
+      );
+      try {
+        await marquerLue(notif.id);
+      } catch (error) {
+        console.error("Erreur marquage notification:", error);
+      }
+    }
+
+    navigate(route);
   };
 
   return (

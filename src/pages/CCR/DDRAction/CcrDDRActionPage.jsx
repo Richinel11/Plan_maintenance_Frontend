@@ -3,28 +3,9 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'sonner';
 import { getDDR, deciderDDR } from '../../../services/exploitationService';
 import DDRView from '../../../components/shared/DDRView/DDRView';
+import DDRContextAside from '../../../components/shared/DDRContextAside/DDRContextAside';
 import '../../Responsable/Consultation/ConsultationPage.css';
 import './CcrDDRActionPage.css';
-
-const fmtDate = (iso) => {
-  if (!iso) return '—';
-  return new Date(iso).toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' });
-};
-
-const fmtTaille = (octets) => {
-  if (!octets) return '';
-  if (octets < 1024) return `${octets} o`;
-  if (octets < 1024 * 1024) return `${Math.round(octets / 1024)} Ko`;
-  return `${(octets / (1024 * 1024)).toFixed(1)} Mo`;
-};
-
-const statusMeta = {
-  EN_ATTENTE: { label: 'En attente',  color: 'orange' },
-  COMPLETEE:  { label: 'En attente',  color: 'green'  },
-  AUTORISE:   { label: 'Autorisé',    color: 'green'  },
-  REFUSE:     { label: 'Refusé',      color: 'red'    },
-  REPORTE:    { label: 'Reporté',     color: 'orange' },
-};
 
 const CcrDDRActionPage = () => {
   const { ddrId }  = useParams();
@@ -68,129 +49,18 @@ const CcrDDRActionPage = () => {
   if (loading) return <div className="cp-loading">Chargement...</div>;
   if (!ddr)    return <div className="cp-loading cp-loading--error">DDR introuvable.</div>;
 
-  const travail  = ddr.travail;
-  const planning = travail?.planning;
-  const statut   = statusMeta[ddr.statut] || { label: ddr.statut, color: 'grey' };
+  // Seule une DDR soumise par le responsable ouvre droit à une décision.
   const isEnAttente = ddr.statut === 'COMPLETEE';
-
-  // Le motif d'un refus reste en base après correction : le CCR doit pouvoir
-  // relire ce qu'il avait lui-même reproché avant de se prononcer à nouveau.
-  const refusEnCours   = ddr.statut === 'REFUSE';
-  const refusPrecedent = isEnAttente && !!ddr.motif_refus;
-  const afficherRefus  = refusEnCours || refusPrecedent;
 
   return (
     <div className="cp-layout">
 
-      {/* ══════════ PANNEAU GAUCHE ══════════ */}
-      <aside className="cp-aside">
-
-        <button className="cp-retour" onClick={() => navigate(-1)}>
-          <span className="material-symbols-outlined">arrow_back</span>
-          Retour à la liste
-        </button>
-
-        <div className="cp-aside-title">TRAITEMENT DDR</div>
-
-        {/* Statut */}
-        <div className="cp-block">
-          <div className="cp-block-label">STATUT DU DOCUMENT</div>
-          <div className={`cp-statut cp-statut--${statut.color}`}>
-            <span className="cp-statut-dot" />
-            {statut.label}
-          </div>
-          <div className="cp-statut-date">Émis le {fmtDate(ddr.date_emission)}</div>
-          {ddr.decide_par_nom && (
-            <div className="cp-statut-date">Décidé par {ddr.decide_par_nom}</div>
-          )}
-        </div>
-
-        {/* Refus : en cours, ou trace du refus précédent sur une DDR corrigée */}
-        {afficherRefus && (
-          <div className={`ccr-refus ccr-refus--${refusEnCours ? 'actif' : 'historique'}`}>
-            <div className="ccr-refus-head">
-              <span className="material-symbols-outlined ccr-refus-icon">
-                {refusEnCours ? 'block' : 'history'}
-              </span>
-              <span className="ccr-refus-titre">
-                {refusEnCours ? 'DDR refusée' : 'Refus précédent — corrigée et resoumise'}
-              </span>
-            </div>
-
-            <div className="ccr-refus-label">Motif</div>
-            <p className="ccr-refus-motif">{ddr.motif_refus || '—'}</p>
-
-            {ddr.date_decision && (
-              <div className="ccr-refus-date">
-                Refusée le {fmtDate(ddr.date_decision)}
-                {ddr.decide_par_nom ? ` par ${ddr.decide_par_nom}` : ''}
-              </div>
-            )}
-
-            {ddr.pieces_jointes?.length > 0 && (
-              <>
-                <div className="ccr-refus-label">Documents justificatifs</div>
-                <ul className="ccr-refus-files">
-                  {ddr.pieces_jointes.map(p => (
-                    <li key={p.id}>
-                      <a href={p.url} target="_blank" rel="noopener noreferrer">
-                        <span className="material-symbols-outlined">attach_file</span>
-                        {p.nom_original}
-                      </a>
-                      <span className="ccr-refus-taille">{fmtTaille(p.taille)}</span>
-                    </li>
-                  ))}
-                </ul>
-              </>
-            )}
-
-            {refusPrecedent && (
-              <p className="ccr-refus-hint">
-                Vérifiez que les corrections apportées répondent à ce motif avant de décider.
-              </p>
-            )}
-          </div>
-        )}
-
-        {/* Métadonnées */}
-        <div className="cp-block">
-          <div className="cp-block-label">MÉTADONNÉES</div>
-          <div className="cp-meta-list">
-            <div className="cp-meta-item">
-              <span className="cp-meta-key">Référence</span>
-              <span className="cp-meta-val">{ddr.reference || '—'}</span>
-            </div>
-            <div className="cp-meta-item">
-              <span className="cp-meta-key">Segment</span>
-              <span className="cp-meta-val">{travail?.segment || '—'}</span>
-            </div>
-            <div className="cp-meta-item">
-              <span className="cp-meta-key">Émis par</span>
-              <span className="cp-meta-val">{ddr.emis_par_nom || '—'}</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Planning lié */}
-        <div className="cp-block">
-          <div className="cp-block-label">PLANNING LIÉ</div>
-          {planning ? (
-            <div className="cp-doc-item">
-              <div className="cp-doc-icon">
-                <span className="material-symbols-outlined">calendar_month</span>
-              </div>
-              <div className="cp-doc-info">
-                <div className="cp-doc-name">{planning.nom || 'Planning'}</div>
-                <div className="cp-doc-sub">Code : {planning.code || '—'}</div>
-                <div className="cp-doc-sub">Créé le {fmtDate(planning.date_creation)}</div>
-              </div>
-            </div>
-          ) : (
-            <p className="cp-doc-empty">Aucun planning associé</p>
-          )}
-        </div>
-
-      </aside>
+      <DDRContextAside
+        ddr={ddr}
+        titre="TRAITEMENT DDR"
+        retourLabel="Retour à la liste"
+        onRetour={() => navigate(-1)}
+      />
 
       {/* ══════════ PANNEAU DROIT ══════════ */}
       <main className="cp-main">

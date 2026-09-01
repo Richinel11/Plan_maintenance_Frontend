@@ -4,10 +4,13 @@ import { fmtEntier, fmtDecimal, fmtPct } from './format';
 
 /** Bloc encadré avec bandeau de titre, comme dans le rapport de référence. */
 export function Bloc({ titre, children, style }) {
+  // Les classes `rs-bloc` / `rs-scroll` ne servent qu'à l'impression : elles
+  // permettent d'éviter les coupures de page au milieu d'un tableau et de
+  // désactiver le défilement horizontal, qui sinon rogne les colonnes.
   return (
-    <div style={{ ...s.bloc, ...style }}>
+    <div className="rs-bloc" style={{ ...s.bloc, ...style }}>
       <div style={s.blocTitre}>{titre}</div>
-      <div style={s.scroll}>{children}</div>
+      <div className="rs-scroll" style={s.scroll}>{children}</div>
     </div>
   );
 }
