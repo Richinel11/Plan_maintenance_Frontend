@@ -11,6 +11,13 @@ const fmtDate = (iso) => {
   return new Date(iso).toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' });
 };
 
+const fmtTaille = (octets) => {
+  if (!octets) return '';
+  if (octets < 1024) return `${octets} o`;
+  if (octets < 1024 * 1024) return `${Math.round(octets / 1024)} Ko`;
+  return `${(octets / (1024 * 1024)).toFixed(1)} Mo`;
+};
+
 const statusMeta = {
   EN_ATTENTE: { label: 'En attente',  color: 'orange' },
   COMPLETEE:  { label: 'En attente',  color: 'green'  },
@@ -66,6 +73,12 @@ const CcrDDRActionPage = () => {
   const statut   = statusMeta[ddr.statut] || { label: ddr.statut, color: 'grey' };
   const isEnAttente = ddr.statut === 'COMPLETEE';
 
+  // Le motif d'un refus reste en base après correction : le CCR doit pouvoir
+  // relire ce qu'il avait lui-même reproché avant de se prononcer à nouveau.
+  const refusEnCours   = ddr.statut === 'REFUSE';
+  const refusPrecedent = isEnAttente && !!ddr.motif_refus;
+  const afficherRefus  = refusEnCours || refusPrecedent;
+
   return (
     <div className="cp-layout">
 
@@ -91,6 +104,53 @@ const CcrDDRActionPage = () => {
             <div className="cp-statut-date">Décidé par {ddr.decide_par_nom}</div>
           )}
         </div>
+
+        {/* Refus : en cours, ou trace du refus précédent sur une DDR corrigée */}
+        {afficherRefus && (
+          <div className={`ccr-refus ccr-refus--${refusEnCours ? 'actif' : 'historique'}`}>
+            <div className="ccr-refus-head">
+              <span className="material-symbols-outlined ccr-refus-icon">
+                {refusEnCours ? 'block' : 'history'}
+              </span>
+              <span className="ccr-refus-titre">
+                {refusEnCours ? 'DDR refusée' : 'Refus précédent — corrigée et resoumise'}
+              </span>
+            </div>
+
+            <div className="ccr-refus-label">Motif</div>
+            <p className="ccr-refus-motif">{ddr.motif_refus || '—'}</p>
+
+            {ddr.date_decision && (
+              <div className="ccr-refus-date">
+                Refusée le {fmtDate(ddr.date_decision)}
+                {ddr.decide_par_nom ? ` par ${ddr.decide_par_nom}` : ''}
+              </div>
+            )}
+
+            {ddr.pieces_jointes?.length > 0 && (
+              <>
+                <div className="ccr-refus-label">Documents justificatifs</div>
+                <ul className="ccr-refus-files">
+                  {ddr.pieces_jointes.map(p => (
+                    <li key={p.id}>
+                      <a href={p.url} target="_blank" rel="noopener noreferrer">
+                        <span className="material-symbols-outlined">attach_file</span>
+                        {p.nom_original}
+                      </a>
+                      <span className="ccr-refus-taille">{fmtTaille(p.taille)}</span>
+                    </li>
+                  ))}
+                </ul>
+              </>
+            )}
+
+            {refusPrecedent && (
+              <p className="ccr-refus-hint">
+                Vérifiez que les corrections apportées répondent à ce motif avant de décider.
+              </p>
+            )}
+          </div>
+        )}
 
         {/* Métadonnées */}
         <div className="cp-block">

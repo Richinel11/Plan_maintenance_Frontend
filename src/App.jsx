@@ -43,7 +43,9 @@ import CommNAPTPage from './pages/Communication/NAPT/CommNAPTPage';
 import MesTravaux from './pages/ChargeConsignation/MesTravaux';
 import DetailTravail from './pages/ChargeConsignation/DetailTravail';
 
-import KPI from "./pages/G-Plan/KPI/KpiResults";
+// Rapport « Suivi des travaux prévisionnels » — remplace l'ancienne page KPI
+// (KpiResults + KPI1..KPI8), conservée pour l'instant mais plus routée.
+import KPI from "./pages/G-Plan/KPI/RapportSuivi/RapportSuivi";
 import GestionnaireHistorique from './pages/G-Plan/Historique/Historique';
 import ProtectedRoute from './pages/Security/ProtectedRoute/ProtectedRoute';
 function App() {
